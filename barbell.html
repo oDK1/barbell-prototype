@@ -242,6 +242,12 @@ label.f>span{display:block;font-size:10.5px;letter-spacing:.08em;text-transform:
 .lever-note.warn{background:var(--amber-wash);border-color:#E7D8A8;color:#6B5316}
 @media (max-width:1100px){ .levers{grid-template-columns:1fr} .lever:first-child{border-right:0;border-bottom:1px solid var(--g3)} }
 
+.ticks{position:relative;height:15px}
+.ticks button{position:absolute;top:0;background:none;border:0;padding:0;font:inherit;font-size:10.5px;
+  color:var(--g2);cursor:pointer;line-height:15px}
+.ticks button:hover{color:var(--ink);text-decoration:underline;text-underline-offset:2px}
+.ticks button.on{color:var(--ink);font-weight:600}
+
 /* Class weight against the model: filled bar is held today, tick is the model. */
 .wbar{position:relative;height:10px;background:var(--g4);width:100%}
 .wbar>i{position:absolute;left:0;top:0;bottom:0;display:block}
@@ -3393,12 +3399,16 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                   onChange={(e) => setAum(Math.round(fromPos(+e.target.value / 1000) / 1e5) * 1e5)}
                   style={{ flex: 1, accentColor: "var(--navy)" }} />
               </div>
-              <div style={{ position: "relative", height: 13, fontSize: 10.5, color: "var(--g2)" }}>
+              {/* the published tiers are clickable; the slider covers everything between */}
+              <div className="ticks">
                 {[1e6, 10e6, 100e6].map((a, i) => (
-                  <span key={a} style={{
-                    position: "absolute", left: (pos(a) * 100) + "%",
-                    transform: i === 0 ? "none" : i === 2 ? "translateX(-100%)" : "translateX(-50%)",
-                  }}>{short(a)}</span>
+                  <button key={a} onClick={() => setAum(a)}
+                    className={Math.abs(aum - a) < 1e5 ? "on" : ""}
+                    title={"Model at " + short(a)}
+                    style={{
+                      left: (pos(a) * 100) + "%",
+                      transform: i === 0 ? "none" : i === 2 ? "translateX(-100%)" : "translateX(-50%)",
+                    }}>{short(a)}</button>
                 ))}
               </div>
               <div className="lever-note">

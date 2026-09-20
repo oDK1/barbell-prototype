@@ -293,12 +293,16 @@
                   onChange={(e) => setAum(Math.round(fromPos(+e.target.value / 1000) / 1e5) * 1e5)}
                   style={{ flex: 1, accentColor: "var(--navy)" }} />
               </div>
-              <div style={{ position: "relative", height: 13, fontSize: 10.5, color: "var(--g2)" }}>
+              {/* the published tiers are clickable; the slider covers everything between */}
+              <div className="ticks">
                 {[1e6, 10e6, 100e6].map((a, i) => (
-                  <span key={a} style={{
-                    position: "absolute", left: (pos(a) * 100) + "%",
-                    transform: i === 0 ? "none" : i === 2 ? "translateX(-100%)" : "translateX(-50%)",
-                  }}>{short(a)}</span>
+                  <button key={a} onClick={() => setAum(a)}
+                    className={Math.abs(aum - a) < 1e5 ? "on" : ""}
+                    title={"Model at " + short(a)}
+                    style={{
+                      left: (pos(a) * 100) + "%",
+                      transform: i === 0 ? "none" : i === 2 ? "translateX(-100%)" : "translateX(-50%)",
+                    }}>{short(a)}</button>
                 ))}
               </div>
               <div className="lever-note">

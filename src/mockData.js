@@ -318,17 +318,17 @@
 
   /* ----------------------------------------------------------------- mandate */
   const mandates = [
-    { key: "preservation", label: "Preservation", core: 95, alpha: 5,
-      line: "95/5 · Core in sovereign duration and cash, Alpha in co-invest only",
+    { key: "preservation", label: "Preserve capital", core: 95, alpha: 5,
+      line: "Core in sovereign duration and cash, Alpha in co-invest only",
       targets: { equity: 25, debt: 50, real: 17, cash: 8 } },
-    { key: "balanced", label: "Balanced", core: 90, alpha: 10,
-      line: "90/10 · Core in fixed income and real assets, Alpha in venture and pre-IPO",
+    { key: "balanced", label: "Income and growth", core: 90, alpha: 10,
+      line: "Core in fixed income and real assets, Alpha in venture and pre-IPO",
       targets: { equity: 35, debt: 40, real: 18, cash: 7 }, current: true },
-    { key: "growth", label: "Growth", core: 80, alpha: 20,
-      line: "80/20 · Core tilted to equity, Alpha in venture, growth and secondaries",
+    { key: "growth", label: "Grow the estate", core: 80, alpha: 20,
+      line: "Core tilted to equity, Alpha in venture, growth and secondaries",
       targets: { equity: 46, debt: 28, real: 20, cash: 6 } },
-    { key: "opportunistic", label: "Opportunistic", core: 70, alpha: 30,
-      line: "70/30 · Concentrated private exposure, liquidity held for calls only",
+    { key: "opportunistic", label: "Build alternatives", core: 70, alpha: 30,
+      line: "Concentrated private exposure, liquidity held for calls only",
       targets: { equity: 52, debt: 20, real: 23, cash: 5 } },
   ];
 
@@ -368,20 +368,16 @@
      onboarding is the same posture the model is drawn for. Changing it here
      changes every target, every drift number and every fit score. */
   const modelGoals = [
-    { key: "preservation", label: "Preservation",
-      goal: "Preserve capital",
+    { key: "preservation", label: "Preserve capital",
       line: "Liquidity and duration first. Alternatives only where they are contractual and secured.",
       alt: 0.55, liquid: 1.25, cash: 1.55, equity: 0.85, debt: 1.2 },
-    { key: "balanced", label: "Balanced", default: true,
-      goal: "Income and growth",
+    { key: "balanced", label: "Income and growth", default: true,
       line: "The tier model as published, untilted. What most families at this size actually hold.",
       alt: 1.0, liquid: 1.0, cash: 1.0, equity: 1.0, debt: 1.0 },
-    { key: "growth", label: "Growth",
-      goal: "Grow the estate",
+    { key: "growth", label: "Grow the estate",
       line: "Equity-led, with private exposure rising as the balance sheet can fund the calls.",
       alt: 1.35, liquid: 0.92, cash: 0.7, equity: 1.25, debt: 0.82 },
-    { key: "opportunistic", label: "Opportunistic",
-      goal: "Build alternatives",
+    { key: "opportunistic", label: "Build alternatives",
       line: "Maximise the illiquidity premium the family is able to underwrite at this size.",
       alt: 1.75, liquid: 0.68, cash: 0.6, equity: 1.0, debt: 0.95 },
   ];

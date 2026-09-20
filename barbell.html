@@ -233,6 +233,15 @@ label.f>span{display:block;font-size:10.5px;letter-spacing:.08em;text-transform:
 /* Categorical, not a ramp: four hues a reader can tell apart at 9px. */
 .sw-eq{background:#1B2A4A}.sw-dt{background:#3F7183}.sw-ra{background:#9A7B2E}.sw-cs{background:#A9A396}
 
+/* Two levers, side by side, each labelled — objective and size. */
+.levers{display:grid;grid-template-columns:1.1fr 1fr;border-bottom:1px solid var(--g3)}
+.lever{padding:12px 14px}
+.lever:first-child{border-right:1px solid var(--g3)}
+.lever-note{display:flex;align-items:center;gap:10px;margin-top:8px;font-size:11.5px;color:var(--g1);
+  background:var(--g4);border:1px solid var(--g3);padding:6px 9px}
+.lever-note.warn{background:var(--amber-wash);border-color:#E7D8A8;color:#6B5316}
+@media (max-width:1100px){ .levers{grid-template-columns:1fr} .lever:first-child{border-right:0;border-bottom:1px solid var(--g3)} }
+
 /* Class weight against the model: filled bar is held today, tick is the model. */
 .wbar{position:relative;height:10px;background:var(--g4);width:100%}
 .wbar>i{position:absolute;left:0;top:0;bottom:0;display:block}
@@ -962,17 +971,17 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
   /* ----------------------------------------------------------------- mandate */
   const mandates = [
-    { key: "preservation", label: "Preservation", core: 95, alpha: 5,
-      line: "95/5 · Core in sovereign duration and cash, Alpha in co-invest only",
+    { key: "preservation", label: "Preserve capital", core: 95, alpha: 5,
+      line: "Core in sovereign duration and cash, Alpha in co-invest only",
       targets: { equity: 25, debt: 50, real: 17, cash: 8 } },
-    { key: "balanced", label: "Balanced", core: 90, alpha: 10,
-      line: "90/10 · Core in fixed income and real assets, Alpha in venture and pre-IPO",
+    { key: "balanced", label: "Income and growth", core: 90, alpha: 10,
+      line: "Core in fixed income and real assets, Alpha in venture and pre-IPO",
       targets: { equity: 35, debt: 40, real: 18, cash: 7 }, current: true },
-    { key: "growth", label: "Growth", core: 80, alpha: 20,
-      line: "80/20 · Core tilted to equity, Alpha in venture, growth and secondaries",
+    { key: "growth", label: "Grow the estate", core: 80, alpha: 20,
+      line: "Core tilted to equity, Alpha in venture, growth and secondaries",
       targets: { equity: 46, debt: 28, real: 20, cash: 6 } },
-    { key: "opportunistic", label: "Opportunistic", core: 70, alpha: 30,
-      line: "70/30 · Concentrated private exposure, liquidity held for calls only",
+    { key: "opportunistic", label: "Build alternatives", core: 70, alpha: 30,
+      line: "Concentrated private exposure, liquidity held for calls only",
       targets: { equity: 52, debt: 20, real: 23, cash: 5 } },
   ];
 
@@ -1012,20 +1021,16 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
      onboarding is the same posture the model is drawn for. Changing it here
      changes every target, every drift number and every fit score. */
   const modelGoals = [
-    { key: "preservation", label: "Preservation",
-      goal: "Preserve capital",
+    { key: "preservation", label: "Preserve capital",
       line: "Liquidity and duration first. Alternatives only where they are contractual and secured.",
       alt: 0.55, liquid: 1.25, cash: 1.55, equity: 0.85, debt: 1.2 },
-    { key: "balanced", label: "Balanced", default: true,
-      goal: "Income and growth",
+    { key: "balanced", label: "Income and growth", default: true,
       line: "The tier model as published, untilted. What most families at this size actually hold.",
       alt: 1.0, liquid: 1.0, cash: 1.0, equity: 1.0, debt: 1.0 },
-    { key: "growth", label: "Growth",
-      goal: "Grow the estate",
+    { key: "growth", label: "Grow the estate",
       line: "Equity-led, with private exposure rising as the balance sheet can fund the calls.",
       alt: 1.35, liquid: 0.92, cash: 0.7, equity: 1.25, debt: 0.82 },
-    { key: "opportunistic", label: "Opportunistic",
-      goal: "Build alternatives",
+    { key: "opportunistic", label: "Build alternatives",
       line: "Maximise the illiquidity premium the family is able to underwrite at this size.",
       alt: 1.75, liquid: 0.68, cash: 0.6, equity: 1.0, debt: 0.95 },
   ];
@@ -3167,36 +3172,6 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     );
   }
 
-  /* ------------------------------------------------------------- mandate */
-  /* Where the family states what it is trying to do with the money. It sets the
-     Core/Alpha split and every class target, so it belongs at the top of the
-     portfolio, not only in onboarding. Principal authority. */
-  /* Sits at the top of the model panel: the stated goal, then the chart drawn
-     for it. Principal authority — the Successor sees it, locked. */
-  function MandateRow({ mandate, activity }) {
-    const m = D.mandates.find((x) => x.key === mandate) || D.mandates[1];
-    const confirmed = activity.find((a) => a.kind === "Mandate");
-    return (
-      <div style={{
-        padding: "10px 14px", borderBottom: "1px solid var(--g3)", background: "#FCFBF8",
-        display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap",
-      }}>
-        <span className="lbl" style={{ whiteSpace: "nowrap" }}>Mandate</span>
-        <span style={{ fontWeight: 600, fontSize: 13.5 }}>{m.label}</span>
-        <span className="bdg plain">{m.core} / {m.alpha} Core / Alpha</span>
-        <span className="tri" style={{ fontSize: 12 }}>{m.line}</span>
-        <span style={{ flex: 1 }} />
-        <span className="tri num" style={{ fontSize: 11, whiteSpace: "nowrap" }}>
-          {D.classes.map((c) => c.label.split(" ")[0] + " " + u.pct(c.target)).join(" · ")}
-        </span>
-        {confirmed && <span className="tri" style={{ fontSize: 11, whiteSpace: "nowrap" }}>Confirmed {u.fmtDate(confirmed.ts)}</span>}
-        <Lock sleeve="core">
-          <button className="btn sm" onClick={() => S.navigate("/onboarding/mandate")}>Refine with 8 questions</button>
-        </Lock>
-      </div>
-    );
-  }
-
   /* ------------------------------------------------------- allocation tab */
   function AllocationTab({ positions }) {
     const [open, setOpen] = useState({});
@@ -3333,6 +3308,10 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     const short = (a) => a % 1e6 === 0 ? "$" + (a / 1e6) + "M" : u.usdC(a);
 
     const model = u.modelWeights(aum, goal);
+    const mandate = D.mandates.find((x) => x.key === st.mandate) || D.mandates[1];
+    const selected = D.mandates.find((x) => x.key === goal) || mandate;
+    const confirmed = st.activity.find((a) => a.kind === "Mandate");
+    const atToday = Math.abs(aum - t) < 1e5;
     const cls = u.byClass(positions);
     const subs = u.bySub(positions);
     const clsRows = cls.map((c) => ({
@@ -3368,43 +3347,68 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
           <div className="panel-hd">
             <div>
               <h3>Model portfolio</h3>
-              <div className="tri" style={{ fontSize: 11.5, marginTop: 2 }}>{model.goal.line}</div>
+              <div className="tri" style={{ fontSize: 11.5, marginTop: 2 }}>
+                Two settings decide the shape below: what the family is trying to do, and how much it has.
+              </div>
             </div>
-            <div className="btn-row">
-              <Seg options={D.modelGoals.map((g) => ({ v: g.key, label: g.goal }))} value={goal} onChange={setGoal} />
-              <button className="btn sm" onClick={() => setPath(true)}>Rebalancing path</button>
-            </div>
+            <button className="btn sm" onClick={() => setPath(true)}>Rebalancing path</button>
           </div>
 
-          <MandateRow mandate={st.mandate} activity={st.activity} />
-
-          {whatIf && (
-            <div className="note warn" style={{ border: 0, borderBottom: "1px solid var(--g3)", display: "flex", alignItems: "center", gap: 12 }}>
-              <span style={{ flex: 1 }}>
-                <b>What-if.</b> The mandate is {(D.mandates.find((x) => x.key === st.mandate) || {}).label};
-                this model is drawn for {model.goal.goal}.
-              </span>
-              <span className="btn-row">
-                <button className="btn sm" onClick={() => setGoal(st.mandate)}>Discard</button>
-                <Lock sleeve="core">
-                  <button className="btn sm p" onClick={() => S.actions.setMandate(goal)}>Adopt as mandate</button>
-                </Lock>
-              </span>
+          {/* the two levers, side by side and labelled as such */}
+          <div className="levers">
+            <div className="lever">
+              <div className="lbl">1 · Objective</div>
+              <div className="mt8">
+                <Seg options={D.mandates.map((g) => ({ v: g.key, label: g.label }))} value={goal} onChange={setGoal} />
+              </div>
+              {whatIf ? (
+                <div className="lever-note warn">
+                  <span style={{ flex: 1 }}>A what-if. The family's mandate is <b>{mandate.label}</b>.</span>
+                  <span className="btn-row">
+                    <button className="link g" onClick={() => setGoal(st.mandate)}>Discard</button>
+                    <Lock sleeve="core">
+                      <button className="btn sm p" onClick={() => S.actions.setMandate(goal)}>Adopt as mandate</button>
+                    </Lock>
+                  </span>
+                </div>
+              ) : (
+                <div className="lever-note">
+                  <span style={{ flex: 1 }}>
+                    The family's mandate · <b>{mandate.core} / {mandate.alpha}</b> Core / Alpha
+                    {confirmed ? " · confirmed " + u.fmtDate(confirmed.ts) : ""}
+                  </span>
+                  <Lock sleeve="core">
+                    <button className="link g" onClick={() => S.navigate("/onboarding/mandate")}>Refine with 8 questions</button>
+                  </Lock>
+                </div>
+              )}
+              <div className="tri" style={{ fontSize: 11.5, marginTop: 6 }}>{selected.line}</div>
             </div>
-          )}
 
-          {/* size */}
-          <div style={{ padding: "9px 14px", borderBottom: "1px solid var(--g3)", display: "flex", alignItems: "center", gap: 14 }}>
-            <span className="lbl" style={{ whiteSpace: "nowrap" }}>Modelled at</span>
-            <span className="num" style={{ fontWeight: 600, fontSize: 15, minWidth: 66 }}>{short(aum)}</span>
-            <input type="range" min="0" max="1000" step="1" value={Math.round(pos(aum) * 1000)}
-              onChange={(e) => setAum(Math.round(fromPos(+e.target.value / 1000) / 1e5) * 1e5)}
-              style={{ flex: 1, accentColor: "var(--navy)" }} />
-            <div className="btn-row">
-              {[10e6, 50e6, 100e6].map((a) => (
-                <button key={a} className="btn sm" onClick={() => setAum(a)}>{short(a)}</button>
-              ))}
-              <button className={"btn sm" + (Math.abs(aum - t) < 1e5 ? " p" : "")} onClick={() => setAum(t)}>Today</button>
+            <div className="lever">
+              <div className="lbl">2 · Size</div>
+              <div className="row mt8" style={{ alignItems: "center", gap: 12 }}>
+                <span className="num" style={{ fontSize: 19, fontWeight: 600, letterSpacing: "-.02em", minWidth: 76 }}>{short(aum)}</span>
+                <input type="range" min="0" max="1000" step="1" value={Math.round(pos(aum) * 1000)}
+                  onChange={(e) => setAum(Math.round(fromPos(+e.target.value / 1000) / 1e5) * 1e5)}
+                  style={{ flex: 1, accentColor: "var(--navy)" }} />
+              </div>
+              <div style={{ position: "relative", height: 13, fontSize: 10.5, color: "var(--g2)" }}>
+                {[1e6, 10e6, 100e6].map((a, i) => (
+                  <span key={a} style={{
+                    position: "absolute", left: (pos(a) * 100) + "%",
+                    transform: i === 0 ? "none" : i === 2 ? "translateX(-100%)" : "translateX(-50%)",
+                  }}>{short(a)}</span>
+                ))}
+              </div>
+              <div className="lever-note">
+                <span style={{ flex: 1 }}>
+                  {atToday
+                    ? <>Today's assets. Drag to see the shape at a different size.</>
+                    : <>A what-if — today's assets are {short(t)}.</>}
+                </span>
+                {!atToday && <button className="link g" onClick={() => setAum(t)}>Back to today</button>}
+              </div>
             </div>
           </div>
 
@@ -3475,7 +3479,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
             <span className="tri" style={{ fontSize: 11 }}>Class and subcategory only — never individual securities</span>
           </div>
         </div>
-        {path && <PathModal rows={flat} t={t} model={{ label: model.goal.label + " · " + short(aum) }} onClose={() => setPath(false)} />}
+        {path && <PathModal rows={flat} t={t} model={{ label: selected.label + " · " + short(aum) }} onClose={() => setPath(false)} />}
       </>
     );
   }

@@ -72,36 +72,6 @@
     );
   }
 
-  /* ------------------------------------------------------------- mandate */
-  /* Where the family states what it is trying to do with the money. It sets the
-     Core/Alpha split and every class target, so it belongs at the top of the
-     portfolio, not only in onboarding. Principal authority. */
-  /* Sits at the top of the model panel: the stated goal, then the chart drawn
-     for it. Principal authority — the Successor sees it, locked. */
-  function MandateRow({ mandate, activity }) {
-    const m = D.mandates.find((x) => x.key === mandate) || D.mandates[1];
-    const confirmed = activity.find((a) => a.kind === "Mandate");
-    return (
-      <div style={{
-        padding: "10px 14px", borderBottom: "1px solid var(--g3)", background: "#FCFBF8",
-        display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap",
-      }}>
-        <span className="lbl" style={{ whiteSpace: "nowrap" }}>Mandate</span>
-        <span style={{ fontWeight: 600, fontSize: 13.5 }}>{m.label}</span>
-        <span className="bdg plain">{m.core} / {m.alpha} Core / Alpha</span>
-        <span className="tri" style={{ fontSize: 12 }}>{m.line}</span>
-        <span style={{ flex: 1 }} />
-        <span className="tri num" style={{ fontSize: 11, whiteSpace: "nowrap" }}>
-          {D.classes.map((c) => c.label.split(" ")[0] + " " + u.pct(c.target)).join(" · ")}
-        </span>
-        {confirmed && <span className="tri" style={{ fontSize: 11, whiteSpace: "nowrap" }}>Confirmed {u.fmtDate(confirmed.ts)}</span>}
-        <Lock sleeve="core">
-          <button className="btn sm" onClick={() => S.navigate("/onboarding/mandate")}>Refine with 8 questions</button>
-        </Lock>
-      </div>
-    );
-  }
-
   /* ------------------------------------------------------- allocation tab */
   function AllocationTab({ positions }) {
     const [open, setOpen] = useState({});
@@ -238,6 +208,10 @@
     const short = (a) => a % 1e6 === 0 ? "$" + (a / 1e6) + "M" : u.usdC(a);
 
     const model = u.modelWeights(aum, goal);
+    const mandate = D.mandates.find((x) => x.key === st.mandate) || D.mandates[1];
+    const selected = D.mandates.find((x) => x.key === goal) || mandate;
+    const confirmed = st.activity.find((a) => a.kind === "Mandate");
+    const atToday = Math.abs(aum - t) < 1e5;
     const cls = u.byClass(positions);
     const subs = u.bySub(positions);
     const clsRows = cls.map((c) => ({
@@ -273,43 +247,68 @@
           <div className="panel-hd">
             <div>
               <h3>Model portfolio</h3>
-              <div className="tri" style={{ fontSize: 11.5, marginTop: 2 }}>{model.goal.line}</div>
+              <div className="tri" style={{ fontSize: 11.5, marginTop: 2 }}>
+                Two settings decide the shape below: what the family is trying to do, and how much it has.
+              </div>
             </div>
-            <div className="btn-row">
-              <Seg options={D.modelGoals.map((g) => ({ v: g.key, label: g.goal }))} value={goal} onChange={setGoal} />
-              <button className="btn sm" onClick={() => setPath(true)}>Rebalancing path</button>
-            </div>
+            <button className="btn sm" onClick={() => setPath(true)}>Rebalancing path</button>
           </div>
 
-          <MandateRow mandate={st.mandate} activity={st.activity} />
-
-          {whatIf && (
-            <div className="note warn" style={{ border: 0, borderBottom: "1px solid var(--g3)", display: "flex", alignItems: "center", gap: 12 }}>
-              <span style={{ flex: 1 }}>
-                <b>What-if.</b> The mandate is {(D.mandates.find((x) => x.key === st.mandate) || {}).label};
-                this model is drawn for {model.goal.goal}.
-              </span>
-              <span className="btn-row">
-                <button className="btn sm" onClick={() => setGoal(st.mandate)}>Discard</button>
-                <Lock sleeve="core">
-                  <button className="btn sm p" onClick={() => S.actions.setMandate(goal)}>Adopt as mandate</button>
-                </Lock>
-              </span>
+          {/* the two levers, side by side and labelled as such */}
+          <div className="levers">
+            <div className="lever">
+              <div className="lbl">1 · Objective</div>
+              <div className="mt8">
+                <Seg options={D.mandates.map((g) => ({ v: g.key, label: g.label }))} value={goal} onChange={setGoal} />
+              </div>
+              {whatIf ? (
+                <div className="lever-note warn">
+                  <span style={{ flex: 1 }}>A what-if. The family's mandate is <b>{mandate.label}</b>.</span>
+                  <span className="btn-row">
+                    <button className="link g" onClick={() => setGoal(st.mandate)}>Discard</button>
+                    <Lock sleeve="core">
+                      <button className="btn sm p" onClick={() => S.actions.setMandate(goal)}>Adopt as mandate</button>
+                    </Lock>
+                  </span>
+                </div>
+              ) : (
+                <div className="lever-note">
+                  <span style={{ flex: 1 }}>
+                    The family's mandate · <b>{mandate.core} / {mandate.alpha}</b> Core / Alpha
+                    {confirmed ? " · confirmed " + u.fmtDate(confirmed.ts) : ""}
+                  </span>
+                  <Lock sleeve="core">
+                    <button className="link g" onClick={() => S.navigate("/onboarding/mandate")}>Refine with 8 questions</button>
+                  </Lock>
+                </div>
+              )}
+              <div className="tri" style={{ fontSize: 11.5, marginTop: 6 }}>{selected.line}</div>
             </div>
-          )}
 
-          {/* size */}
-          <div style={{ padding: "9px 14px", borderBottom: "1px solid var(--g3)", display: "flex", alignItems: "center", gap: 14 }}>
-            <span className="lbl" style={{ whiteSpace: "nowrap" }}>Modelled at</span>
-            <span className="num" style={{ fontWeight: 600, fontSize: 15, minWidth: 66 }}>{short(aum)}</span>
-            <input type="range" min="0" max="1000" step="1" value={Math.round(pos(aum) * 1000)}
-              onChange={(e) => setAum(Math.round(fromPos(+e.target.value / 1000) / 1e5) * 1e5)}
-              style={{ flex: 1, accentColor: "var(--navy)" }} />
-            <div className="btn-row">
-              {[10e6, 50e6, 100e6].map((a) => (
-                <button key={a} className="btn sm" onClick={() => setAum(a)}>{short(a)}</button>
-              ))}
-              <button className={"btn sm" + (Math.abs(aum - t) < 1e5 ? " p" : "")} onClick={() => setAum(t)}>Today</button>
+            <div className="lever">
+              <div className="lbl">2 · Size</div>
+              <div className="row mt8" style={{ alignItems: "center", gap: 12 }}>
+                <span className="num" style={{ fontSize: 19, fontWeight: 600, letterSpacing: "-.02em", minWidth: 76 }}>{short(aum)}</span>
+                <input type="range" min="0" max="1000" step="1" value={Math.round(pos(aum) * 1000)}
+                  onChange={(e) => setAum(Math.round(fromPos(+e.target.value / 1000) / 1e5) * 1e5)}
+                  style={{ flex: 1, accentColor: "var(--navy)" }} />
+              </div>
+              <div style={{ position: "relative", height: 13, fontSize: 10.5, color: "var(--g2)" }}>
+                {[1e6, 10e6, 100e6].map((a, i) => (
+                  <span key={a} style={{
+                    position: "absolute", left: (pos(a) * 100) + "%",
+                    transform: i === 0 ? "none" : i === 2 ? "translateX(-100%)" : "translateX(-50%)",
+                  }}>{short(a)}</span>
+                ))}
+              </div>
+              <div className="lever-note">
+                <span style={{ flex: 1 }}>
+                  {atToday
+                    ? <>Today's assets. Drag to see the shape at a different size.</>
+                    : <>A what-if — today's assets are {short(t)}.</>}
+                </span>
+                {!atToday && <button className="link g" onClick={() => setAum(t)}>Back to today</button>}
+              </div>
             </div>
           </div>
 
@@ -380,7 +379,7 @@
             <span className="tri" style={{ fontSize: 11 }}>Class and subcategory only — never individual securities</span>
           </div>
         </div>
-        {path && <PathModal rows={flat} t={t} model={{ label: model.goal.label + " · " + short(aum) }} onClose={() => setPath(false)} />}
+        {path && <PathModal rows={flat} t={t} model={{ label: selected.label + " · " + short(aum) }} onClose={() => setPath(false)} />}
       </>
     );
   }

@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=1280" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Barbell — Family Office Workspace</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="app.css" />
+</head>
+<body>
+<div id="root"><div class="boot">Loading workspace…</div></div>
+
+<script src="../vendor/react.production.min.js"></script>
+<script src="../vendor/react-dom.production.min.js"></script>
+<script src="../vendor/babel.min.js"></script>
+
+<!-- Seeded truth and derived maths are shared with take 1, unchanged. -->
+<script src="../src/mockData.js"></script>
+<script src="../src/util.js"></script>
+
+<!-- Take 2. Order: data supplement → store → primitives → charts → screens → shell. -->
+<script type="text/babel" data-presets="react" src="data.js"></script>
+<script type="text/babel" data-presets="react" src="store.js"></script>
+<script type="text/babel" data-presets="react" src="ui.js"></script>
+<script type="text/babel" data-presets="react" src="charts.js"></script>
+<script type="text/babel" data-presets="react" src="p_today.js"></script>
+<script type="text/babel" data-presets="react" src="p_book.js"></script>
+<script type="text/babel" data-presets="react" src="p_offerings.js"></script>
+<script type="text/babel" data-presets="react" src="p_exchange.js"></script>
+<script type="text/babel" data-presets="react" src="p_sync.js"></script>
+<script type="text/babel" data-presets="react" src="app.js"></script>
+</body>
+</html>

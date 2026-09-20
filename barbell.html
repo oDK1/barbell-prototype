@@ -3190,7 +3190,6 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     const mandateLabel = (D.mandates.find((m) => m.key === S.get().mandate) || D.mandates[1]).label;
     const t2 = u.total(positions);
     const model = u.modelWeights(t2, S.get().mandate);
-    const altShare = (u.total(positions.filter((p) => D.ALT_SUBS.indexOf(p.sub) >= 0)) / t2) * 100;
 
     return (
       <>
@@ -3279,9 +3278,8 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
               const el = document.getElementById("model-panel");
               if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
             }}>Compare with the model</button>}>
-            The book is {cls.map((c) => u.pct(c.wt) + " " + c.label.toLowerCase()).join(", ")}. Cutting across three of
-            those four, <b>{u.pct(altShare)}</b> sits in alternatives — private equity, venture, pre-IPO, private credit,
-            real estate and infrastructure — against {u.pct(model.alts)} in the model for this size and objective.
+            The book is {cls.map((c) => u.pct(c.wt) + " " + c.label.toLowerCase()).join(", ")}. The model for this size
+            and objective suggests {D.classes.map((c) => u.pct(model.classes[c.key])).join(" / ")} in the same order.
             Differences of a few points are normal and not, on their own, a reason to trade.
           </Agent>
         </div>
@@ -3327,18 +3325,6 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     }));
     const flat = clsRows.reduce((a, c) => a.concat(c.kids), []);
     const SCALE = 45;                                   // one shared axis for every bar
-    const altNow = (u.total(positions.filter((p) => D.ALT_SUBS.indexOf(p.sub) >= 0)) / t) * 100;
-
-    /* how the alternatives weight moves with size — the one trend worth a picture */
-    const N = 25, SW = 180, SH = 30;
-    const vals = [];
-    for (let i = 0; i < N; i++) vals.push(u.modelWeights(fromPos(i / (N - 1)), goal).alts);
-    /* scale to the series, not to 0–100, or the rise is invisible */
-    const lo = Math.min(...vals), hi = Math.max(...vals), span = Math.max(hi - lo, 1);
-    const sy = (v) => SH - 3 - ((v - lo) / span) * (SH - 8);
-    const spark = vals.map((v, i) => ((i / (N - 1)) * SW).toFixed(1) + "," + sy(v).toFixed(1)).join(" ");
-    const here = { x: pos(aum) * SW, y: sy(model.alts) };
-    const at10 = u.modelWeights(10e6, goal), at100 = u.modelWeights(100e6, goal);
 
     const Bar = ({ held, target, color }) => (
       <div className="wbar" title={"held " + u.pct(held) + " · model " + u.pct(target)}>
@@ -3466,27 +3452,8 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
             </tbody>
           </table>
 
-          {/* the one trend: alternatives against size */}
-          <div style={{ padding: "10px 14px", borderTop: "1px solid var(--g3)", display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
-            <span className="lbl" style={{ whiteSpace: "nowrap" }}>Alternatives</span>
-            <span className="tri" style={{ fontSize: 11.5 }}>across the classes above, not a fifth one</span>
-            <span className="num" style={{ fontSize: 12.5 }}>
-              <b>{u.pct(altNow)}</b> held · model {u.pct(model.alts)}
-            </span>
-            <svg className="spark" viewBox={"0 0 " + SW + " " + SH} width={SW} height={SH}
-              style={{ flexShrink: 0, border: "1px solid var(--g3)", background: "var(--paper)" }}>
-              <polyline points={spark} fill="none" stroke="var(--navy)" strokeWidth="1.5" />
-              <circle cx={here.x} cy={here.y} r="2.5" fill="var(--ink)" />
-            </svg>
-            <span className="tri" style={{ fontSize: 11.5 }}>
-              {u.pct(at10.alts)} at $10M → {u.pct(at100.alts)} at $100M · the illiquidity budget follows the size of
-              the balance sheet that has to fund the calls
-            </span>
-            <span className="tri" style={{ fontSize: 11 }}>
-              = private equity + venture + pre-IPO + private credit + real estate + infrastructure
-            </span>
-            <span style={{ flex: 1 }} />
-            <span className="tri" style={{ fontSize: 11 }}>Class and subcategory only — never individual securities</span>
+          <div style={{ padding: "8px 14px", borderTop: "1px solid var(--g3)", fontSize: 11, color: "var(--g2)" }}>
+            Class and subcategory only — never individual securities.
           </div>
         </div>
         {path && <PathModal rows={flat} t={t} model={{ label: selected.label + " · " + short(aum) }} onClose={() => setPath(false)} />}

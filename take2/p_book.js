@@ -117,10 +117,12 @@
             h("th", { className: "right" }, "Model"),
             h("th", { className: "right" }, "Difference"),
             h("th", { className: "right" }, "In dollars"),
-            h("th", null, ""))),
+            h("th", null, "Held against model"))),
           h("tbody", null, cls.map((c) => {
             const m = model.classes[c.key];
             const d = c.wt - m;
+            const scale = Math.max.apply(null, cls.map((x) =>
+              Math.max(x.wt, model.classes[x.key]))) * 1.05;
             return h("tr", { key: c.key },
               h("td", null, h("div", { className: "row", style: { gap: 8 } },
                 h(U.Swatch, { cls: c.key }), c.label)),
@@ -128,10 +130,15 @@
               h("td", { className: "tnum" }, u.pct(m, 1)),
               h("td", { className: "tnum tri" }, u.pp(d, 1)),
               h("td", { className: "tnum tri" }, u.sgnUsd((m - c.wt) / 100 * total)),
-              h("td", { style: { width: 150 } },
-                h("div", { className: "bar-track" },
-                  h("div", { style: { width: Math.min(100, (c.wt / Math.max(c.wt, m)) * 100) + "%",
-                                      background: U.CLS_COLOR[c.key] } }))));
+              /* One shared scale across the rows, so the bars compare with each
+                 other; the hairline tick is where the model would put it. */
+              h("td", { style: { width: 160 } },
+                h("div", { className: "bar-track", style: { position: "relative" } },
+                  h("div", { style: { width: (c.wt / scale) * 100 + "%",
+                                      background: U.CLS_COLOR[c.key] } }),
+                  h("div", { style: { position: "absolute", top: -2, bottom: -2,
+                                      left: (m / scale) * 100 + "%", width: 2,
+                                      background: "var(--ink)" } }))));
           }),
           h("tr", null,
             h("td", { className: "strong" }, "Alternatives"),

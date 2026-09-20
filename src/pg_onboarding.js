@@ -2,7 +2,7 @@
 (function () {
   const { useState, useEffect, useRef } = React;
   const D = BB.data, u = BB.u, S = BB.store;
-  const { Money, Panel, Crumb, Amount } = BB.ui;
+  const { Money, Panel, Crumb, Amount, Dropzone, FileRow } = BB.ui;
   const { Agent } = BB.agent;
 
   const STEP_MS = 750;
@@ -10,10 +10,8 @@
   /* ------------------------------------------------------------ 1. upload */
   function Upload() {
     const st = S.useStore();
-    const [files, setFiles] = useState(D.uploadFiles);
+    const files = st.uploads;
     const [step, setStep] = useState(st.ingestDone ? D.ingestSteps.length : -1);
-    const [hot, setHot] = useState(false);
-    const input = useRef(null);
 
     useEffect(() => {
       if (st.ingestDone) return;
@@ -28,49 +26,25 @@
     }, []);
 
     const done = step >= D.ingestSteps.length;
-    const addFile = (name) => setFiles((f) => f.concat([{ id: "f" + (f.length + 1), name, size: "— KB", sheets: 1, rows: 0, note: "Added in this session" }]));
 
     return (
       <div className="wrap page" style={{ maxWidth: 1080 }}>
         <Crumb items={[{ label: "Onboarding" }, { label: "Upload" }]} />
         <h1>Bring the spreadsheets in</h1>
         <div className="sub mt8" style={{ maxWidth: "72ch" }}>
-          Three files are already staged from the family CFO. Drop more if you have them — format does not matter.
+          {files.length} {files.length === 1 ? "file is" : "files are"} staged. Drop more if you have them — format
+          and language do not matter.
         </div>
 
-        <div className={"dz mt16" + (hot ? " hot" : "")}
-          onDragOver={(e) => { e.preventDefault(); setHot(true); }}
-          onDragLeave={() => setHot(false)}
-          onDrop={(e) => { e.preventDefault(); setHot(false); Array.from(e.dataTransfer.files || []).forEach((f) => addFile(f.name)); }}
-          onClick={() => input.current && input.current.click()}
-          style={{ cursor: "pointer" }}>
-          <input ref={input} type="file" multiple style={{ display: "none" }}
-            onChange={(e) => Array.from(e.target.files || []).forEach((f) => addFile(f.name))} />
-          <div style={{ fontSize: 16, fontWeight: 600 }}>Drop your portfolio spreadsheets. Any format.</div>
-          <div className="tri mt8" style={{ fontSize: 12 }}>.xlsx · .xls · .csv · .numbers · PDF statements · 한글 파일명 지원</div>
-        </div>
+        <Dropzone onFiles={(f) => S.actions.addUploads(f)}
+          title="Drop your portfolio spreadsheets. Any format."
+          hint=".xlsx · .xls · .csv · .numbers · PDF statements · 한글 파일명 지원" />
 
         <div className="filelist mt16">
-          {files.map((f, i) => (
-            <div className="fi" key={f.id}>
-              <span className="mono tri">XLS</span>
-              <div style={{ flex: 1 }}>
-                <div className="nm">{f.name}</div>
-                <div className="mt">{f.size} · {f.sheets} sheets · {f.note}</div>
-              </div>
-              <div style={{ width: 260 }}>
-                <div className="between" style={{ marginBottom: 4 }}>
-                  <span className="tri" style={{ fontSize: 11 }}>
-                    {done ? "Reconciled" : step < 0 ? "Queued" : D.ingestSteps[Math.min(step, D.ingestSteps.length - 1)]}
-                  </span>
-                  <span className="tri num" style={{ fontSize: 11 }}>
-                    {done ? "100%" : Math.max(0, Math.round(((step + 1) / D.ingestSteps.length) * 100)) + "%"}
-                  </span>
-                </div>
-                <div className="prog"><i style={{ width: (done ? 100 : Math.max(0, ((step + 1) / D.ingestSteps.length) * 100)) + "%" }} /></div>
-              </div>
-              {done && <span className="bdg live"><i className="pt" />Done</span>}
-            </div>
+          {files.map((f) => (
+            <FileRow key={f.id} f={f}
+              state={done ? "Reconciled" : step < 0 ? "Queued" : D.ingestSteps[Math.min(step, D.ingestSteps.length - 1)]}
+              pct={done ? 100 : Math.max(0, ((step + 1) / D.ingestSteps.length) * 100)} />
           ))}
         </div>
 

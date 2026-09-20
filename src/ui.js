@@ -186,6 +186,51 @@
     );
   }
 
+  /* Drop target for spreadsheets. Used on the entry screen and in onboarding,
+     so a file added in one place shows up in the other. */
+  function Dropzone({ onFiles, title, hint, compact }) {
+    const [hot, setHot] = useState(false);
+    const input = useRef(null);
+    const take = (list) => { const f = Array.from(list || []); if (f.length) onFiles(f); };
+    return (
+      <div className={"dz" + (hot ? " hot" : "") + (compact ? " sm" : "")}
+        onDragOver={(e) => { e.preventDefault(); setHot(true); }}
+        onDragLeave={() => setHot(false)}
+        onDrop={(e) => { e.preventDefault(); setHot(false); take(e.dataTransfer.files); }}
+        onClick={() => input.current && input.current.click()}
+        style={{ cursor: "pointer" }}>
+        <input ref={input} type="file" multiple style={{ display: "none" }}
+          onChange={(e) => { take(e.target.files); e.target.value = ""; }} />
+        <div style={{ fontSize: compact ? 14.5 : 16, fontWeight: 600 }}>{title}</div>
+        <div className="tri mt8" style={{ fontSize: 12 }}>{hint}</div>
+      </div>
+    );
+  }
+
+  /* One staged file, with whatever the agent has managed to read from it. */
+  function FileRow({ f, state, pct, onRemove }) {
+    return (
+      <div className="fi">
+        <span className="mono tri">XLS</span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div className="nm">{f.name}</div>
+          <div className="mt">{f.size}{f.sheets ? " · " + f.sheets + " sheets" : ""} · {f.note}</div>
+        </div>
+        {state && (
+          <div style={{ width: 230 }}>
+            <div className="between" style={{ marginBottom: 4 }}>
+              <span className="tri" style={{ fontSize: 11 }}>{state}</span>
+              <span className="tri num" style={{ fontSize: 11 }}>{Math.round(pct)}%</span>
+            </div>
+            <div className="prog"><i style={{ width: pct + "%" }} /></div>
+          </div>
+        )}
+        {pct >= 100 && <span className="bdg live"><i className="pt" />Done</span>}
+        {onRemove && <button className="x" title="Remove" onClick={(e) => { e.stopPropagation(); onRemove(f.id); }}>×</button>}
+      </div>
+    );
+  }
+
   /* Amount field that accepts typed numbers and shows the KRW equivalent. */
   function Amount({ value, onChange, placeholder, min }) {
     return (
@@ -203,5 +248,5 @@
     );
   }
 
-  BB.ui = { Money, Delta, ProvBadge, SleeveBadge, LiqBadge, Lock, Stat, Band, Panel, Tabs, Seg, Modal, MiniBar, Fit, Crumb, Toast, Amount };
+  BB.ui = { Money, Delta, ProvBadge, SleeveBadge, LiqBadge, Lock, Stat, Band, Panel, Tabs, Seg, Modal, MiniBar, Fit, Crumb, Toast, Amount, Dropzone, FileRow };
 })();

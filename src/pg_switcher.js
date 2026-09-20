@@ -1,7 +1,7 @@
 /* / — demo entry. Two accounts, one family office. */
 (function () {
   const D = BB.data, u = BB.u, S = BB.store;
-  const { Money } = BB.ui;
+  const { Money, Dropzone, FileRow } = BB.ui;
 
   function Card({ a, on, onPick }) {
     return (
@@ -42,7 +42,40 @@
           Choose an account to begin, or switch at any time from the top right.
         </div>
 
-        <div className="band mt24">
+        {/* the way in: give the product the spreadsheets the family already runs on */}
+        <div className="panel mt24">
+          <div className="panel-hd">
+            <div>
+              <h3>Start here — bring the spreadsheets in</h3>
+              <div className="tri" style={{ fontSize: 11.5, marginTop: 2 }}>
+                Holdings, capital call schedules, rent rolls, custodian exports. Format and language do not matter.
+              </div>
+            </div>
+            <span className="bdg plain">{st.uploads.length} files staged</span>
+          </div>
+          <div className="panel-bd">
+            <Dropzone compact onFiles={(f) => S.actions.addUploads(f)}
+              title="Drop your portfolio spreadsheets. Any format."
+              hint=".xlsx · .xls · .csv · .numbers · PDF statements · 한글 파일명 지원" />
+            <div className="filelist mt12">
+              {st.uploads.map((f) => (
+                <FileRow key={f.id} f={f} onRemove={(id) => S.actions.removeUpload(id)} />
+              ))}
+            </div>
+            <div className="btn-row mt12">
+              <button className="btn p lg" disabled={!st.uploads.length}
+                onClick={() => S.navigate("/onboarding/upload")}>
+                Read {st.uploads.length} files and extract positions →
+              </button>
+              <span className="tri" style={{ fontSize: 11.5 }}>
+                Three files are already staged from the family CFO, so you can walk the flow without uploading anything.
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <h2 className="mt32 mb12">Or open the book as it stands</h2>
+        <div className="band">
           <div className="cell"><div className="stat-l">Total assets</div><div className="stat-v"><Money v={t} compact /></div></div>
           <div className="cell"><div className="stat-l">Core sleeve</div><div className="stat-v"><Money v={sl.core} compact /></div>
             <div className="stat-s">{u.pct(sl.corePct)} · target {u.pct(D.family.coreTarget * 100)}</div></div>
@@ -61,7 +94,6 @@
           <div className="panel-hd"><h3>Start elsewhere</h3></div>
           <div className="panel-bd">
             <div className="btn-row">
-              <button className="btn" onClick={() => S.navigate("/onboarding/upload")}>Replay Excel ingestion</button>
               <button className="btn" onClick={() => S.navigate("/marketplace")}>Marketplace</button>
               <button className="btn" onClick={() => S.navigate("/secondary")}>Secondary board</button>
               <button className="btn" onClick={() => S.navigate("/activity")}>Activity log</button>

@@ -29,6 +29,7 @@
     referrals: clone(D.referrals),
     mandate: "balanced",
     survey: {},
+    uploads: clone(D.uploadFiles),
     exceptions: clone(D.exceptions).map((e) => ({ ...e, resolved: false, value: e.type === "input" ? e.suggestion : e.answer })),
     ingestDone: false,
     toast: null,
@@ -94,6 +95,25 @@
       if (e) e.resolved = false; emit();
     },
     setIngestDone(v) { state.ingestDone = v; emit(); },
+
+    addUploads(files) {
+      const size = (b) => !b ? "— KB" : b > 1e6 ? (b / 1e6).toFixed(1) + " MB" : Math.max(1, Math.round(b / 1024)) + " KB";
+      files.forEach((f) => {
+        state.uploads.push({
+          id: nextId("f"), name: f.name, size: size(f.size), sheets: null,
+          note: "Added in this session",
+        });
+      });
+      state.ingestDone = false;              // new files mean the read runs again
+      log("Onboarding", "Staged " + files.length + (files.length === 1 ? " file" : " files") + " for ingestion",
+        files.map((f) => f.name).join(", "));
+      toast(files.length === 1 ? "1 file staged" : files.length + " files staged");
+      emit();
+    },
+    removeUpload(id) {
+      state.uploads = state.uploads.filter((f) => f.id !== id);
+      emit();
+    },
 
     setMandate(key) {
       const m = D.mandates.find((x) => x.key === key);

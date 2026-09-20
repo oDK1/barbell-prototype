@@ -203,9 +203,10 @@
               const el = document.getElementById("model-panel");
               if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
             }}>Compare with the model</button>}>
-            The book is {cls.map((c) => u.pct(c.wt) + " " + c.label.toLowerCase()).join(", ")}, with{" "}
-            <b>{u.pct(altShare)}</b> in alternatives. The model for this size and objective suggests{" "}
-            {u.pct(model.alts)}. Differences of a few points are normal and not, on their own, a reason to trade.
+            The book is {cls.map((c) => u.pct(c.wt) + " " + c.label.toLowerCase()).join(", ")}. Cutting across three of
+            those four, <b>{u.pct(altShare)}</b> sits in alternatives — private equity, venture, pre-IPO, private credit,
+            real estate and infrastructure — against {u.pct(model.alts)} in the model for this size and objective.
+            Differences of a few points are normal and not, on their own, a reason to trade.
           </Agent>
         </div>
 
@@ -359,6 +360,7 @@
           {/* the one trend: alternatives against size */}
           <div style={{ padding: "10px 14px", borderTop: "1px solid var(--g3)", display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
             <span className="lbl" style={{ whiteSpace: "nowrap" }}>Alternatives</span>
+            <span className="tri" style={{ fontSize: 11.5 }}>across the classes above, not a fifth one</span>
             <span className="num" style={{ fontSize: 12.5 }}>
               <b>{u.pct(altNow)}</b> held · model {u.pct(model.alts)}
             </span>
@@ -370,6 +372,9 @@
             <span className="tri" style={{ fontSize: 11.5 }}>
               {u.pct(at10.alts)} at $10M → {u.pct(at100.alts)} at $100M · the illiquidity budget follows the size of
               the balance sheet that has to fund the calls
+            </span>
+            <span className="tri" style={{ fontSize: 11 }}>
+              = private equity + venture + pre-IPO + private credit + real estate + infrastructure
             </span>
             <span style={{ flex: 1 }} />
             <span className="tri" style={{ fontSize: 11 }}>Class and subcategory only — never individual securities</span>
@@ -869,8 +874,9 @@
     const t = u.total(ps);
     const sl = u.sleeveTotals(ps);
     const cls = u.byClass(ps);
-    const model = u.modelWeights(t, st.mandate);
-    const altShare = (u.total(ps.filter((p) => D.ALT_SUBS.indexOf(p.sub) >= 0)) / t) * 100;
+    const priv = ps.filter((p) => p.liq !== "Daily");
+    const privShare = (u.total(priv) / t) * 100;
+    const privCount = priv.length;
     const liq = u.liquidity90(ps);
     const stale = ps.filter((p) => p.prov === "self" && u.staleness(p).d > 90);
     const alpha = ps.filter((p) => p.sleeve === "alpha");
@@ -919,8 +925,8 @@
                 <div className="stat-s">direct commitment limit</div></div>
               <div className="cell"><div className="stat-l">Total assets (read-only)</div><div className="stat-v"><Money v={t} compact /></div>
                 <div className="stat-s">Core {u.usd(sl.core)} · Principal authority</div></div>
-              <div className="cell"><div className="stat-l">Alternatives</div><div className="stat-v">{u.pct(altShare)}</div>
-                <div className="stat-s">of assets · model {u.pct(model.alts)}</div></div>
+              <div className="cell"><div className="stat-l">Private assets</div><div className="stat-v">{u.pct(privShare)}</div>
+                <div className="stat-s">{privCount} positions · locked or quarterly</div></div>
             </>
           ) : (
             <>
@@ -932,8 +938,8 @@
                 <div className="stat-s">{u.sgn((u.unrealized(ps) / (t - u.unrealized(ps))) * 100)} on cost</div></div>
               <div className="cell"><div className="stat-l">Liquidity · next 90 days</div><div className="stat-v"><Money v={liq.within90} compact /></div>
                 <div className="stat-s">{u.usdC(liq.cash)} cash · {u.usdC(liq.listed)} listed</div></div>
-              <div className="cell"><div className="stat-l">Alternatives</div><div className="stat-v">{u.pct(altShare)}</div>
-                <div className="stat-s">of assets · model suggests {u.pct(model.alts)} at this size</div></div>
+              <div className="cell"><div className="stat-l">Private assets</div><div className="stat-v">{u.pct(privShare)}</div>
+                <div className="stat-s">{privCount} positions · locked or quarterly · {ps.length - privCount} listed</div></div>
             </>
           )}
         </div>

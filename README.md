@@ -8,6 +8,29 @@ members-only secondary board that gives the illiquid half a price.
 No backend, no auth, no network calls. All data is seeded in `src/mockData.js` and every action
 resolves against in-memory state.
 
+## Share it
+
+Live, public, no login required:
+
+**https://odk1.github.io/barbell-prototype/**
+
+Served by GitHub Pages from `main` in this repository. Anyone with the link can open it on any
+device — no Claude account, no Hanwha account, nothing to install. A `noindex` tag and a
+`robots.txt` keep it out of search results, so it is unlisted rather than advertised, but the
+repository itself is public: treat the URL as shareable, not secret.
+
+To update what visitors see, push to `main` — Pages rebuilds in about a minute:
+
+```bash
+git add -A && git commit -m "…" && git push
+```
+
+To take it down: `gh api repos/oDK1/barbell-prototype/pages -X DELETE` disables the site and leaves
+the code, or delete the repository to remove both.
+
+`barbell.html` in the repository root is the same prototype inlined into one self-contained file —
+email it, or drop it on any static host. Regenerate it after changes with `python3 build.py`.
+
 ## Run it
 
 ```bash

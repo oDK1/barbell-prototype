@@ -133,27 +133,6 @@
     );
   }
 
-  /* Stacked current allocation with the target rendered as a second band. */
-  function AllocBar({ rows, height = 22 }) {
-    const t = rows.reduce((a, r) => a + r.value, 0);
-    return (
-      <div>
-        <div className="lbl" style={{ marginBottom: 4 }}>Current</div>
-        <div className="allocbar" style={{ height }}>
-          {rows.map((r) => (
-            <div key={r.key} className={"seg-a " + r.sw} style={{ width: (r.value / t) * 100 + "%" }} title={r.label + " " + u.pct(r.wt)} />
-          ))}
-        </div>
-        <div className="lbl" style={{ margin: "8px 0 4px" }}>Target</div>
-        <div className="allocbar" style={{ height: height - 8 }}>
-          {rows.map((r) => (
-            <div key={r.key} className={"seg-a " + r.sw} style={{ width: r.target + "%", opacity: .38 }} title={r.label + " target " + u.pct(r.target)} />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
   /* One subcategory: filled bar for current, tick for target. */
   function MiniBar({ cur, target, max }) {
     const m = max || Math.max(cur, target) * 1.35 || 1;
@@ -224,5 +203,5 @@
     );
   }
 
-  BB.ui = { Money, Delta, ProvBadge, SleeveBadge, LiqBadge, Lock, Stat, Band, Panel, Tabs, Seg, Modal, AllocBar, MiniBar, Fit, Crumb, Toast, Amount };
+  BB.ui = { Money, Delta, ProvBadge, SleeveBadge, LiqBadge, Lock, Stat, Band, Panel, Tabs, Seg, Modal, MiniBar, Fit, Crumb, Toast, Amount };
 })();

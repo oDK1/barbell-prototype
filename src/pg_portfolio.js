@@ -2,7 +2,7 @@
 (function () {
   const { useState } = React;
   const D = BB.data, u = BB.u, S = BB.store;
-  const { Money, Delta, Panel, Tabs, Seg, MiniBar, AllocBar, ProvBadge, SleeveBadge, Modal, Lock } = BB.ui;
+  const { Money, Delta, Panel, Tabs, Seg, MiniBar, ProvBadge, SleeveBadge, Modal, Lock } = BB.ui;
   const { Agent, runQuery } = BB.agent;
 
   /* Drift is context, not a verdict: grey, unsigned by colour, no urgency. */
@@ -217,26 +217,23 @@
   }
 
   /* --------------------------------------------------- model portfolio */
-  /* Graphical and interactive: set the AUM and the objective, and watch the
-     recommended shape move. The point the chart is making is that alternatives
-     are a function of size — a $5M book cannot underwrite a ten-year lock-up,
-     and a $100M one is leaving the illiquidity premium on the table if it does not. */
+  /* Compact by design: the objective and the size at the top, then one row per
+     class showing what is held against what the model suggests, then a single
+     line on alternatives. The bar is the graphic — filled is held today, the
+     tick is the model. */
   function ModelPanel({ positions }) {
     const st = S.useStore();
     const t = u.total(positions);
     const [aum, setAum] = useState(t);
-    /* The chart opens on the family's stated posture. Changing it here is a
-       what-if until the Principal adopts it. */
     const [goal, setGoal] = useState(st.mandate);
     React.useEffect(() => { setGoal(st.mandate); }, [st.mandate]);
     const [open, setOpen] = useState({});
     const [path, setPath] = useState(false);
     const whatIf = goal !== st.mandate;
 
-    const MAXX = 150;                                   // chart runs $1M → $150M
-    const pos = (a) => Math.log(Math.max(a, 1e6) / 1e6) / Math.log(MAXX);   // 0 … 1
+    const MAXX = 150;
+    const pos = (a) => Math.log(Math.max(a, 1e6) / 1e6) / Math.log(MAXX);
     const fromPos = (v) => 1e6 * Math.pow(MAXX, v);
-    /* Axis ticks and presets are round millions — no stray decimal. */
     const short = (a) => a % 1e6 === 0 ? "$" + (a / 1e6) + "M" : u.usdC(a);
 
     const model = u.modelWeights(aum, goal);
@@ -248,20 +245,26 @@
         .map((sb) => ({ ...sb, model: model.subs[sb.key], delta: model.subs[sb.key] - sb.wt })),
     }));
     const flat = clsRows.reduce((a, c) => a.concat(c.kids), []);
+    const SCALE = 45;                                   // one shared axis for every bar
+    const altNow = (u.total(positions.filter((p) => D.ALT_SUBS.indexOf(p.sub) >= 0)) / t) * 100;
 
-    /* glide path across the AUM range */
-    const N = 49, W = 1000, H = 170;
-    const samples = [];
-    for (let i = 0; i < N; i++) samples.push(u.modelWeights(fromPos(i / (N - 1)), goal));
-    const X = (i) => (i / (N - 1)) * W;
-    const Y = (p) => H - (p / 100) * H;
-    const bands = samples.map((m) => {
-      let acc = 0;
-      return D.classes.map((c) => { const lo = acc; acc += m.classes[c.key]; return [lo, acc]; });
-    });
-    const altLine = samples.map((m, i) => X(i) + "," + Y(m.alts)).join(" ");
-    const markX = pos(aum) * W;
+    /* how the alternatives weight moves with size — the one trend worth a picture */
+    const N = 25, SW = 180, SH = 30;
+    const vals = [];
+    for (let i = 0; i < N; i++) vals.push(u.modelWeights(fromPos(i / (N - 1)), goal).alts);
+    /* scale to the series, not to 0–100, or the rise is invisible */
+    const lo = Math.min(...vals), hi = Math.max(...vals), span = Math.max(hi - lo, 1);
+    const sy = (v) => SH - 3 - ((v - lo) / span) * (SH - 8);
+    const spark = vals.map((v, i) => ((i / (N - 1)) * SW).toFixed(1) + "," + sy(v).toFixed(1)).join(" ");
+    const here = { x: pos(aum) * SW, y: sy(model.alts) };
     const at10 = u.modelWeights(10e6, goal), at100 = u.modelWeights(100e6, goal);
+
+    const Bar = ({ held, target, color }) => (
+      <div className="wbar" title={"held " + u.pct(held) + " · model " + u.pct(target)}>
+        <i style={{ width: Math.min(100, (held / SCALE) * 100) + "%", background: color }} />
+        <b style={{ left: Math.min(100, (target / SCALE) * 100) + "%" }} />
+      </div>
+    );
 
     return (
       <>
@@ -269,23 +272,21 @@
           <div className="panel-hd">
             <div>
               <h3>Model portfolio</h3>
-              <div className="tri" style={{ fontSize: 11.5, marginTop: 2 }}>
-                Set the objective and the size; the model redraws. Asset class and subcategory only — Barbell does not
-                recommend individual securities.
-              </div>
+              <div className="tri" style={{ fontSize: 11.5, marginTop: 2 }}>{model.goal.line}</div>
             </div>
             <div className="btn-row">
               <Seg options={D.modelGoals.map((g) => ({ v: g.key, label: g.goal }))} value={goal} onChange={setGoal} />
-              <button className="btn p sm" onClick={() => setPath(true)}>View rebalancing path</button>
+              <button className="btn sm" onClick={() => setPath(true)}>Rebalancing path</button>
             </div>
           </div>
+
           <MandateRow mandate={st.mandate} activity={st.activity} />
+
           {whatIf && (
             <div className="note warn" style={{ border: 0, borderBottom: "1px solid var(--g3)", display: "flex", alignItems: "center", gap: 12 }}>
               <span style={{ flex: 1 }}>
-                <b>What-if.</b> The family's mandate is <b>{(D.mandates.find((x) => x.key === st.mandate) || {}).label}</b>;
-                this chart is drawn for <b>{model.goal.goal}</b>. Adopting it rewrites the Core/Alpha split and every class
-                target the model is drawn against, and the mandate line shown throughout the product.
+                <b>What-if.</b> The mandate is {(D.mandates.find((x) => x.key === st.mandate) || {}).label};
+                this model is drawn for {model.goal.goal}.
               </span>
               <span className="btn-row">
                 <button className="btn sm" onClick={() => setGoal(st.mandate)}>Discard</button>
@@ -296,113 +297,28 @@
             </div>
           )}
 
-          <div className="panel-bd">
-            {/* AUM control */}
-            <div className="row" style={{ gap: 24, alignItems: "flex-end" }}>
-              <div style={{ minWidth: 190 }}>
-                <div className="lbl">Modelled AUM</div>
-                <div className="num" style={{ fontSize: 24, fontWeight: 600, letterSpacing: "-.02em" }}>{short(aum)}</div>
-                <div className="tri" style={{ fontSize: 11 }}>{u.krwC(aum)}</div>
-              </div>
-              <div style={{ flex: 1 }}>
-                <input type="range" min="0" max="1000" step="1" value={Math.round(pos(aum) * 1000)}
-                  onChange={(e) => setAum(Math.round(fromPos(+e.target.value / 1000) / 1e5) * 1e5)}
-                  style={{ width: "100%", accentColor: "var(--navy)" }} />
-                <div style={{ position: "relative", height: 14, fontSize: 10.5, color: "var(--g2)" }}>
-                  {[1e6, 10e6, 100e6].map((a, i) => (
-                    <span key={a} style={{
-                      position: "absolute", left: (pos(a) * 100) + "%",
-                      transform: i === 0 ? "none" : i === 2 ? "translateX(-100%)" : "translateX(-50%)",
-                    }}>{short(a)}</span>
-                  ))}
-                </div>
-              </div>
-              <div className="btn-row">
-                {[10e6, 50e6, 100e6].map((a) => (
-                  <button key={a} className="btn sm" onClick={() => setAum(a)}>{short(a)}</button>
-                ))}
-                <button className={"btn sm" + (Math.abs(aum - t) < 1e5 ? " p" : "")} onClick={() => setAum(t)}>
-                  Today · {short(t)}
-                </button>
-              </div>
-            </div>
-
-            <div className="sub mt12" style={{ fontSize: 12.5, maxWidth: "88ch" }}>
-              {model.goal.line}
-            </div>
-
-            {/* glide path */}
-            <div className="mt16" style={{ position: "relative" }}>
-              <svg viewBox={"0 0 " + W + " " + H} preserveAspectRatio="none"
-                style={{ width: "100%", height: 170, display: "block", border: "1px solid var(--g3)" }}>
-                {bands[0].map((_, k) => {
-                  const top = bands.map((row, i) => X(i) + "," + Y(row[k][1])).join(" ");
-                  const bot = bands.map((row, i) => X(i) + "," + Y(row[k][0])).reverse().join(" ");
-                  return <polygon key={D.classes[k].key} points={top + " " + bot} fill={D.classes[k].color} />;
-                })}
-                {[25, 50, 75].map((g) => (
-                  <line key={g} x1="0" y1={Y(g)} x2={W} y2={Y(g)} stroke="#FAFAF8" strokeWidth="1" opacity=".3" />
-                ))}
-                <polyline points={altLine} fill="none" stroke="#FAFAF8" strokeWidth="2.5" strokeDasharray="6 4" />
-                <line x1={markX} y1="0" x2={markX} y2={H} stroke="var(--ink)" strokeWidth="1.5" />
-              </svg>
-              <div style={{ position: "absolute", top: -2, left: 0, width: "100%", height: 174, pointerEvents: "none" }}>
-                <div style={{
-                  position: "absolute", left: "calc(" + (pos(aum) * 100) + "% - 1px)", top: -20,
-                  fontSize: 10.5, fontWeight: 600, whiteSpace: "nowrap",
-                  transform: pos(aum) > 0.8 ? "translateX(-100%)" : "none",
-                  paddingLeft: pos(aum) > 0.8 ? 0 : 5, paddingRight: pos(aum) > 0.8 ? 5 : 0,
-                }}>{short(aum)}</div>
-              </div>
-              <div className="between mt8">
-                <div className="legend" style={{ marginTop: 0 }}>
-                  {D.classes.map((c) => (
-                    <span className="it" key={c.key}>
-                      <i className="sw" style={{ background: c.color }} />{c.label}{" "}
-                      <b className="num">{u.pct(model.classes[c.key])}</b>
-                    </span>
-                  ))}
-                  <span className="it"><i className="sw" style={{ background: "transparent", borderTop: "2px dashed var(--g2)", height: 0 }} />
-                    Alternatives <b className="num">{u.pct(model.alts)}</b></span>
-                </div>
-                <div className="tri" style={{ fontSize: 10.5 }}>Model allocation across AUM · log scale</div>
-              </div>
-            </div>
-
-            <div className="note mt12">
-              At <b>{short(aum)}</b> with a “{model.goal.label}” objective the model holds <b>{u.pct(model.alts)}</b> in
-              alternatives — private equity, venture, pre-IPO, private credit, real estate and infrastructure. The same
-              objective holds {u.pct(at10.alts)} at $10M and {u.pct(at100.alts)} at $100M: the illiquidity budget grows
-              with the balance sheet that has to absorb the capital calls, not with conviction.
-            </div>
-
-            {/* current against the model, as shape */}
-            <div className="row mt16" style={{ gap: 24 }}>
-              <div style={{ flex: 1 }}>
-                <div className="lbl" style={{ marginBottom: 4 }}>Current — {short(t)}</div>
-                <div className="allocbar">
-                  {cls.map((c) => (
-                    <div key={c.key} className="seg-a" style={{ width: c.wt + "%", background: c.color }}
-                      title={c.label + " " + u.pct(c.wt)} />
-                  ))}
-                </div>
-              </div>
-              <div style={{ flex: 1 }}>
-                <div className="lbl" style={{ marginBottom: 4 }}>Model at {short(aum)} · {model.goal.label}</div>
-                <div className="allocbar">
-                  {D.classes.map((c) => (
-                    <div key={c.key} className="seg-a" style={{ width: model.classes[c.key] + "%", background: c.color, opacity: .62 }}
-                      title={c.label + " " + u.pct(model.classes[c.key])} />
-                  ))}
-                </div>
-              </div>
+          {/* size */}
+          <div style={{ padding: "9px 14px", borderBottom: "1px solid var(--g3)", display: "flex", alignItems: "center", gap: 14 }}>
+            <span className="lbl" style={{ whiteSpace: "nowrap" }}>Modelled at</span>
+            <span className="num" style={{ fontWeight: 600, fontSize: 15, minWidth: 66 }}>{short(aum)}</span>
+            <input type="range" min="0" max="1000" step="1" value={Math.round(pos(aum) * 1000)}
+              onChange={(e) => setAum(Math.round(fromPos(+e.target.value / 1000) / 1e5) * 1e5)}
+              style={{ flex: 1, accentColor: "var(--navy)" }} />
+            <div className="btn-row">
+              {[10e6, 50e6, 100e6].map((a) => (
+                <button key={a} className="btn sm" onClick={() => setAum(a)}>{short(a)}</button>
+              ))}
+              <button className={"btn sm" + (Math.abs(aum - t) < 1e5 ? " p" : "")} onClick={() => setAum(t)}>Today</button>
             </div>
           </div>
 
+          {/* held against model, one row per class */}
           <table className="t">
             <thead><tr>
-              <th style={{ width: 300 }}>Asset class</th><th className="n">Current</th><th className="n">Mandate target</th>
-              <th className="n">Model</th><th className="n">Delta to model</th><th className="n">Dollars</th>
+              <th style={{ width: 240 }}>Asset class</th>
+              <th className="n">Held</th><th className="n">Model</th>
+              <th style={{ width: "36%" }}>Weight against model</th>
+              <th className="n">Difference</th><th className="n">Dollars</th>
             </tr></thead>
             <tbody>
               {clsRows.map((c) => {
@@ -416,26 +332,22 @@
                           <span style={{ width: 9, fontSize: 11, color: "var(--g1)" }}>{isOpen ? "▾" : "▸"}</span>
                           <i className="sw" style={{ width: 9, height: 9, display: "inline-block", background: c.color }} />
                           {c.label}
-                          <span className="tri" style={{ fontWeight: 400 }}>{c.kids.length} subcategories</span>
                         </span>
                       </td>
                       <td className="n num">{u.pct(c.wt)}</td>
-                      <td className="n num tri">{u.pct(c.target)}</td>
-                      <td className="n num">{u.pct(c.model)}</td>
-                      <td className="n"><Delta v={c.delta} pp /></td>
-                      <td className="n num">{u.usd((c.delta / 100) * t)}</td>
+                      <td className="n num tri">{u.pct(c.model)}</td>
+                      <td><Bar held={c.wt} target={c.model} color={c.color} /></td>
+                      <td className="n"><VsTarget v={c.delta} /></td>
+                      <td className="n num tri">{u.usd((c.delta / 100) * t)}</td>
                     </tr>
                     {isOpen && c.kids.map((r) => (
                       <tr key={r.key}>
-                        <td style={{ paddingLeft: 34 }}>
-                          <div className="tname">{r.label}</div>
-                          {r.note && <div className="tsub">{r.note}</div>}
-                        </td>
+                        <td style={{ paddingLeft: 34 }}><div className="tname">{r.label}</div></td>
                         <td className="n num">{u.pct(r.wt)}</td>
-                        <td className="n num tri">{u.pct(r.target)}</td>
-                        <td className="n num">{u.pct(r.model)}</td>
-                        <td className="n"><Delta v={r.delta} pp /></td>
-                        <td className="n num">{u.usd((r.delta / 100) * t)}</td>
+                        <td className="n num tri">{u.pct(r.model)}</td>
+                        <td><Bar held={r.wt} target={r.model} color={c.color} /></td>
+                        <td className="n"><VsTarget v={r.delta} /></td>
+                        <td className="n num tri">{u.usd((r.delta / 100) * t)}</td>
                       </tr>
                     ))}
                   </React.Fragment>
@@ -443,11 +355,25 @@
               })}
             </tbody>
           </table>
-          {Math.abs(aum - t) > 1e5 && (
-            <div className="note" style={{ border: 0, borderTop: "1px solid var(--g3)" }}>
-              Shape modelled at {short(aum)}; the dollar column applies those weights to today's {short(t)}.
-            </div>
-          )}
+
+          {/* the one trend: alternatives against size */}
+          <div style={{ padding: "10px 14px", borderTop: "1px solid var(--g3)", display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
+            <span className="lbl" style={{ whiteSpace: "nowrap" }}>Alternatives</span>
+            <span className="num" style={{ fontSize: 12.5 }}>
+              <b>{u.pct(altNow)}</b> held · model {u.pct(model.alts)}
+            </span>
+            <svg className="spark" viewBox={"0 0 " + SW + " " + SH} width={SW} height={SH}
+              style={{ flexShrink: 0, border: "1px solid var(--g3)", background: "var(--paper)" }}>
+              <polyline points={spark} fill="none" stroke="var(--navy)" strokeWidth="1.5" />
+              <circle cx={here.x} cy={here.y} r="2.5" fill="var(--ink)" />
+            </svg>
+            <span className="tri" style={{ fontSize: 11.5 }}>
+              {u.pct(at10.alts)} at $10M → {u.pct(at100.alts)} at $100M · the illiquidity budget follows the size of
+              the balance sheet that has to fund the calls
+            </span>
+            <span style={{ flex: 1 }} />
+            <span className="tri" style={{ fontSize: 11 }}>Class and subcategory only — never individual securities</span>
+          </div>
         </div>
         {path && <PathModal rows={flat} t={t} model={{ label: model.goal.label + " · " + short(aum) }} onClose={() => setPath(false)} />}
       </>

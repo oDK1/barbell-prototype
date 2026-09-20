@@ -210,9 +210,6 @@ label.f>span{display:block;font-size:10.5px;letter-spacing:.08em;text-transform:
 .search:before{content:"⌕";position:absolute;left:8px;top:5px;color:var(--g2);font-size:14px}
 
 /* ---------- allocation bars ---------- */
-.allocbar{display:flex;height:22px;width:100%;border:1px solid var(--g3);background:var(--paper)}
-.allocbar .seg-a{height:100%;position:relative;border-right:1px solid var(--paper)}
-.allocbar .seg-a:last-child{border-right:0}
 .bar2{margin:0}
 .bar2 .lab{display:flex;justify-content:space-between;font-size:10.5px;color:var(--g2);margin-bottom:3px}
 .minibar{height:6px;background:var(--g4);position:relative;width:100%}
@@ -222,8 +219,14 @@ label.f>span{display:block;font-size:10.5px;letter-spacing:.08em;text-transform:
 .legend .it{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--g1)}
 .legend .sw{width:9px;height:9px;display:inline-block}
 
-.sw-eq{background:#1B2A4A}.sw-dt{background:#4A6491}.sw-ra{background:#8FA3C2}.sw-cs{background:#CBD4E2}
-.sw-eq-t{background:#1B2A4A;opacity:.28}.sw-dt-t{background:#4A6491;opacity:.28}
+/* Categorical, not a ramp: four hues a reader can tell apart at 9px. */
+.sw-eq{background:#1B2A4A}.sw-dt{background:#3F7183}.sw-ra{background:#9A7B2E}.sw-cs{background:#A9A396}
+
+/* Class weight against the model: filled bar is held today, tick is the model. */
+.wbar{position:relative;height:10px;background:var(--g4);width:100%}
+.wbar>i{position:absolute;left:0;top:0;bottom:0;display:block}
+.wbar>b{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink)}
+.spark{display:block}
 
 /* ---------- agent panel ---------- */
 .agent{border:1px solid var(--g3);border-left:2px solid var(--navy);background:var(--paper)}

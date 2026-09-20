@@ -47,9 +47,9 @@
   /* ---------------------------------------------------------------- taxonomy */
   const classes = [
     { key: "equity", label: "Equity", target: 35.0, sw: "sw-eq", color: "#1B2A4A" },
-    { key: "debt", label: "Debt", target: 40.0, sw: "sw-dt", color: "#4A6491" },
-    { key: "real", label: "Real Assets", target: 18.0, sw: "sw-ra", color: "#8FA3C2" },
-    { key: "cash", label: "Cash Equivalents", target: 7.0, sw: "sw-cs", color: "#CBD4E2" },
+    { key: "debt", label: "Debt", target: 40.0, sw: "sw-dt", color: "#3F7183" },
+    { key: "real", label: "Real Assets", target: 18.0, sw: "sw-ra", color: "#9A7B2E" },
+    { key: "cash", label: "Cash Equivalents", target: 7.0, sw: "sw-cs", color: "#A9A396" },
   ];
 
   const subs = [

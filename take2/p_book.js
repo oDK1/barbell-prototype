@@ -290,13 +290,20 @@
               h("td", { className: "tnum " + (gain >= 0 ? "pos" : "neg") }, u.sgnUsd(gain)),
               h("td", null, h(U.Prov, { p })),
               h("td", { className: "right" },
-                p.liq === "Daily"
-                  ? h(U.Btn, { size: "sm", lock: locked ? S.LOCK : null,
-                      onClick: () => S.actions.openModal({ kind: "sell", pid: p.id }) }, "Sell")
-                  : el.ok
+                h("div", { className: "row", style: { justifyContent: "flex-end", gap: 6 } },
+                  p.liq === "Daily"
                     ? h(U.Btn, { size: "sm", lock: locked ? S.LOCK : null,
-                        onClick: () => S.actions.openModal({ kind: "list", pid: p.id }) }, "List")
-                    : h(U.Pill, { tone: "ghost" }, el.reason)));
+                        onClick: () => S.actions.openModal({ kind: "sell", pid: p.id }) }, "Sell")
+                    : el.ok
+                      ? h(U.Btn, { size: "sm", lock: locked ? S.LOCK : null,
+                          onClick: () => S.actions.openModal({ kind: "list", pid: p.id }) }, "List")
+                      : h(U.Pill, { tone: "ghost" }, el.reason),
+                  /* A locked control with nowhere to go is a dead end; the
+                     Successor can put the same action to the Principal. */
+                  locked
+                    ? h(U.Btn, { size: "sm",
+                        onClick: () => S.actions.openModal({ kind: "propose", pid: p.id }) }, "Propose")
+                    : null)));
           })))),
       h("div", { className: "tri tiny" }, rows.length, " of ", ps.length, " positions shown"));
   }

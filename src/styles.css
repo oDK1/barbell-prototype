@@ -231,6 +231,14 @@ label.f>span{display:block;font-size:10.5px;letter-spacing:.08em;text-transform:
 .lever-note.warn{background:var(--amber-wash);border-color:#E7D8A8;color:#6B5316}
 @media (max-width:1100px){ .levers{grid-template-columns:1fr} .lever:first-child{border-right:0;border-bottom:1px solid var(--g3)} }
 
+/* Supporting figures under the headline number: read as a sentence, not tiles. */
+.subline{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 26px;margin-top:14px;
+  padding:9px 0;border-top:1px solid var(--g3);border-bottom:1px solid var(--g3)}
+.subline .item{display:flex;align-items:baseline;gap:7px;font-size:12.5px}
+.subline .item .k{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--g2);font-weight:600}
+.subline .item .v{font-weight:600}
+.subline .item .n{font-size:11px;color:var(--g2)}
+
 .ticks{position:relative;height:15px}
 .ticks button{position:absolute;top:0;background:none;border:0;padding:0;font:inherit;font-size:10.5px;
   color:var(--g2);cursor:pointer;line-height:15px}

@@ -39,7 +39,11 @@
       h("div", { className: "nav-foot" },
         "Prototype. All data is seeded and held in memory; nothing leaves the browser.",
         h("br"),
-        h("a", { onClick: () => (location.href = "../index.html") }, "Open take 1")));
+        /* Served from take2/ in the dev tree; sitting beside barbell.html in
+           the inlined single-file build. */
+        h("a", { onClick: () => (location.href =
+          /\/take2\//.test(location.pathname) ? "../index.html" : "barbell.html") },
+          "Open take 1")));
   }
 
   function AccountMenu({ onClose }) {
@@ -90,7 +94,7 @@
           "One log across both accounts. Every state change either of you makes lands here.")),
       h("div", { className: "filters" },
         h(U.Seg, { value: who, onChange: setWho, options: [
-          { k: "all", label: "Both accounts" },
+          { k: "all", label: "Everything" },
           { k: "principal", label: D.accounts.principal.name },
           { k: "successor", label: D.accounts.successor.name }] })),
       h("div", { className: "card", style: { overflow: "hidden" } },
@@ -106,9 +110,8 @@
                 h("div", { className: "strong" }, a.text),
                 a.detail ? h("div", { className: "tri tiny" }, a.detail) : null),
               h("td", null, h("div", { className: "row", style: { gap: 7 } },
-                h("span", { className: "dot", style: { background: a.who === "principal"
-                  ? "var(--accent)" : "var(--s1)" } }),
-                h("span", { className: "tiny" }, D.accounts[a.who].name)))))))));
+                h("span", { className: "dot", style: { background: U.actorColor(a.who) } }),
+                h("span", { className: "tiny" }, U.actor(a.who).name)))))))));
   }
 
   /* ----------------------------------------------------------- sell ticket */
@@ -149,6 +152,31 @@
         : null);
   }
 
+  function ProposeModal({ p, onClose }) {
+    const [amt, setAmt] = React.useState(Math.round(p.value * 0.25 / 1e3) * 1e3);
+    const [why, setWhy] = React.useState("");
+    return h(U.Modal, {
+      title: "Ask the Principal to sell", desc: p.name, onClose,
+      foot: h(React.Fragment, null,
+        h(U.Btn, { kind: "pri", disabled: amt <= 0,
+          onClick: () => { S.actions.proposeSale(p, amt, why || "No rationale given."); onClose(); } },
+          "Send request"),
+        h(U.Btn, { onClick: onClose }, "Cancel"),
+        h("div", { className: "gap" }),
+        h("span", { className: "tri tiny" }, "Executes on approval")),
+    },
+      h("div", { className: "row mb" },
+        h("span", { className: "eyebrow", style: { width: 90 } }, "Amount"),
+        h(U.MoneyInput, { value: amt, onChange: setAmt, width: 170 }),
+        h("span", { className: "tri tiny" }, "of ", u.usd(p.value, 0))),
+      h("div", { className: "note accent mb" },
+        "This position sits in Core, which is the Principal's remit. The request lands in their ",
+        "queue on Today; if they approve it, the sale executes and the proceeds land in Core cash."),
+      h("textarea", { className: "input", style: { width: "100%", minHeight: 70, resize: "vertical" },
+        placeholder: "Why this should be sold…", value: why,
+        onChange: (e) => setWhy(e.target.value) }));
+  }
+
   /* -------------------------------------------------------------------- app */
   function App() {
     const st = S.useStore();
@@ -171,6 +199,8 @@
         ? h(T2.ListModal, { p: mp, onClose: S.actions.closeModal }) : null,
       modal && modal.kind === "sell" && mp
         ? h(SellModal, { p: mp, onClose: S.actions.closeModal }) : null,
+      modal && modal.kind === "propose" && mp
+        ? h(ProposeModal, { p: mp, onClose: S.actions.closeModal }) : null,
       st.toast ? h("div", { className: "toast" }, st.toast) : null);
   }
 

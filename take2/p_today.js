@@ -103,12 +103,16 @@
             h("div", { className: "tri mini", style: { marginTop: 2 } },
               u.krwFull(principal ? total : u.total(mine))),
             h("div", { className: "row mt-s", style: { gap: 8 } },
-              h(U.Pill, { tone: lastChange >= 0 ? "good" : "crit" },
-                u.sgnUsd(lastChange), " since the ", u.fmtDate(T.lastSync.date), " sync"),
+              principal
+                ? h(U.Pill, { tone: lastChange >= 0 ? "good" : "crit" },
+                    u.sgnUsd(lastChange), " since the ", u.fmtDate(T.lastSync.date), " sync")
+                : h(U.Pill, { tone: "accent" },
+                    u.pct((u.total(mine) / total) * 100, 1), " of a ", u.usdC(total), " balance sheet"),
               h(CH.Spark, { data: T.bookHistory }))),
           h("div", { style: { flex: 1, minWidth: 0 } },
             h("div", { className: "row mb-s" },
-              h("span", { className: "eyebrow" }, "Allocation"),
+              h("span", { className: "eyebrow" },
+                principal ? "Allocation" : "Whole balance sheet — visible, not yours to change"),
               h("div", { className: "gap" }),
               h("button", { className: "link tiny", onClick: () => S.navigate("/book") },
                 "Open the book →")),
@@ -116,17 +120,33 @@
                                                      value: c.value, target: c.target })) })))),
 
       /* --------------------------------------------------------- tiles */
-      h("div", { className: "grid g4 mt" },
-        h(U.Stat, { label: "Unrealized P&L", value: u.sgnUsd(unreal),
-                    delta: u.pct((unreal / (u.sum(ps, (p) => p.cost) || 1)) * 100, 1) + " on cost",
-                    tone: unreal >= 0 ? "pos" : "neg" }),
-        h(U.Stat, { label: "Liquid within 90 days", value: u.usdC(liq.within90),
-                    delta: u.pct((liq.within90 / total) * 100, 1) + " of the book" }),
-        h(U.Stat, { label: "Largest drift", value: u.pp(worst.drift, 1),
-                    delta: worst.label + " vs a " + u.pct(worst.target, 0) + " target" }),
-        h(U.Stat, { label: "Positions", value: String(ps.length),
-                    delta: ps.filter((p) => p.liq !== "Daily").length + " illiquid · " +
-                           u.days(st.syncedAt) + " days since sync" })),
+      /* The tiles follow the hero: the Principal's are the balance sheet, the
+         Successor's are the sleeve they can actually act in. */
+      h("div", { className: "grid g4 mt" }, principal
+        ? [
+            h(U.Stat, { key: "a", label: "Unrealized P&L", value: u.sgnUsd(unreal),
+                        delta: u.pct((unreal / (u.sum(ps, (p) => p.cost) || 1)) * 100, 1) + " on cost",
+                        tone: unreal >= 0 ? "pos" : "neg" }),
+            h(U.Stat, { key: "b", label: "Liquid within 90 days", value: u.usdC(liq.within90),
+                        delta: u.pct((liq.within90 / total) * 100, 1) + " of the book" }),
+            h(U.Stat, { key: "c", label: "Largest drift", value: u.pp(worst.drift, 1),
+                        delta: worst.label + " vs a " + u.pct(worst.target, 0) + " target" }),
+            h(U.Stat, { key: "d", label: "Positions", value: String(ps.length),
+                        delta: ps.filter((p) => p.liq !== "Daily").length + " illiquid · " +
+                               u.days(st.syncedAt) + " days since sync" }),
+          ]
+        : [
+            h(U.Stat, { key: "a", label: "Capacity unspent", value: u.usdC(capacity),
+                        delta: "Commit up to this without asking" }),
+            h(U.Stat, { key: "b", label: "Alpha unrealized P&L", value: u.sgnUsd(u.unrealized(mine)),
+                        delta: u.pct((u.unrealized(mine) / (u.sum(mine, (p) => p.cost) || 1)) * 100, 1) + " on cost",
+                        tone: u.unrealized(mine) >= 0 ? "pos" : "neg" }),
+            h(U.Stat, { key: "c", label: "Positions in the sleeve", value: String(mine.length),
+                        delta: mine.filter((p) => p.liq !== "Daily").length + " illiquid" }),
+            h(U.Stat, { key: "d", label: "Proposals outstanding",
+                        value: String(st.approvals.filter((a) => a.from === "successor" && a.status === "pending").length),
+                        delta: "With the Principal" }),
+          ]),
 
       /* ----------------------------------------------------- the queue */
       h("div", { className: "grid g-2-1 mt" },
@@ -221,11 +241,11 @@
               st.activity.slice(0, 5).map((a) =>
                 h("div", { key: a.id, className: "row", style: { alignItems: "flex-start", gap: 10 } },
                   h("span", { className: "dot", style: { marginTop: 6,
-                    background: a.who === "principal" ? "var(--accent)" : "var(--s1)" } }),
+                                                         background: U.actorColor(a.who) } }),
                   h("div", { style: { flex: 1, minWidth: 0 } },
                     h("div", { style: { fontSize: 12.5, lineHeight: 1.45 } }, a.text),
                     h("div", { className: "tri tiny" },
-                      D.accounts[a.who].name.split(" ").slice(-1)[0], " · ", u.fmtTs(a.ts))))))))));
+                      U.actor(a.who).name.split(" ").slice(-1)[0], " · ", u.fmtTs(a.ts))))))))));
   }
 
   T2.Today = Today;

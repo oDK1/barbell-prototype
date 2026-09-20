@@ -137,6 +137,14 @@
 
   function Empty({ children }) { return h("div", { className: "empty" }, children); }
 
+  /* The activity log carries entries the platform itself wrote (who: "system"),
+     which is not one of the two accounts. */
+  function actor(who) {
+    return D.accounts[who] || { name: "Barbell", title: "Platform", scope: "" };
+  }
+  const actorColor = (who) =>
+    who === "principal" ? "var(--accent)" : who === "successor" ? "var(--s1)" : "var(--faint)";
+
   /* A number input that reads as money and never produces NaN. */
   function MoneyInput({ value, onChange, width, step }) {
     return h("div", { className: "row", style: { gap: 0 } },
@@ -157,5 +165,5 @@
   }
 
   T2.ui = { h, Money, Pill, Swatch, Stat, Card, Lock, Btn, Seg, Select, Modal, Drawer,
-            Meter, Prov, Avatar, Empty, MoneyInput, CLS_COLOR, CLS_HEX };
+            Meter, Prov, Avatar, Empty, MoneyInput, actor, actorColor, CLS_COLOR, CLS_HEX };
 })();

@@ -760,19 +760,6 @@
     const fits = [...D.market].sort((a, b) => b.fit - a.fit).slice(0, 4);
     return (
       <>
-        <div className="band mt16">
-          <div className="cell"><div className="stat-l">Alpha sleeve</div><div className="stat-v"><Money v={av} compact /></div>
-            <div className="stat-s">{u.pct((av / t) * 100)} of assets · target {u.pct(D.family.alphaTarget * 100)}</div></div>
-          <div className="cell"><div className="stat-l">Unrealised P&L</div><div className="stat-v"><Delta v={u.unrealized(alpha)} usd /></div>
-            <div className="stat-s">{u.sgn((u.unrealized(alpha) / (av - u.unrealized(alpha))) * 100)} on cost</div></div>
-          <div className="cell"><div className="stat-l">Remaining capacity</div><div className="stat-v"><Money v={capacity} compact /></div>
-            <div className="stat-s">commit directly up to this amount</div></div>
-          <div className="cell"><div className="stat-l">Active private positions</div><div className="stat-v">{active.length}</div>
-            <div className="stat-s">{u.usd(u.total(active))}</div></div>
-          <div className="cell"><div className="stat-l">Core sleeve</div><div className="stat-v sm">Read-only</div>
-            <div className="stat-s">{u.usd(t - av)} · Principal authority</div></div>
-        </div>
-
         <div className="panel mt16">
           <div className="panel-hd"><h3>Alpha positions</h3>
             <div className="btn-row"><button className="btn sm p" onClick={() => S.navigate("/marketplace")}>Find the next one</button></div></div>
@@ -857,22 +844,29 @@
 
     return (
       <div className="wrap page" style={{ paddingBottom: 110 }}>
-        <div className="between">
+        <div className="between" style={{ alignItems: "flex-start" }}>
           <div>
             <div className="eyebrow">{D.family.name} · {isSuccessor ? "Successor Mode" : "Sovereign Mode"}</div>
-            <h1 className="mt8">Portfolio</h1>
+            {/* one number carries the page; everything else is a supporting line */}
+            <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginTop: 6 }}>
+              <h1 className="num" style={{ fontSize: 34, letterSpacing: "-.03em", lineHeight: 1.05 }}>
+                {u.usdC(isSuccessor ? u.total(alpha) : t)}
+              </h1>
+              <span className="sub" style={{ fontSize: 13.5 }}>{isSuccessor ? "Alpha sleeve" : "Total assets"}</span>
+            </div>
+            <div className="tri" style={{ fontSize: 11.5, marginTop: 3 }}>
+              {u.krwC(isSuccessor ? u.total(alpha) : t)} · {isSuccessor
+                ? u.pct((u.total(alpha) / t) * 100) + " of assets · " + alpha.length + " positions"
+                : ps.length + " positions · " + (ps.length - privCount) + " listed, " + privCount + " private"}
+            </div>
           </div>
           <div className="right">
-            <div className="tri" style={{ fontSize: 11.5 }}>
-              Listed positions live · private marks as of 30 Jun 2026
-            </div>
-            <div className="num" style={{ fontSize: 12, marginTop: 2 }}>
-              Updated {u.fmtTs(D.family.asOf)} KST
-            </div>
-            <div style={{ display: "flex", gap: 14, justifyContent: "flex-end", marginTop: 4 }}>
+            <div className="tri" style={{ fontSize: 11.5 }}>Listed positions live · private marks as of 30 Jun 2026</div>
+            <div className="num tri" style={{ fontSize: 11.5, marginTop: 2 }}>Updated {u.fmtTs(D.family.asOf)} KST</div>
+            <div style={{ display: "flex", gap: 14, justifyContent: "flex-end", marginTop: 5 }}>
               {calls60.length > 0 && (
                 <button className="link" onClick={() => setTab("liq")}>
-                  {calls60.length} capital calls due within 60 days · {u.usdC(u.sum(calls60, (c) => c.amount))}
+                  {calls60.length} capital calls within 60 days · {u.usdC(u.sum(calls60, (c) => c.amount))}
                 </button>
               )}
               {stale.length > 0 && (
@@ -884,34 +878,24 @@
           </div>
         </div>
 
-        <div className="band mt16">
-          {isSuccessor ? (
-            <>
-              <div className="cell"><div className="stat-l">Alpha sleeve</div><div className="stat-v"><Money v={u.total(alpha)} compact /></div>
-                <div className="stat-s">{u.pct((u.total(alpha) / t) * 100)} of assets</div></div>
-              <div className="cell"><div className="stat-l">Alpha unrealised P&L</div><div className="stat-v"><Delta v={u.unrealized(alpha)} usd /></div>
-                <div className="stat-s">on {u.usd(u.total(alpha) - u.unrealized(alpha))} of cost</div></div>
-              <div className="cell"><div className="stat-l">Remaining capacity</div><div className="stat-v"><Money v={S.alphaCapacity()} compact /></div>
-                <div className="stat-s">direct commitment limit</div></div>
-              <div className="cell"><div className="stat-l">Total assets (read-only)</div><div className="stat-v"><Money v={t} compact /></div>
-                <div className="stat-s">Core {u.usd(sl.core)} · Principal authority</div></div>
-              <div className="cell"><div className="stat-l">Private assets</div><div className="stat-v">{u.pct(privShare)}</div>
-                <div className="stat-s">{privCount} positions · locked or quarterly</div></div>
-            </>
-          ) : (
-            <>
-              <div className="cell"><div className="stat-l">Total assets</div><div className="stat-v"><Money v={t} compact /></div>
-                <div className="stat-s">{ps.length} positions</div></div>
-              <div className="cell"><div className="stat-l">Core / Alpha</div><div className="stat-v sm">{u.pct(sl.corePct)} / {u.pct(sl.alphaPct)}</div>
-                <div className="stat-s">{u.usdC(sl.core)} · {u.usdC(sl.alpha)} — target 90 / 10</div></div>
-              <div className="cell"><div className="stat-l">Unrealised P&L</div><div className="stat-v"><Delta v={u.unrealized(ps)} usd /></div>
-                <div className="stat-s">{u.sgn((u.unrealized(ps) / (t - u.unrealized(ps))) * 100)} on cost</div></div>
-              <div className="cell"><div className="stat-l">Liquidity · next 90 days</div><div className="stat-v"><Money v={liq.within90} compact /></div>
-                <div className="stat-s">{u.usdC(liq.cash)} cash · {u.usdC(liq.listed)} listed</div></div>
-              <div className="cell"><div className="stat-l">Private assets</div><div className="stat-v">{u.pct(privShare)}</div>
-                <div className="stat-s">{privCount} positions · locked or quarterly · {ps.length - privCount} listed</div></div>
-            </>
-          )}
+        {/* secondary figures, deliberately quiet */}
+        <div className="subline">
+          {(isSuccessor
+            ? [["Unrealised", <Delta v={u.unrealized(alpha)} usd />, u.sgn((u.unrealized(alpha) / (u.total(alpha) - u.unrealized(alpha))) * 100) + " on cost"],
+               ["Remaining capacity", u.usdC(S.alphaCapacity()), "commit direct up to this"],
+               ["Total assets", u.usdC(t), "read-only"],
+               ["Core sleeve", u.usdC(sl.core), "Principal authority"]]
+            : [["Unrealised", <Delta v={u.unrealized(ps)} usd />, u.sgn((u.unrealized(ps) / (t - u.unrealized(ps))) * 100) + " on cost"],
+               ["Liquidity · 90 days", u.usdC(liq.within90), u.usdC(liq.cash) + " cash"],
+               ["Core / Alpha", u.pct(sl.corePct) + " / " + u.pct(sl.alphaPct), "target 90 / 10"],
+               ["Private assets", u.pct(privShare), privCount + " positions"]]
+          ).map((m, i) => (
+            <span className="item" key={i}>
+              <span className="k">{m[0]}</span>
+              <span className="v num">{m[1]}</span>
+              <span className="n">{m[2]}</span>
+            </span>
+          ))}
         </div>
 
         <div className="mt16"><Tabs tabs={tabs} active={tab} onChange={setTab} /></div>

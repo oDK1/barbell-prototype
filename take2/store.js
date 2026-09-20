@@ -84,16 +84,17 @@
       const t = T.pending.diff;
       t.added.forEach((a, i) => {
         state.positions.push({
-          id: "sync" + i, name: a.name, cls: a.cls, sub: a.cls === "real" ? "re" : "pubeq",
+          id: "sync" + i, name: a.name, cls: a.cls, sub: a.sub,
           grp: "Added by sync", sleeve: "core", prov: "hanwha", value: a.value, cost: a.value,
-          qty: 1, px: a.value, ccy: "USD", pxUsd: a.value, chg: 0, sector: "—", geo: "Korea",
-          liq: "Locked", acquired: T2.data.lastSync.date, realizedYTD: 0,
+          qty: 1, px: a.value, ccy: "USD", pxUsd: a.value, chg: 0, sector: "Real Estate", geo: "Korea",
+          liq: "Locked", acquired: T.lastSync.date, realizedYTD: 0,
           src: { file: a.src, cell: "—" }, asOf: D.TODAY,
         });
       });
+      /* Exact names and deltas, so the applied change equals the shown diff. */
       t.revalued.forEach((r) => {
-        const p = state.positions.find((x) => x.name.indexOf(r.name.split(",")[0]) === 0);
-        if (p) { p.value = r.to; p.asOf = D.TODAY; p.prov = "hanwha"; }
+        const p = state.positions.find((x) => x.name === r.name);
+        if (p) { p.value = p.value + r.delta; p.asOf = D.TODAY; p.prov = "hanwha"; }
       });
       t.removed.forEach((r) => {
         const i = state.positions.findIndex((x) => x.name === r.name);
@@ -145,11 +146,33 @@
       emit(); toast("Proposal sent to the Principal");
     },
 
+    /* The Successor can see Core but not trade it. Rather than a dead disabled
+       button, they can ask — and an approval here actually executes the sale. */
+    proposeSale(p, amount, why) {
+      state.approvals.unshift({
+        id: "s" + Date.now(), ts: new Date().toISOString(), from: "successor", type: "Sale",
+        title: "Sell " + BB.u.usd(amount, 0) + " of " + p.name,
+        pid: p.id, amount, sleeve: "core", rationale: why, status: "pending",
+      });
+      log("Proposal", "Asked the Principal to sell " + BB.u.usd(amount, 0) + " of " + p.name,
+          "Core sleeve — outside the Successor's authority.");
+      emit(); toast("Request sent to the Principal");
+    },
+
     decide(id, verdict, note) {
       const a = state.approvals.find((x) => x.id === id);
       if (!a) return;
       a.status = verdict; a.note = note;
-      if (verdict === "approved") {
+      if (verdict === "approved" && a.pid) {
+        const pos = state.positions.find((x) => x.id === a.pid);
+        if (pos) {
+          const sold = Math.min(pos.value, a.amount);
+          pos.cost -= pos.cost * (sold / pos.value);
+          pos.value -= sold;
+          const cash = state.positions.find((x) => x.cls === "cash" && x.sleeve === "core");
+          if (cash) cash.value += sold;
+        }
+      } else if (verdict === "approved") {
         const item = T.market.find((m) => m.id === a.target);
         if (item) {
           const cash = state.positions.filter((p) => p.sleeve === "core" && p.cls === "cash");

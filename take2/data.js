@@ -29,11 +29,12 @@
       line: "Private equity, venture and pre-IPO",
       blurb: "Growth capital and late-stage secondaries, sized for family-office tickets rather than institutional minimums." },
   ];
+  /* Wrapper decides the desk before asset class does: a listed infrastructure
+     ETF is an asset-management product, not a general-account co-investment,
+     even though both sit in the same sub-class. */
   const deskOf = (m) => {
-    if (["pe", "vc", "preipo"].indexOf(m.fills) >= 0) return "ip";
-    if (["pcred", "re", "infra"].indexOf(m.fills) >= 0) return "life";
-    if (m.kind === "listed" && /ETF|Fund|Shares|Trust|Partners L\.P\./.test(m.name)) return "ham";
-    return "sec";
+    if (m.kind === "private") return ["pe", "vc", "preipo"].indexOf(m.fills) >= 0 ? "ip" : "life";
+    return /ETF|Fund|Shares|Trust|Partners L\.P\./.test(m.name) ? "ham" : "sec";
   };
   const deskById = {};
   desks.forEach((d) => (deskById[d.key] = d));
@@ -60,25 +61,44 @@
   /* What the staged files would change if the pending sync were run. The seven
      exceptions in mockData are reused verbatim — same reconciliation, framed as
      a recurring diff rather than a one-off onboarding gate. */
+  /* What the staged files would change if the pending sync were run. Revalues
+     and removals name a seeded position exactly and carry a delta, so the diff
+     the screen shows and the change the store applies can never drift apart —
+     `from` is read off the pristine seed, which the store never mutates. */
+  const posByName = (n) => D.positions.find((p) => p.name === n);
+  const rawDiff = {
+    added: [
+      { name: "Hanwha Korea Logistics REIT Co-Invest II", cls: "real", sub: "re", value: 1_500_000,
+        src: "Holdings_Master_2026Q3.xlsx" },
+      { name: "KODEX Korea REIT ETF", cls: "real", sub: "re", value: 240_000,
+        src: "Holdings_Master_2026Q3.xlsx" },
+    ],
+    revalued: [
+      { name: "Songdo Hyperscale Data Center Platform", delta: 290_000, src: "PE_Capital_Calls_v7_FINAL.xlsx" },
+      { name: "Foundry Venture Partners VII, L.P.", delta: 60_000, src: "PE_Capital_Calls_v7_FINAL.xlsx" },
+      { name: "Pacific Core Real Estate Fund IV", delta: -50_000, src: "부동산_임대현황.xlsx" },
+      { name: "Sunrise Growth Partners IV, L.P.", delta: 18_000, src: "PE_Capital_Calls_v7_FINAL.xlsx" },
+    ],
+    removed: [
+      { name: "KODEX 200 ETF", why: "Sold 12 August; no longer in the custodian file." },
+    ],
+    calls: [
+      { fund: "Songdo Hyperscale Data Center Platform", date: "2027-03-05", amount: 2_550_000, status: "new" },
+    ],
+  };
   const pending = {
     staged: D.uploadFiles,
     diff: {
-      added: [
-        { name: "Hanwha Korea Logistics REIT Co-Invest II", cls: "real", value: 1_500_000, src: "Holdings_Master_2026Q3.xlsx" },
-        { name: "KODEX Korea REIT ETF", cls: "real", value: 240_000, src: "Holdings_Master_2026Q3.xlsx" },
-      ],
-      revalued: [
-        { name: "Songdo Hyperscale Data Center Platform", from: 3_120_000, to: 3_410_000, src: "PE_Capital_Calls_v7_FINAL.xlsx" },
-        { name: "Foundry Venture Partners VII, L.P.", from: 1_180_000, to: 1_240_000, src: "PE_Capital_Calls_v7_FINAL.xlsx" },
-        { name: "Pacific Core Real Estate Fund IV", from: 1_640_000, to: 1_590_000, src: "부동산_임대현황.xlsx" },
-        { name: "Meridian Venture Partners XII", from: 250_000, to: 268_000, src: "PE_Capital_Calls_v7_FINAL.xlsx" },
-      ],
-      removed: [
-        { name: "Kakao Corporation", cls: "equity", value: 180_000, why: "Sold 12 Aug; no longer in the custodian file." },
-      ],
-      calls: [
-        { fund: "Songdo Hyperscale Data Center Platform", date: "2027-03-05", amount: 2_550_000, status: "new" },
-      ],
+      added: rawDiff.added,
+      revalued: rawDiff.revalued.map((r) => {
+        const p = posByName(r.name);
+        return Object.assign({}, r, { from: p ? p.value : 0, to: p ? p.value + r.delta : r.delta });
+      }).filter((r) => r.from),
+      removed: rawDiff.removed.map((r) => {
+        const p = posByName(r.name);
+        return Object.assign({}, r, { cls: p ? p.cls : "equity", value: p ? p.value : 0 });
+      }).filter((r) => r.value),
+      calls: rawDiff.calls,
     },
   };
 

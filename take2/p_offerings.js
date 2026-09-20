@@ -139,10 +139,15 @@
           h("div", { className: "gap" }),
           h("span", { className: "tri tiny" }, "Minimum ", u.usd(m.min, 0))),
       },
-        h("div", { className: "grid g3 mb" },
+        h("div", { className: "grid g3" },
           h(U.Stat, { label: "Return", value: m.ret }),
           h(U.Stat, { label: "Term", value: m.term }),
-          h(U.Stat, { label: "Availability", value: m.avail, })),
+          h(U.Stat, { label: "Minimum", value: u.usdC(m.min) })),
+        h("div", { className: "row wrap mt-s mb tri mini", style: { gap: 14 } },
+          h("span", null, h("span", { className: "eyebrow" }, "Available"), "  ", m.avail),
+          m.closing ? h("span", null, h("span", { className: "eyebrow" }, "Closes"), "  ",
+            u.fmtDate(m.closing)) : null,
+          h("span", null, h("span", { className: "eyebrow" }, "Currency"), "  ", m.ccy || "USD")),
 
         m.hanwha
           ? h("div", { className: "note accent mb" },

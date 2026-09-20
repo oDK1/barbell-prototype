@@ -8,6 +8,28 @@ members-only secondary board that gives the illiquid half a price.
 No backend, no auth, no network calls. All data is seeded in `src/mockData.js` and every action
 resolves against in-memory state.
 
+## Two takes on the same product
+
+There are two independent designs in this repository, built against **the same seeded data and the
+same derived maths** — `src/mockData.js` and `src/util.js` are shared verbatim, so both show the
+same family, the same 42 positions and the same numbers. Only the product design differs.
+
+| | **Take 1** (`src/`, `/`) | **Take 2** (`take2/`) |
+|---|---|---|
+| Register | Light, dense, hairline institutional terminal | Modern SaaS — white cards, soft elevation, 14px radii, indigo accent |
+| Navigation | Top tabs, five peer destinations | Persistent left rail; approvals live on the home screen, not a page of their own |
+| Entry point | The portfolio | **Today** — the outstanding decisions, with the balance sheet one click behind |
+| Portfolio | Opens on a 42-row holdings table | Opens on the *shape* of the book; rows are a tab behind the charts |
+| Excel | Onboarding — a gate you pass through once | **Sync** — a standing destination; a recurring quarterly diff against the last book |
+| Marketplace | One flat list ranked on merit, wrapper hidden | Grouped by the **Hanwha affiliate desk** that originates it; merit ranks within each desk |
+| Secondary | A bulletin board of listings | A two-sided **exchange** — standing bids, depth and recent prints beside each listing |
+| Detail | Full page per deal | Slide-over drawer, so the list never leaves |
+
+Neither is a draft of the other. They are two answers to the same brief, meant to be compared.
+
+**Run take 2** at `http://localhost:8777/take2/` once the server below is up, or open the
+self-contained `take2.html`. Each take links to the other from its footer.
+
 ## Share it
 
 Live, public, no login required:
@@ -28,8 +50,9 @@ git add -A && git commit -m "…" && git push
 To take it down: `gh api repos/oDK1/barbell-prototype/pages -X DELETE` disables the site and leaves
 the code, or delete the repository to remove both.
 
-`barbell.html` in the repository root is the same prototype inlined into one self-contained file —
-email it, or drop it on any static host. Regenerate it after changes with `python3 build.py`.
+`barbell.html` and `take2.html` in the repository root are the two prototypes inlined into
+self-contained single files — email one, or drop it on any static host. Regenerate both after
+changes with `python3 build.py`.
 
 ## Run it
 
@@ -91,6 +114,73 @@ capacity. Switch back, approve it in `/approvals`, and the commitment executes.
 
 **Liquidity.** `/portfolio` → Liquidity: Q1 2027 calls of $4.67M breach projected cash by $1.40M
 in Mar 27, and the agent names the positions that would cover it.
+
+## Walk take 2
+
+`http://localhost:8777/take2/` — five destinations in the left rail.
+
+| Route | What it is |
+|---|---|
+| `#/today` | The decision surface. Hero total, four tiles, and one queue holding the Principal's approvals, the unread spreadsheets, the cash shortfall, the drift breach and the stale marks |
+| `#/book` | Allocation · Guidance · Liquidity · Performance · Positions. Charts first; the 42 rows are the last tab |
+| `#/offerings` | 34 instruments grouped by the Hanwha affiliate that originates them; detail opens in a drawer |
+| `#/exchange` | The secondary as a live book — listings left, depth and prints right |
+| `#/sync` | Drop → extract → resolve seven exceptions → apply. The diff, then the book |
+| `#/activity` | The shared log across both accounts |
+
+### The three flows worth walking
+
+**Excel as a recurring event.** `#/sync` → *Read the files* → *Accept every suggestion* →
+*Apply to the book*. The right rail shows exactly what will change before you commit it, and the
+book, the totals, the allocation and the drift all move together afterwards. The diff is anchored
+to the real seeded positions, so what the screen promises is what the store applies — to the dollar.
+
+**Desk, then merit.** `#/offerings` → Hanwha Life Insurance carries the general account's private
+credit and real assets; Hanwha Asset Management carries the funds and ETFs; Hanwha Securities the
+listed book and the structured notes; Hanwha Investment Partners the private equity and venture.
+Open any card → a drawer with the terms, the documents, the desk's answered questions and what the
+position would do to the book → *Commit* shows the allocation impact before it executes.
+
+**Authority, closed both ways.** Switch to Jae-won Park (top right). The hero becomes the Alpha
+sleeve and the tiles become sleeve numbers. Commit $1,000,000 to Northgate Facility II — above the
+$760,000 capacity, so the button becomes *Submit proposal to the Principal*. In the book's Positions
+tab, every Core row's Sell is disabled with the reason on hover **and carries a Propose button
+beside it**, so a locked control is never a dead end. Switch back, approve it on `#/today`, and the
+sale executes against the actual position.
+
+### What the charts are doing
+
+The colour work is deliberate rather than decorative, and is documented at the top of
+`take2/charts.js`:
+
+- Asset classes use a **validated categorical palette** — slots 1–4 in fixed order (Equity blue,
+  Debt orange, Real Assets aqua, Cash yellow), assigned to the entity and never reassigned by rank.
+  Adjacent-pair separation was checked with the data-viz validator against the white card surface,
+  not eyeballed: worst adjacent CVD ΔE 9.1, worst normal-vision ΔE 22.9.
+- Aqua and yellow fall below 3:1 contrast on white, so **every chart that uses them ships a legend
+  with visible values and has a table twin on the same screen** — the Guidance tab's glide path is
+  backed by a class table and a sub-class table. That obligation is why the tables are there.
+- Single-series charts that carry no class meaning (cash runway, attribution, order-book depth) use
+  the indigo accent, which is never a series colour, so they cannot be misread as an asset class.
+- **No dual axes anywhere.** Projected cash and capital calls are two charts sharing nothing but
+  their month labels.
+- Drift is a diverging form — bars either side of a zero rule — but each bar keeps its own class
+  hue rather than taking a polarity colour, so Equity is the same blue in every chart on the page.
+  Position across the rule states the sign.
+
+### Take 2 files
+
+```
+take2/index.html    script order: shared data → shared utils → supplement → store → ui → charts → screens → shell
+take2/app.css       the whole visual system; tokens at the top
+take2/data.js       ONLY what take 2 needs and take 1 does not: affiliate desks, sync history,
+                    the pending diff, generated order books. src/mockData.js is not edited.
+take2/store.js      own state, own router, same two authority rules
+take2/ui.js         Card, Stat, Pill, Btn, Lock, Modal, Drawer, MoneyInput
+take2/charts.js     every SVG chart, with the colour rules stated at the top
+take2/p_*.js        one file per screen
+take2/app.js        left rail, top bar, global modals, mount
+```
 
 ## Files
 

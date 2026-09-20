@@ -239,6 +239,11 @@
     const worst = months.reduce((a, b) => (b.cash < a.cash ? b : a), months[0]);
     const wi = months.indexOf(worst);
     const breach = worst.cash < floor;
+    /* Round tick values rather than thirds of the range. */
+    const step = [5e5, 1e6, 2e6, 5e6, 1e7].find((s2) => (hi - lo) / s2 <= 5) || 2e7;
+    const ticks = [];
+    for (let v = Math.ceil(lo / step) * step; v <= hi; v += step) ticks.push(v);
+    if (ticks.indexOf(0) < 0 && lo < 0 && hi > 0) ticks.push(0);
     return h("div", null,
       h("svg", { className: "viz", viewBox: "0 0 " + W + " " + H, onMouseLeave: hide },
         h("path", { d: area, fill: breach ? "var(--critical)" : ACCENT, opacity: .10 }),
@@ -247,11 +252,11 @@
           "Reserve floor " + u.usdC(floor)),
         h("path", { d: line, fill: "none", stroke: breach ? "var(--critical)" : ACCENT,
                     strokeWidth: 2, strokeLinejoin: "round", strokeLinecap: "round" }),
-        [0, 0.5, 1].map((f) => {
-          const v = lo + (hi - lo) * f;
-          return h("text", { key: f, x: PL - 9, y: y(v) + 4, textAnchor: "end", className: "axis-t" },
-            u.usdC(v));
-        }),
+        ticks.map((v) => h("g", { key: v },
+          h("line", { x1: PL, x2: PL + iw, y1: y(v), y2: y(v),
+                      stroke: v === 0 ? AXIS : GRID, strokeWidth: 1 }),
+          h("text", { x: PL - 9, y: y(v) + 4, textAnchor: "end", className: "axis-t" },
+            v === 0 ? "0" : u.usdC(v)))),
         months.map((m, i) => h("rect", {
           key: m.k, x: x(i) - iw / months.length / 2, y: PT, width: iw / months.length, height: ih,
           className: "hit",
@@ -263,8 +268,10 @@
         })),
         h("circle", { cx: x(wi), cy: y(worst.cash), r: 4.5,
                       fill: breach ? "var(--critical)" : ACCENT, stroke: "#fff", strokeWidth: 2 }),
-        h("text", { x: x(wi), y: y(worst.cash) + (breach ? 20 : -12), textAnchor: "middle",
-                    className: "dlabel" }, "Low " + u.usdC(worst.cash) + " · " + worst.label),
+        /* Always above the point — below it would land on the month axis. */
+        h("text", { x: Math.min(Math.max(x(wi), PL + 54), PL + iw - 54), y: y(worst.cash) - 13,
+                    textAnchor: "middle", className: "dlabel" },
+          "Low " + u.usdC(worst.cash) + " \u00b7 " + worst.label),
         months.map((m, i) => i % 3 === 0
           ? h("text", { key: m.k, x: x(i), y: H - 7, textAnchor: "middle", className: "axis-t" }, m.label)
           : null),
@@ -277,13 +284,16 @@
     const [tip, show, hide] = useTip();
     const W = 720, H = 132, PL = 52, PR = 16, PT = 10, PB = 26;
     const iw = W - PL - PR, ih = H - PT - PB;
-    const max = Math.max.apply(null, months.map((m) => Math.max(m.calls, m.dist))) || 1;
+    const raw = Math.max.apply(null, months.map((m) => Math.max(m.calls, m.dist))) || 1;
+    const step = [25e4, 5e5, 1e6, 2e6, 5e6].find((s2) => raw / s2 <= 4) || 1e7;
+    const max = Math.ceil(raw / step) * step;
+    const ticks = []; for (let v = 0; v <= max + 1; v += step) ticks.push(v);
     const band = iw / months.length;
     const bw = Math.min(18, band - 8);
     const y = (v) => PT + (1 - v / max) * ih;
     return h("div", null,
       h("svg", { className: "viz", viewBox: "0 0 " + W + " " + H, onMouseLeave: hide },
-        [0, max / 2, max].map((v, i) =>
+        ticks.map((v, i) =>
           h("g", { key: i },
             h("line", { x1: PL, x2: PL + iw, y1: y(v), y2: y(v), stroke: GRID, strokeWidth: 1 }),
             h("text", { x: PL - 9, y: y(v) + 4, textAnchor: "end", className: "axis-t" }, u.usdC(v)))),
@@ -351,8 +361,8 @@
           h("div", { className: "book-fill", style: { left: 0, width: (b.qty / max) * 100 + "%",
                                                       background: ACCENT } }),
           h("span", { className: "px" }, b.px.toFixed(1) + "%"),
-          h("span", { className: "tri tiny" }, b.member),
-          h("span", { className: "qt num" }, u.usd(b.qty, 0))))),
+          h("span", { className: "tri tiny nowrap" }, b.member.replace("Member ", "")),
+          h("span", { className: "qt num nowrap" }, u.usd(b.qty, 0))))),
       bids.length === 0 ? h("div", { className: "tri mini", style: { padding: "8px 12px" } },
         "No live bids. Yours would be first.") : null,
       h(Tip, { tip }));

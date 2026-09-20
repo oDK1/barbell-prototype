@@ -143,7 +143,8 @@
         h("div", { className: "gap" }),
         tab === "book" ? h(U.Select, { value: status, onChange: setStatus, options: [
           { k: "all", label: "All listings" }, { k: "Open", label: "Open" },
-          { k: "Negotiating", label: "Negotiating" }, { k: "Settled", label: "Settled" }] }) : null),
+          { k: "Under negotiation", label: "Under negotiation" },
+          { k: "Settled", label: "Settled" }] }) : null),
 
       /* -------------------------------------------------- master / detail */
       tab === "book" ? h("div", { className: "grid", style: { gridTemplateColumns: "minmax(0,1fr) 400px" } },
@@ -166,13 +167,14 @@
                 h("td", { className: "tnum strong" }, x.askPct.toFixed(1), "%"),
                 h("td", { className: "tnum" }, b.bids.length),
                 h("td", null, h(U.Pill, { tone: x.status === "Open" ? "good"
-                  : x.status === "Negotiating" ? "warn" : "" }, x.status)));
+                  : x.status === "Under negotiation" ? "warn" : "" }, x.status)));
             })))),
 
         h("div", { className: "col", style: { gap: 14 } },
           h(U.Card, { title: l.instrument,
             desc: l.manager + " · vintage " + l.vintage,
-            right: h(U.Pill, { tone: l.status === "Open" ? "good" : "warn" }, l.status) },
+            right: h(U.Pill, { tone: l.status === "Open" ? "good"
+              : l.status === "Settled" ? "" : "warn" }, l.status) },
             h("div", { className: "kv" },
               h("dt", null, "Last reported NAV"), h("dd", null, u.usd(l.nav, 0)),
               h("dt", null, "Offered"), h("dd", null, u.usd(l.size, 0)),

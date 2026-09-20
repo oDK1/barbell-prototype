@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=1440" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Barbell Wealth Operating System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="src/styles.css" />
+</head>
+<body>
+<div id="root"><div class="boot">Loading Barbell…</div></div>
+
+<script src="vendor/react.production.min.js"></script>
+<script src="vendor/react-dom.production.min.js"></script>
+<script src="vendor/babel.min.js"></script>
+
+<!-- Application source. Order matters: data → utils → store → ui → pages → shell → mount. -->
+<script type="text/babel" data-presets="react" src="src/mockData.js"></script>
+<script type="text/babel" data-presets="react" src="src/util.js"></script>
+<script type="text/babel" data-presets="react" src="src/store.js"></script>
+<script type="text/babel" data-presets="react" src="src/ui.js"></script>
+<script type="text/babel" data-presets="react" src="src/agent.js"></script>
+<script type="text/babel" data-presets="react" src="src/flows.js"></script>
+<script type="text/babel" data-presets="react" src="src/pg_switcher.js"></script>
+<script type="text/babel" data-presets="react" src="src/pg_onboarding.js"></script>
+<script type="text/babel" data-presets="react" src="src/pg_portfolio.js"></script>
+<script type="text/babel" data-presets="react" src="src/pg_assetclass.js"></script>
+<script type="text/babel" data-presets="react" src="src/pg_marketplace.js"></script>
+<script type="text/babel" data-presets="react" src="src/pg_deal.js"></script>
+<script type="text/babel" data-presets="react" src="src/pg_secondary.js"></script>
+<script type="text/babel" data-presets="react" src="src/pg_approvals.js"></script>
+<script type="text/babel" data-presets="react" src="src/pg_activity.js"></script>
+<script type="text/babel" data-presets="react" src="src/pg_ops.js"></script>
+<script type="text/babel" data-presets="react" src="src/shell.js"></script>
+<script type="text/babel" data-presets="react" src="src/main.js"></script>
+</body>
+</html>

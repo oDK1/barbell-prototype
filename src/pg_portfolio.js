@@ -883,12 +883,9 @@
           {(isSuccessor
             ? [["Unrealised", <Delta v={u.unrealized(alpha)} usd />, u.sgn((u.unrealized(alpha) / (u.total(alpha) - u.unrealized(alpha))) * 100) + " on cost"],
                ["Remaining capacity", u.usdC(S.alphaCapacity()), "commit direct up to this"],
-               ["Total assets", u.usdC(t), "read-only"],
-               ["Core sleeve", u.usdC(sl.core), "Principal authority"]]
+               ["Total assets", u.usdC(t), "read-only"]]
             : [["Unrealised", <Delta v={u.unrealized(ps)} usd />, u.sgn((u.unrealized(ps) / (t - u.unrealized(ps))) * 100) + " on cost"],
-               ["Liquidity · 90 days", u.usdC(liq.within90), u.usdC(liq.cash) + " cash"],
-               ["Core / Alpha", u.pct(sl.corePct) + " / " + u.pct(sl.alphaPct), "target 90 / 10"],
-               ["Private assets", u.pct(privShare), privCount + " positions"]]
+               ["Liquidity · 90 days", u.usdC(liq.within90), u.usdC(liq.cash) + " cash"]]
           ).map((m, i) => (
             <span className="item" key={i}>
               <span className="k">{m[0]}</span>

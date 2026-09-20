@@ -250,11 +250,15 @@ label.f>span{display:block;font-size:10.5px;letter-spacing:.08em;text-transform:
 .subline .item .v{font-weight:600}
 .subline .item .n{font-size:11px;color:var(--g2)}
 
-.ticks{position:relative;height:15px}
-.ticks button{position:absolute;top:0;background:none;border:0;padding:0;font:inherit;font-size:10.5px;
-  color:var(--g2);cursor:pointer;line-height:15px}
-.ticks button:hover{color:var(--ink);text-decoration:underline;text-underline-offset:2px}
-.ticks button.on{color:var(--ink);font-weight:600}
+/* The published tiers, sitting at their place on the scale but styled as the
+   buttons they are — bare labels read as axis ticks and nobody clicks them. */
+.ticks{position:relative;height:26px;margin-top:4px}
+.ticks button{position:absolute;top:0;border:1px solid var(--g3);background:var(--paper);
+  padding:2px 8px;font:inherit;font-size:10.5px;font-weight:500;color:var(--g1);
+  cursor:pointer;line-height:1.5;border-radius:var(--r);white-space:nowrap}
+.ticks button:hover{border-color:var(--ink);color:var(--ink)}
+.ticks button.on{background:var(--ink);border-color:var(--ink);color:#fff;font-weight:600}
+.ticks:before{content:"";position:absolute;top:-4px;left:0;right:0;height:1px;background:var(--g4)}
 
 /* Class weight against the model: filled bar is held today, tick is the model. */
 .wbar{position:relative;height:10px;background:var(--g4);width:100%}
@@ -3393,12 +3397,12 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                   onChange={(e) => setAum(Math.round(fromPos(+e.target.value / 1000) / 1e5) * 1e5)}
                   style={{ flex: 1, accentColor: "var(--navy)" }} />
               </div>
-              {/* the published tiers are clickable; the slider covers everything between */}
+              {/* click a tier, or drag the slider to anything between them */}
               <div className="ticks">
                 {[1e6, 10e6, 100e6].map((a, i) => (
                   <button key={a} onClick={() => setAum(a)}
                     className={Math.abs(aum - a) < 1e5 ? "on" : ""}
-                    title={"Model at " + short(a)}
+                    title={"Model the " + short(a) + " tier"}
                     style={{
                       left: (pos(a) * 100) + "%",
                       transform: i === 0 ? "none" : i === 2 ? "translateX(-100%)" : "translateX(-50%)",
@@ -3408,7 +3412,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
               <div className="lever-note">
                 <span style={{ flex: 1 }}>
                   {atToday
-                    ? <>Today's assets. Drag to see the shape at a different size.</>
+                    ? <>Today's assets. Click a tier below or drag the slider to any size between them.</>
                     : <>A what-if — today's assets are {short(t)}.</>}
                 </span>
                 {!atToday && <button className="link g" onClick={() => setAum(t)}>Back to today</button>}

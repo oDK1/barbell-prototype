@@ -248,7 +248,7 @@
           </div>
           <div className="right">
             <div className="stat-l">Weight vs target</div>
-            <div className="stat-v sm">{u.pct(info.wt)} <span className="tri">/ {u.pct(info.target)}</span> <Delta v={info.drift} pp /></div>
+            <div className="stat-v sm">{u.pct(info.wt)} <span className="tri">/ {u.pct(info.target)} target</span></div>
           </div>
         </div>
 
@@ -297,9 +297,10 @@
                 </div>
                 <div className="row" style={{ gap: 24, alignItems: "center" }}>
                   <div className="right"><div className="lbl">Weight</div><div className="num">{u.pct(s.wt)} <span className="tri">/ {u.pct(s.target)}</span></div></div>
-                  <div className="right"><div className="lbl">Drift</div><div><Delta v={s.drift} pp /></div></div>
+                  <div className="right"><div className="lbl">vs target</div>
+                    <div className="tri num">{(s.drift > 0 ? "+" : s.drift < 0 ? "−" : "") + Math.abs(s.drift).toFixed(1) + "pp"}</div></div>
                   <div className="right"><div className="lbl">Value</div><div className="num">{u.usd(s.value)}</div></div>
-                  {s.drift < -0.15 && <button className="btn sm p" onClick={() => S.navigate("/marketplace?gap=" + s.key)}>Close this gap</button>}
+                  <button className="btn sm" onClick={() => S.navigate("/marketplace?gap=" + s.key)}>Opportunities</button>
                 </div>
               </div>
               <PositionTable rows={items} total={t} sleeveTotal={clsTotal}

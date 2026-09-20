@@ -242,8 +242,8 @@
         <Crumb items={[{ label: "Onboarding", to: "/onboarding/upload" }, { label: "Mandate" }]} />
         <h1>Set the posture</h1>
         <div className="sub mt8" style={{ maxWidth: "74ch" }}>
-          This sets the Core/Alpha split and the target allocation. Every drift calculation, every marketplace ranking and
-          every rebalancing path in the product references it.
+          This sets the Core/Alpha split and the target allocation the model is drawn against. It is the reference the rest
+          of the product reads from — not a trading trigger.
         </div>
 
         <div className="grid mt16" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
@@ -266,7 +266,7 @@
             <div className="panel-hd"><h3>Implied target allocation</h3><span className="tri" style={{ fontSize: 11 }}>{m.label}</span></div>
             <div className="panel-bd tight">
               <table className="t">
-                <thead><tr><th>Asset class</th><th className="n">Target</th><th className="n">Current</th><th className="n">Drift</th></tr></thead>
+                <thead><tr><th>Asset class</th><th className="n">Target</th><th className="n">Current</th><th className="n">vs target</th></tr></thead>
                 <tbody>
                   {u.byClass(st.positions).map((c) => {
                     const tgt = m.targets[c.key];
@@ -276,7 +276,7 @@
                           <i className={"sw " + c.sw} style={{ width: 9, height: 9, display: "inline-block" }} />{c.label}</span></td>
                         <td className="n num">{u.pct(tgt)}</td>
                         <td className="n num">{u.pct(c.wt)}</td>
-                        <td className="n"><BB.ui.Delta v={c.wt - tgt} pp /></td>
+                        <td className="n tri num">{((c.wt - tgt) > 0 ? "+" : "−") + Math.abs(c.wt - tgt).toFixed(1) + "pp"}</td>
                       </tr>
                     );
                   })}

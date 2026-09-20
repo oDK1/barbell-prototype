@@ -1082,9 +1082,9 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     /* ---- Sovereign / duration ---------------------------------------- */
     { id: "m01", kind: "listed", name: "US Treasury 4.125% 15-Aug-2036", ticker: "US91282CMR9", fills: "sov", cls: "debt",
       ret: "4.38% YTM", retNum: 4.38, liq: "Daily", term: "10yr", min: 10000, avail: "Continuous", fit: 94,
-      why: "Highest-duration sovereign available; closes the largest single gap in the book.",
+      why: "On-the-run 10-year — the deepest, most liquid way to hold long sovereign duration.",
       sector: "Government", geo: "United States", ccy: "USD", px: 99.31, chg: 0.08, ytm: 4.38, dur: 8.2, rating: "AA+",
-      overview: "On-the-run 10-year Treasury. The mandate's sovereign sleeve is 4.2pp below target and carries a weighted duration of 5.2 years against a 7.5-year policy. This position moves both at once.",
+      overview: "On-the-run 10-year Treasury. The fixed income sleeve carries a weighted duration of 5.2 years against a 7.5-year policy; this is the cleanest instrument for lengthening it.",
       terms: [["Settlement", "T+1"], ["Coupon", "4.125%, semi-annual"], ["Duration", "8.2 years"], ["Minimum", "$10,000 face"], ["Custody", "Hanwha Securities"]],
       docs: [["Offering circular", "PDF · 42pp"], ["Auction results", "PDF · 3pp"]],
       qa: [["Is this hedged to KRW?", "No. A KRW-hedged sleeve can be requested at the order ticket; the hedge is booked as a separate line."]] },
@@ -1092,23 +1092,23 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       ret: "3.71% YTM", retNum: 3.71, liq: "Daily", term: "10yr", min: 10000, avail: "Continuous", fit: 90,
       why: "KRW-denominated duration; matches the reporting currency without an FX overlay.",
       sector: "Government", geo: "Korea", ccy: "KRW", px: 97.88, chg: -0.03, ytm: 3.71, dur: 8.4, rating: "AA",
-      overview: "Benchmark 10-year KTB. For a family reporting in KRW, sovereign duration held in the reporting currency removes the FX translation line that currently contributes −0.8pp QTD.",
+      overview: "Benchmark 10-year KTB. For a family reporting in KRW, sovereign duration held in the reporting currency removes the translation line that currently costs −0.8pp QTD.",
       terms: [["Settlement", "T+1"], ["Coupon", "3.375%, semi-annual"], ["Duration", "8.4 years"], ["Minimum", "₩10,000,000 face"], ["Custody", "Hanwha Securities"]],
       docs: [["Issue terms", "PDF · 18pp"]],
       qa: [["Withholding for a Korean resident?", "KTB interest is subject to standard Korean withholding. Barbell does not provide tax advice."]] },
     { id: "m03", kind: "listed", name: "iShares 7-10 Year Treasury Bond ETF", ticker: "IEF", fills: "sov", cls: "debt",
       ret: "4.21% yield", retNum: 4.21, liq: "Daily", term: "Open-ended", min: 1000, avail: "Continuous", fit: 88,
-      why: "Same exposure as the gap, executable in one order with daily liquidity.",
+      why: "The whole 7–10 year Treasury curve in one order, 0.15%, daily liquidity.",
       sector: "Government", geo: "United States", ccy: "USD", px: 96.44, chg: 0.14, expense: 0.15, dur: 7.4,
-      overview: "Index exposure to the 7–10 year Treasury curve. The cheapest way to move 4.2pp of the balance sheet in a single ticket while the sovereign ladder is built out over subsequent quarters.",
+      overview: "Index exposure to the 7–10 year Treasury curve. The cheapest way to add duration in a single ticket while a direct ladder is built out over subsequent quarters.",
       terms: [["Settlement", "T+1"], ["Expense ratio", "0.15%"], ["Distribution", "Monthly"], ["Minimum", "1 share"], ["Custody", "Hanwha Securities"]],
       docs: [["Prospectus", "PDF · 88pp"], ["Fact sheet", "PDF · 2pp"]],
       qa: [["Why an ETF rather than the bonds?", "Speed. The ETF fills the gap this week; the direct ladder can replace it over two quarters without a further allocation decision."]] },
     { id: "m04", kind: "listed", name: "iShares 1-3 Year Treasury Bond ETF", ticker: "SHY", fills: "sov", cls: "debt",
       ret: "4.11% yield", retNum: 4.11, liq: "Daily", term: "Open-ended", min: 1000, avail: "Continuous", fit: 71,
-      why: "Fills the sovereign gap but adds almost no duration — partial fit against the stated need.",
+      why: "Low duration and low volatility — a parking place for capital-call reserves, not a duration holding.",
       sector: "Government", geo: "United States", ccy: "USD", px: 82.90, chg: 0.02, expense: 0.15, dur: 1.9,
-      overview: "Short-dated Treasuries. Counts toward the sovereign allocation and can double as a landing place for the Q1 2027 capital call reserve.",
+      overview: "Short-dated Treasuries. The natural landing place for the Q1 2027 capital call reserve.",
       terms: [["Settlement", "T+1"], ["Expense ratio", "0.15%"], ["Duration", "1.9 years"], ["Minimum", "1 share"]],
       docs: [["Prospectus", "PDF · 88pp"]], qa: [] },
     { id: "m05", kind: "listed", name: "KOSEF 10Y KTB ETF", ticker: "148070.KS", fills: "sov", cls: "debt",
@@ -1121,18 +1121,18 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
     { id: "m34", kind: "private", name: "Korea Housing Finance Corp — private placement MBS 2026-C", fills: "sov", cls: "debt",
       ret: "4.62% YTM", retNum: 4.62, liq: "Locked", term: "3 years", min: 500000, avail: "₩18B of ₩150B remaining", fit: 86,
-      why: "Government-guaranteed KRW duration at a 91bp spread over the KTB curve for giving up the secondary market.",
+      why: "Government-guaranteed KRW credit at a 91bp spread over the KTB curve, in exchange for holding to maturity.",
       sector: "Government", geo: "Korea", ccy: "KRW", manager: "Korea Housing Finance Corporation", closing: "2026-10-08",
       hanwha: true, anchor: "Hanwha Life holds ₩400B of the same programme across recent vintages.",
       overview: "Senior tranche of a government-guaranteed residential mortgage securitisation. Sovereign-equivalent credit with a 91bp pickup over the on-the-run KTB, in exchange for holding to maturity. Fills the duration gap in the reporting currency without an FX overlay.",
       terms: [["Yield to maturity", "4.62%"], ["Guarantee", "Korea Housing Finance Corporation (government-backed)"], ["Term", "3 years, no early redemption"], ["Minimum", "₩700,000,000 (≈$500,000)"], ["Coupon", "Quarterly"], ["Closing", "8 October 2026"]],
       docs: [["Programme prospectus", "PDF · 96pp"], ["Pool characteristics", "XLSX"], ["Guarantee terms", "PDF · 12pp"]],
-      qa: [["Why is this on the same list as an ETF?", "Because it closes the same gap. It pays 91bp more than the liquid alternative and cannot be sold for three years — that is a price and a term, not a separate category of product."]] },
+      qa: [["Why is this on the same list as an ETF?", "Because it answers the same need. It pays 91bp more than the liquid alternative and cannot be sold for three years — that is a price and a term, not a separate category of product."]] },
 
     /* ---- Private credit ---------------------------------------------- */
     { id: "m06", kind: "private", name: "Northgate Data Center Credit Facility II", fills: "pcred", cls: "debt",
       ret: "9.2% target", retNum: 9.2, liq: "Locked", term: "5 years", min: 1000000, avail: "$4.2M of $60M remaining", fit: 96,
-      why: "Senior secured against contracted data center cash flows; largest yield pickup available inside the credit gap.",
+      why: "Senior secured against contracted data centre cash flows, on the same security package as the Facility I position already held.",
       sector: "Infrastructure", geo: "United States", ccy: "USD", manager: "Northgate Capital Partners", closing: "2026-10-30",
       hanwha: true, anchor: "Hanwha Life holds $180M of the senior tranche on identical terms.",
       overview: "Senior secured lending against a 220MW US hyperscale data center platform, 94% contracted to two investment-grade tenants on 12-year leases. First-lien on the operating entity, 55% LTV on an independent appraisal, cash sweep above 1.35x DSCR. The family already holds the Facility I position at $2.39M; this is the same borrower, same security package, one tranche later.",
@@ -1142,7 +1142,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
            ["Can this be sold before maturity?", "Yes — positions originated on Barbell become listable on the secondary board after a 12-month hold."]] },
     { id: "m07", kind: "private", name: "Meridian Direct Lending Fund III", fills: "pcred", cls: "debt",
       ret: "8.4% target", retNum: 8.4, liq: "Quarterly", term: "Evergreen, 90d notice", min: 500000, avail: "Open", fit: 89,
-      why: "Quarterly liquidity inside the credit gap; the family already holds Fund II and the reporting line is identical.",
+      why: "8.4% target with quarterly liquidity; the family holds Fund II and the reporting line is identical.",
       sector: "Diversified", geo: "United States", ccy: "USD", manager: "Meridian Credit", closing: "Quarterly close",
       overview: "Diversified senior secured lending to sponsor-backed mid-market borrowers, 128 positions, average hold 1.4% of the fund. Evergreen structure with quarterly redemption at NAV subject to a 5% gate.",
       terms: [["Target return", "8.4% net"], ["Liquidity", "Quarterly, 90 days' notice, 5% gate"], ["Minimum", "$500,000"], ["Fees", "1.25% / 10% over 6%"], ["Leverage", "0.85x"]],
@@ -1150,7 +1150,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       qa: [["How did the gate behave in 2024?", "Redemptions were met in full in every quarter since inception; the gate has never been applied."]] },
     { id: "m08", kind: "listed", name: "Invesco Senior Loan ETF", ticker: "BKLN", fills: "pcred", cls: "debt",
       ret: "7.60% yield", retNum: 7.6, liq: "Daily", term: "Open-ended", min: 1000, avail: "Continuous", fit: 76,
-      why: "Floating-rate senior loans with daily liquidity — same risk factor as the gap, a third of the illiquidity.",
+      why: "Floating-rate senior loans with daily liquidity — the same credit risk without the lock-up.",
       sector: "Diversified", geo: "United States", ccy: "USD", px: 20.88, chg: 0.05, expense: 0.65,
       overview: "Index exposure to the US leveraged loan market. Lower yield than direct lending and no origination premium, but it fills the credit gap immediately and can be sold to fund the Q1 2027 capital calls if needed.",
       terms: [["Settlement", "T+1"], ["Expense ratio", "0.65%"], ["Distribution", "Monthly"], ["Minimum", "1 share"]],
@@ -1175,7 +1175,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     /* ---- Infrastructure ---------------------------------------------- */
     { id: "m11", kind: "private", name: "Songdo Hyperscale Data Center Platform II", fills: "infra", cls: "real",
       ret: "13.5% target IRR", retNum: 13.5, liq: "Locked", term: "8 years", min: 750000, avail: "$11M of $140M remaining", fit: 93,
-      why: "Doubles the infrastructure sleeve's largest existing holding at the same entry basis as Hanwha Life.",
+      why: "Second phase of an asset the family already owns, at the same entry basis as Hanwha Life.",
       sector: "Data Centers", geo: "Korea", ccy: "USD", manager: "Hanwha Asset Management", closing: "2026-11-14",
       hanwha: true, anchor: "Hanwha Life is the anchor investor at $220M, subscribed at the same price and terms as members.",
       overview: "Second phase of the Songdo campus: 180MW of contracted capacity with a signed 15-year offtake from a global cloud operator. Phase I, which the family already holds at $2.34M, is 100% leased and distributing at a 7.4% cash yield.",
@@ -1185,7 +1185,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
            ["What is the concentration effect?", "Committing $750K takes data center exposure to 5.0% of total assets across Phase I, Phase II and the Northgate credit facility."]] },
     { id: "m12", kind: "private", name: "Hanwha Korea Logistics REIT Co-Invest II", fills: "infra", cls: "real",
       ret: "9.8% target IRR", retNum: 9.8, liq: "Locked", term: "6 years", min: 300000, avail: "$6M of $45M remaining", fit: 85,
-      why: "Lowest minimum in the infrastructure gap; existing Co-Invest I position is marking at 1.08x.",
+      why: "$300,000 minimum, quarterly cash from year one; Co-Invest I is marking at 1.08x.",
       sector: "Logistics", geo: "Korea", ccy: "KRW", manager: "Hanwha Asset Management", closing: "2026-12-05",
       hanwha: true, anchor: "Hanwha Life holds 40% of the REIT's equity alongside co-investors.",
       overview: "Cold-chain and last-mile logistics assets in the Seoul metropolitan area, 91% occupied on a weighted 6.2-year lease term. Distributions quarterly from year 1.",
@@ -1217,20 +1217,20 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     /* ---- Everything else ---------------------------------------------- */
     { id: "m16", kind: "listed", name: "iShares iBoxx USD Investment Grade Corporate Bond ETF", ticker: "LQD", fills: "ig", cls: "debt",
       ret: "5.12% yield", retNum: 5.12, liq: "Daily", term: "Open-ended", min: 1000, avail: "Continuous", fit: 64,
-      why: "Investment grade credit is 2.0pp above target — this adds to an overweight.",
+      why: "Broad IG credit at 0.14% — duplicates exposure the book already holds in single names.",
       sector: "Corporate", geo: "United States", ccy: "USD", px: 109.74, chg: 0.11, expense: 0.14, dur: 8.3,
-      overview: "Broad US investment grade corporate exposure. The sleeve is already overweight; shown for completeness.",
+      overview: "Broad US investment grade corporate exposure. The book already holds this risk in single names; shown for completeness.",
       terms: [["Settlement", "T+1"], ["Expense ratio", "0.14%"], ["Minimum", "1 share"]], docs: [["Prospectus", "PDF · 96pp"]], qa: [] },
     { id: "m17", kind: "listed", name: "Hanwha Life 3.95% 12-Feb-2030", ticker: "KR6088350D30", fills: "ig", cls: "debt",
       ret: "4.06% YTM", retNum: 4.06, liq: "Daily", term: "4yr", min: 100000, avail: "Secondary market", fit: 66,
-      why: "Adds to an overweight sleeve, and to issuer concentration already present through the ELS note.",
+      why: "Adds to issuer concentration the book already carries through the ELS note.",
       sector: "Financials", geo: "Korea", ccy: "KRW", px: 99.56, chg: 0.01, ytm: 4.06, dur: 3.3, rating: "AAA (KIS)",
       hanwha: true, anchor: "Issued by Hanwha Life Insurance.",
-      overview: "Senior unsecured KRW paper from Hanwha Life. Included because it is frequently requested; it does not close a gap.",
+      overview: "Senior unsecured KRW paper from Hanwha Life. Included because it is frequently requested.",
       terms: [["Settlement", "T+1"], ["Coupon", "3.95% annual"], ["Minimum", "₩100,000,000"]], docs: [["Issue terms", "PDF · 22pp"]], qa: [] },
     { id: "m18", kind: "listed", name: "Apple Inc. 4.30% 10-May-2033", ticker: "US037833EF2", fills: "ig", cls: "debt",
       ret: "4.74% YTM", retNum: 4.74, liq: "Daily", term: "7yr", min: 10000, avail: "Secondary market", fit: 62,
-      why: "Duplicates an existing 2043 Apple line and extends an overweight.",
+      why: "Duplicates the existing 2043 Apple line at a shorter maturity.",
       sector: "Info Tech", geo: "United States", ccy: "USD", px: 96.88, chg: 0.06, ytm: 4.74, dur: 5.8, rating: "AA+",
       overview: "Intermediate Apple paper. The book already holds the 2043 line at $2.41M.",
       terms: [["Settlement", "T+1"], ["Coupon", "4.30% semi-annual"], ["Minimum", "$10,000 face"]], docs: [], qa: [] },
@@ -1262,25 +1262,25 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       qa: [["How concentrated is this?", "Entirely. A $250K commitment represents 4.0% of the Alpha sleeve in a single private company."]] },
     { id: "m22", kind: "private", name: "Pacific Core Real Estate Fund V", fills: "re", cls: "real",
       ret: "8.1% target", retNum: 8.1, liq: "Quarterly", term: "Open-end", min: 500000, avail: "Open", fit: 58,
-      why: "Real estate is 6.0pp above target — this deepens the book's largest overweight.",
+      why: "Core open-end property; the family holds Fund IV and the exposure would be duplicative.",
       sector: "Diversified RE", geo: "Asia-Pacific", ccy: "USD", manager: "Pacific Core", closing: "Quarterly close",
-      overview: "Core open-end Asia-Pacific property fund. Shown because the family holds Fund IV; the allocation does not need it.",
+      overview: "Core open-end Asia-Pacific property fund. Shown because the family holds Fund IV.",
       terms: [["Target return", "8.1% net"], ["Liquidity", "Quarterly queue"], ["Minimum", "$500,000"], ["Fees", "1.0% / no carry"]],
       docs: [["PPM", "PDF · 104pp"]], qa: [] },
     { id: "m23", kind: "listed", name: "Samsung Electronics Co., Ltd.", ticker: "005930.KS", fills: "pubeq", cls: "equity",
       ret: "—", retNum: 0, liq: "Daily", term: "—", min: 1000, avail: "Continuous", fit: 55,
-      why: "Public equity is 3.4pp above target and the KR technology weight is already 11.0%.",
+      why: "Already held at $1.98M; Korean technology is 11.0% of the book before adding to it.",
       sector: "Info Tech", geo: "Korea", ccy: "KRW", px: 73500, chg: -0.41,
-      overview: "Held already at $1.98M. Listed for completeness; adding to it moves the book further from target.",
+      overview: "Held already at $1.98M, alongside SK hynix and three other semiconductor exposures.",
       terms: [["Settlement", "T+2"], ["Minimum", "1 share"]], docs: [], qa: [] },
     { id: "m24", kind: "listed", name: "Taiwan Semiconductor Mfg. (ADR)", ticker: "TSM", fills: "pubeq", cls: "equity",
       ret: "—", retNum: 0, liq: "Daily", term: "—", min: 1000, avail: "Continuous", fit: 54,
-      why: "Adds to a public equity overweight and to existing semiconductor concentration.",
+      why: "Already held; adds to semiconductor concentration that runs through four other positions.",
       sector: "Info Tech", geo: "Taiwan", ccy: "USD", px: 268.90, chg: 1.47,
       overview: "Held already at $739K.", terms: [["Settlement", "T+1"], ["Minimum", "1 share"]], docs: [], qa: [] },
     { id: "m25", kind: "listed", name: "Vanguard Total World Stock ETF", ticker: "VT", fills: "pubeq", cls: "equity",
       ret: "—", retNum: 0, liq: "Daily", term: "Open-ended", min: 1000, avail: "Continuous", fit: 57,
-      why: "Broad global equity at 0.06%; useful only if the public sleeve is rebuilt, not added to.",
+      why: "9,800 holdings at 0.06% — the cheapest single line the public sleeve could consolidate into.",
       sector: "Diversified", geo: "Global", ccy: "USD", px: 142.08, chg: 0.21, expense: 0.06,
       overview: "9,800 holdings across 49 markets. The cheapest single line the public sleeve could be consolidated into.",
       terms: [["Settlement", "T+1"], ["Expense ratio", "0.06%"], ["Minimum", "1 share"]], docs: [["Prospectus", "PDF · 78pp"]], qa: [] },
@@ -1298,7 +1298,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       terms: [["Settlement", "T+2"], ["Minimum", "1 share"]], docs: [], qa: [] },
     { id: "m28", kind: "listed", name: "SPDR Gold Shares", ticker: "GLD", fills: "comm", cls: "real",
       ret: "—", retNum: 0, liq: "Daily", term: "Open-ended", min: 1000, avail: "Continuous", fit: 70,
-      why: "Commodities are 0.2pp below target; this is the liquid equivalent of the existing bullion account.",
+      why: "The liquid equivalent of the KRX bullion account, without the storage arrangement.",
       sector: "Precious Metals", geo: "Global", ccy: "USD", px: 412.66, chg: 0.36, expense: 0.40,
       overview: "Physically backed gold. The family holds 340g in KRX custody; GLD is the same exposure without the storage arrangement.",
       terms: [["Settlement", "T+1"], ["Expense ratio", "0.40%"], ["Minimum", "1 share"]], docs: [["Prospectus", "PDF · 58pp"]], qa: [] },
@@ -1309,7 +1309,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       overview: "Futures-based broad commodity index.", terms: [["Settlement", "T+1"], ["Expense ratio", "0.75%"]], docs: [], qa: [] },
     { id: "m30", kind: "listed", name: "Hanwha Securities ELS 2026-09 (KOSPI200 / S&P 500 autocall)", ticker: "HWELS2609", fills: "struct", cls: "debt",
       ret: "7.20% p.a. if called", retNum: 7.2, liq: "Quarterly", term: "3yr · quarterly observation", min: 100000, avail: "₩60B tranche open", fit: 79,
-      why: "Structured sleeve is at target; this replaces the 2024-11 note which is likely to autocall in November.",
+      why: "A replacement for the 2024-11 note, which is likely to autocall in November.",
       sector: "Structured", geo: "Korea", ccy: "KRW",
       hanwha: true, anchor: "Issued by Hanwha Securities. Hanwha Life holds ₩200B of the same series.",
       overview: "Three-year autocallable note on KOSPI200 and S&P 500 with a 55% knock-in barrier, 7.2% annual coupon if called at any quarterly observation. Principal is at risk below the barrier at maturity.",
@@ -1318,7 +1318,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       qa: [["What is the historical knock-in frequency?", "On this barrier and underlier pair, 4.1% of rolling 3-year windows since 2001 ended below the barrier."]] },
     { id: "m31", kind: "listed", name: "Hanwha Principal-Protected USD/KRW Note 2026-08", ticker: "HWFX2608", fills: "struct", cls: "debt",
       ret: "0–9.5% range", retNum: 4.5, liq: "Quarterly", term: "2yr · principal protected", min: 100000, avail: "₩25B tranche open", fit: 73,
-      why: "Expresses a KRW view while protecting principal — relevant given the −0.8pp QTD FX drag.",
+      why: "Expresses a KRW view while protecting principal — relevant given the −0.8pp QTD currency drag.",
       sector: "Structured", geo: "Korea", ccy: "KRW",
       hanwha: true, anchor: "Issued by Hanwha Securities.",
       overview: "Two-year note returning principal plus 60% of any USD/KRW appreciation above 1,380, capped at 9.5% total. Principal protected by the issuer's credit.",
@@ -1326,15 +1326,15 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       docs: [["Term sheet", "PDF · 8pp"], ["Risk disclosure", "PDF · 16pp"]], qa: [] },
     { id: "m32", kind: "listed", name: "KODEX Korea REIT ETF", ticker: "329200.KS", fills: "re", cls: "real",
       ret: "5.8% dividend", retNum: 5.8, liq: "Daily", term: "Open-ended", min: 1000, avail: "Continuous", fit: 49,
-      why: "Real estate is the book's largest overweight at +6.0pp.",
+      why: "Listed Korean REITs — duplicates direct property the family already owns outright.",
       sector: "Real Estate", geo: "Korea", ccy: "KRW", px: 5840, chg: 0.17, expense: 0.09,
-      overview: "Basket of listed Korean REITs. Shown for completeness against an overweight sleeve.",
+      overview: "Basket of listed Korean REITs. The family already owns Korean property directly.",
       terms: [["Settlement", "T+2"], ["Expense ratio", "0.09%"]], docs: [], qa: [] },
     { id: "m33", kind: "listed", name: "iShares TIPS Bond ETF", ticker: "TIP", fills: "sov", cls: "debt",
       ret: "2.15% real", retNum: 2.15, liq: "Daily", term: "Open-ended", min: 1000, avail: "Continuous", fit: 83,
-      why: "Sovereign exposure with inflation linkage; closes the duration gap and hedges the real-asset book.",
+      why: "The only explicit inflation hedge available to the fixed income sleeve.",
       sector: "Government", geo: "United States", ccy: "USD", px: 108.20, chg: 0.09, expense: 0.19, dur: 6.6,
-      overview: "Inflation-protected Treasuries. Counts toward the sovereign target and provides the only explicit inflation hedge in the fixed income sleeve.",
+      overview: "Inflation-protected Treasuries — the only explicit inflation hedge in the fixed income sleeve.",
       terms: [["Settlement", "T+1"], ["Expense ratio", "0.19%"], ["Real yield", "2.15%"], ["Minimum", "1 share"]],
       docs: [["Prospectus", "PDF · 82pp"]], qa: [] },
   ];
@@ -1403,12 +1403,12 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     { id: "a1", ts: "2026-09-17T11:22:00+09:00", from: "successor", type: "Commitment",
       title: "Commit $1,000,000 to Northgate Data Center Credit Facility II",
       target: "m06", amount: 1000000, sleeve: "core",
-      rationale: "Fills the private credit gap (−3.8pp) at 9.2% on the same security package as the Facility I position we already hold. Above the Alpha sleeve's $760,000 capacity, so it is submitted rather than executed.",
+      rationale: "9.2% senior secured on the same security package as the Facility I position we already hold, which is performing. Above the Alpha sleeve's $760,000 capacity, so it is submitted rather than executed.",
       status: "pending" },
     { id: "a2", ts: "2026-09-12T09:05:00+09:00", from: "successor", type: "Trade",
       title: "Buy $420,000 iShares 7-10 Year Treasury Bond ETF (IEF) in Core",
       target: "m03", amount: 420000, sleeve: "core",
-      rationale: "Sovereign is 4.2pp below target. This is the fastest instrument to close part of it while the direct ladder is built.",
+      rationale: "The fixed income sleeve is short duration against the policy. This is the fastest instrument to lengthen it while a direct ladder is built.",
       status: "pending" },
     { id: "a3", ts: "2026-08-28T16:40:00+09:00", from: "successor", type: "Commitment",
       title: "Commit $250,000 to Helios AI Infrastructure SPV II",
@@ -1420,7 +1420,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       target: "p23", amount: 600000, sleeve: "core",
       rationale: "Duration is long and the position is below cost.",
       status: "returned", decidedTs: "2026-08-15T10:02:00+09:00",
-      comment: "Returned. Selling at a loss to fund a sleeve that is already overweight is the wrong order of operations. Resubmit with the proceeds directed to sovereign duration." },
+      comment: "Returned. Selling at a loss to fund a position we already hold twice over is the wrong order of operations. Resubmit with the proceeds directed to sovereign duration." },
   ];
 
   /* ------------------------------------------------------------- activity */
@@ -2319,28 +2319,26 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     return (
       <div className="panel">
         <div className="panel-hd"><h3>Allocation impact</h3>
-          <span className="tri" style={{ fontSize: 11 }}>against target</span></div>
+          <span className="tri" style={{ fontSize: 11 }}>for information</span></div>
         <table className="t dense">
-          <thead><tr><th></th><th className="n">Before</th><th className="n">After</th><th className="n">Drift after</th></tr></thead>
+          <thead><tr><th></th><th className="n">Before</th><th className="n">After</th><th className="n">vs target</th></tr></thead>
           <tbody>
             <tr>
               <td><div className="tname">{i.sub.label}</div><div className="tsub">target {u.pct(i.sub.target)}</div></td>
               <td className="n num">{u.pct(i.sub.wt)}</td>
               <td className="n num">{u.pct(i.subAfter)}</td>
-              <td className="n"><Delta v={i.subDriftAfter} pp /></td>
+              <td className="n tri num">{(i.subDriftAfter > 0 ? "+" : "−") + Math.abs(i.subDriftAfter).toFixed(1) + "pp"}</td>
             </tr>
             <tr>
               <td><div className="tname">{i.cls.label}</div><div className="tsub">target {u.pct(i.cls.target)}</div></td>
               <td className="n num">{u.pct(i.cls.wt)}</td>
               <td className="n num">{u.pct(i.clsAfter)}</td>
-              <td className="n"><Delta v={i.clsDriftAfter} pp /></td>
+              <td className="n tri num">{(i.clsDriftAfter > 0 ? "+" : "−") + Math.abs(i.clsDriftAfter).toFixed(1) + "pp"}</td>
             </tr>
           </tbody>
         </table>
         <div className="why" style={{ borderTop: "1px solid var(--g3)" }}>
-          {i.subDriftAfter > i.sub.drift && i.sub.drift < 0
-            ? <>Closes <b>{u.pp(Math.min(-i.sub.drift, (amount / u.total(st.positions)) * 100))}</b> of the {i.sub.label} gap.</>
-            : <>This moves {i.sub.label} further from target.</>}
+          {i.sub.label} would move from {u.pct(i.sub.wt)} to {u.pct(i.subAfter)} of total assets.
         </div>
       </div>
     );
@@ -3007,8 +3005,8 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
         <Crumb items={[{ label: "Onboarding", to: "/onboarding/upload" }, { label: "Mandate" }]} />
         <h1>Set the posture</h1>
         <div className="sub mt8" style={{ maxWidth: "74ch" }}>
-          This sets the Core/Alpha split and the target allocation. Every drift calculation, every marketplace ranking and
-          every rebalancing path in the product references it.
+          This sets the Core/Alpha split and the target allocation the model is drawn against. It is the reference the rest
+          of the product reads from — not a trading trigger.
         </div>
 
         <div className="grid mt16" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
@@ -3031,7 +3029,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
             <div className="panel-hd"><h3>Implied target allocation</h3><span className="tri" style={{ fontSize: 11 }}>{m.label}</span></div>
             <div className="panel-bd tight">
               <table className="t">
-                <thead><tr><th>Asset class</th><th className="n">Target</th><th className="n">Current</th><th className="n">Drift</th></tr></thead>
+                <thead><tr><th>Asset class</th><th className="n">Target</th><th className="n">Current</th><th className="n">vs target</th></tr></thead>
                 <tbody>
                   {u.byClass(st.positions).map((c) => {
                     const tgt = m.targets[c.key];
@@ -3041,7 +3039,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                           <i className={"sw " + c.sw} style={{ width: 9, height: 9, display: "inline-block" }} />{c.label}</span></td>
                         <td className="n num">{u.pct(tgt)}</td>
                         <td className="n num">{u.pct(c.wt)}</td>
-                        <td className="n"><BB.ui.Delta v={c.wt - tgt} pp /></td>
+                        <td className="n tri num">{((c.wt - tgt) > 0 ? "+" : "−") + Math.abs(c.wt - tgt).toFixed(1) + "pp"}</td>
                       </tr>
                     );
                   })}
@@ -3119,6 +3117,11 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   const D = BB.data, u = BB.u, S = BB.store;
   const { Money, Delta, Panel, Tabs, Seg, MiniBar, AllocBar, ProvBadge, SleeveBadge, Modal, Lock } = BB.ui;
   const { Agent, runQuery } = BB.agent;
+
+  /* Drift is context, not a verdict: grey, unsigned by colour, no urgency. */
+  function VsTarget({ v }) {
+    return <span className="tri num">{(v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v).toFixed(1) + "pp"}</span>;
+  }
 
   /* --------------------------------------------------------- query bar */
   /* Read-only natural language over the book. Floats at the foot of the
@@ -3222,6 +3225,9 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     const over = [...cls].sort((a, b) => b.drift - a.drift)[0];
     const short2 = subs.filter((s) => s.drift < 0).sort((a, b) => a.drift - b.drift).slice(0, 2);
     const mandateLabel = (D.mandates.find((m) => m.key === S.get().mandate) || D.mandates[1]).label;
+    const t2 = u.total(positions);
+    const model = u.modelWeights(t2, S.get().mandate);
+    const altShare = (u.total(positions.filter((p) => D.ALT_SUBS.indexOf(p.sub) >= 0)) / t2) * 100;
 
     return (
       <>
@@ -3238,7 +3244,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 <th style={{ width: 160 }}>Weight vs target</th>
                 <th className="n">Current</th>
                 <th className="n">Target</th>
-                <th className="n">Drift</th>
+                <th className="n">vs target</th>
                 <th className="n">Value</th>
                 <th className="n">Unrealised</th>
                 <th></th>
@@ -3264,7 +3270,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                       <td><MiniBar cur={c.wt} target={c.target} max={45} /></td>
                       <td className="n num">{u.pct(c.wt)}</td>
                       <td className="n num tri">{u.pct(c.target)}</td>
-                      <td className="n"><Delta v={c.drift} pp /></td>
+                      <td className="n"><VsTarget v={c.drift} /></td>
                       <td className="n"><Money v={c.value} /></td>
                       <td className="n"><Delta v={un} usd /></td>
                       <td className="right"><button className="btn sm" onClick={(e) => { e.stopPropagation(); S.navigate("/portfolio/" + c.key); }}>Open</button></td>
@@ -3279,7 +3285,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                         <td><MiniBar cur={s.wt} target={s.target} max={30} /></td>
                         <td className="n num">{u.pct(s.wt)}</td>
                         <td className="n num tri">{u.pct(s.target)}</td>
-                        <td className="n"><Delta v={s.drift} pp /></td>
+                        <td className="n"><VsTarget v={s.drift} /></td>
                         <td className="n num">{u.usd(s.value)}</td>
                         <td className="n"><Delta v={u.unrealized(positions.filter((p) => p.sub === s.key))} usd /></td>
                         <td></td>
@@ -3301,15 +3307,18 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
         </div>
 
         <div className="mt16">
-          <Agent where="Drift monitoring"
-            why={["Target allocation: " + mandateLabel + " mandate, as confirmed in the activity log",
-                  "Current marks: listed positions live, private positions as of 30 Jun 2026 capital accounts",
-                  "Q3 mark-ups applied to 2 private positions",
-                  "Drift measured against class targets, not subcategory targets"]}
-            actions={<button className="btn sm p" onClick={() => S.navigate("/marketplace")}>See what closes the gap</button>}>
-            <b>{over.label} is {u.pp(over.drift).replace("+", "")} over target</b> following the Q3 mark-up. The offsetting
-            shortfall is in {short2.map((s) => s.label).join(" and ")}, together{" "}
-            {u.usd(short2.reduce((a, s) => a + s.gapUsd, 0))} below target.
+          <Agent where="Allocation"
+            why={["Current class and subcategory weights from the reconciled book",
+                  "Mandate: " + mandateLabel + ", as confirmed in the activity log",
+                  "Model allocation for this AUM tier and objective",
+                  "Listed positions marked live; private marks as of 30 Jun 2026"]}
+            actions={<button className="btn sm" onClick={() => {
+              const el = document.getElementById("model-panel");
+              if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+            }}>Compare with the model</button>}>
+            The book is {cls.map((c) => u.pct(c.wt) + " " + c.label.toLowerCase()).join(", ")}, with{" "}
+            <b>{u.pct(altShare)}</b> in alternatives. The model for this size and objective suggests{" "}
+            {u.pct(model.alts)}. Differences of a few points are normal and not, on their own, a reason to trade.
           </Agent>
         </div>
 
@@ -3389,7 +3398,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
               <span style={{ flex: 1 }}>
                 <b>What-if.</b> The family's mandate is <b>{(D.mandates.find((x) => x.key === st.mandate) || {}).label}</b>;
                 this chart is drawn for <b>{model.goal.goal}</b>. Adopting it rewrites the Core/Alpha split and every class
-                target, which moves every drift number and fit score in the product.
+                target the model is drawn against, and the mandate line shown throughout the product.
               </span>
               <span className="btn-row">
                 <button className="btn sm" onClick={() => setGoal(st.mandate)}>Discard</button>
@@ -4000,7 +4009,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
         </div>
 
         <div className="grid mt16" style={{ gridTemplateColumns: "1.4fr 1fr" }}>
-          <Panel title="Discovery" sub="Highest-fit opportunities against the family's gaps"
+          <Panel title="Discovery" sub="Highest-ranked offerings for this family"
             right={<button className="btn sm" onClick={() => S.navigate("/marketplace")}>Open marketplace</button>}>
             <table className="t dense">
               <thead><tr><th>Opportunity</th><th>Fills</th><th>Liquidity</th><th className="n">Minimum</th><th className="n">Fit</th><th></th></tr></thead>
@@ -4047,7 +4056,8 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     const t = u.total(ps);
     const sl = u.sleeveTotals(ps);
     const cls = u.byClass(ps);
-    const drift = cls.reduce((a, c) => a + Math.abs(c.drift), 0) / 2;
+    const model = u.modelWeights(t, st.mandate);
+    const altShare = (u.total(ps.filter((p) => D.ALT_SUBS.indexOf(p.sub) >= 0)) / t) * 100;
     const liq = u.liquidity90(ps);
     const stale = ps.filter((p) => p.prov === "self" && u.staleness(p).d > 90);
     const alpha = ps.filter((p) => p.sleeve === "alpha");
@@ -4096,8 +4106,8 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 <div className="stat-s">direct commitment limit</div></div>
               <div className="cell"><div className="stat-l">Total assets (read-only)</div><div className="stat-v"><Money v={t} compact /></div>
                 <div className="stat-s">Core {u.usd(sl.core)} · Principal authority</div></div>
-              <div className="cell"><div className="stat-l">Drift from target</div><div className="stat-v">{u.pp(drift, 1).replace("+", "")}</div>
-                <div className="stat-s">absolute, across four classes</div></div>
+              <div className="cell"><div className="stat-l">Alternatives</div><div className="stat-v">{u.pct(altShare)}</div>
+                <div className="stat-s">of assets · model {u.pct(model.alts)}</div></div>
             </>
           ) : (
             <>
@@ -4109,8 +4119,8 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 <div className="stat-s">{u.sgn((u.unrealized(ps) / (t - u.unrealized(ps))) * 100)} on cost</div></div>
               <div className="cell"><div className="stat-l">Liquidity · next 90 days</div><div className="stat-v"><Money v={liq.within90} compact /></div>
                 <div className="stat-s">{u.usdC(liq.cash)} cash · {u.usdC(liq.listed)} listed</div></div>
-              <div className="cell"><div className="stat-l">Drift from target</div><div className="stat-v">{u.num(drift, 1)}pp</div>
-                <div className="stat-s">largest: {[...cls].sort((a, b) => Math.abs(b.drift) - Math.abs(a.drift))[0].label} {u.pp([...cls].sort((a, b) => Math.abs(b.drift) - Math.abs(a.drift))[0].drift)}</div></div>
+              <div className="cell"><div className="stat-l">Alternatives</div><div className="stat-v">{u.pct(altShare)}</div>
+                <div className="stat-s">of assets · model suggests {u.pct(model.alts)} at this size</div></div>
             </>
           )}
         </div>
@@ -4382,7 +4392,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
           </div>
           <div className="right">
             <div className="stat-l">Weight vs target</div>
-            <div className="stat-v sm">{u.pct(info.wt)} <span className="tri">/ {u.pct(info.target)}</span> <Delta v={info.drift} pp /></div>
+            <div className="stat-v sm">{u.pct(info.wt)} <span className="tri">/ {u.pct(info.target)} target</span></div>
           </div>
         </div>
 
@@ -4431,9 +4441,10 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 </div>
                 <div className="row" style={{ gap: 24, alignItems: "center" }}>
                   <div className="right"><div className="lbl">Weight</div><div className="num">{u.pct(s.wt)} <span className="tri">/ {u.pct(s.target)}</span></div></div>
-                  <div className="right"><div className="lbl">Drift</div><div><Delta v={s.drift} pp /></div></div>
+                  <div className="right"><div className="lbl">vs target</div>
+                    <div className="tri num">{(s.drift > 0 ? "+" : s.drift < 0 ? "−" : "") + Math.abs(s.drift).toFixed(1) + "pp"}</div></div>
                   <div className="right"><div className="lbl">Value</div><div className="num">{u.usd(s.value)}</div></div>
-                  {s.drift < -0.15 && <button className="btn sm p" onClick={() => S.navigate("/marketplace?gap=" + s.key)}>Close this gap</button>}
+                  <button className="btn sm" onClick={() => S.navigate("/marketplace?gap=" + s.key)}>Opportunities</button>
                 </div>
               </div>
               <PositionTable rows={items} total={t} sleeveTotal={clsTotal}
@@ -4455,8 +4466,9 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
 </script>
 <script type="text/babel" data-presets="react" data-file="src/pg_marketplace.js">
-/* /marketplace — one ranked surface organised by allocation gap.
-   No public/private tabs. Liquidity, not wrapper, is the meaningful axis. */
+/* /marketplace — one ranked surface, ordered by how well each offering suits
+   this family. The model allocation is context in the sidebar, not the
+   organising principle. No public/private tabs. */
 (function () {
   const { useState } = React;
   const D = BB.data, u = BB.u, S = BB.store;
@@ -4521,12 +4533,14 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
        same surface carries private-market offerings only. */
     const lens = isSuccessor;
 
-    const gaps = u.gaps(st.positions).slice(0, 3);
     const t = u.total(st.positions);
     const capacity = S.alphaCapacity();
+    const mandateLabel = (D.mandates.find((m) => m.key === st.mandate) || D.mandates[1]).label;
+    const model = u.modelWeights(t, st.mandate);
 
     const pass = (m) => {
       if (lens && m.kind !== "private") return false;
+      if (gapFocus && m.fills !== gapFocus) return false;
       if (f.cls && m.cls !== f.cls) return false;
       if (f.liq && m.liq !== f.liq) return false;
       if (f.min && m.min > +f.min) return false;
@@ -4542,13 +4556,13 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     const readyNow = D.market
       .filter((m) => m.kind === "private" && m.min <= capacity)
       .sort((a, b) => b.fit - a.fit);
+    const top3 = all.slice(0, 3);
     const sectors = Array.from(new Set(D.market.map((m) => m.sector))).sort();
     const geos = Array.from(new Set(D.market.map((m) => m.geo))).sort();
 
     const open = (m) => S.navigate("/marketplace/" + m.id);
     const onAct = (m) => setAct(m);
 
-    const shown = gapFocus ? u.bySub(st.positions).filter((s) => s.key === gapFocus) : gaps;
 
     return (
       <div className="wrap page">
@@ -4558,12 +4572,12 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
             <h1 className="mt8">What to buy next</h1>
             <div className="sub mt8" style={{ maxWidth: "76ch" }}>
               {isSuccessor
-                ? <>Ranked by the gap between current and target allocation. This account holds the Alpha sleeve, so the
-                  list is the private-market side of the book — funds, co-investments, secondaries and direct credit.
-                  Listed instruments trade in Core, under the Principal.</>
-                : <>Ranked by the gap between current and target allocation. A treasury ETF and a senior secured credit
-                  facility sit on the same list and compete on the same merits; the only difference is what happens when
-                  you press the button.</>}
+                ? <>One ranked list, judged on merit — terms, manager, security, and what the family already owns. This
+                  account holds the Alpha sleeve, so the list is the private-market side of the book. Listed instruments
+                  trade in Core, under the Principal.</>
+                : <>One ranked list, judged on merit — terms, manager, security, liquidity, and what the family already
+                  owns. A treasury ETF and a senior secured credit facility sit on the same list and compete on the same
+                  grounds; the only difference is what happens when you press the button.</>}
             </div>
           </div>
         </div>
@@ -4571,14 +4585,15 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
         <div className="row mt16" style={{ alignItems: "flex-start", gap: 16 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
             <Agent where="Deal fit"
-              why={["Target allocation from the Balanced mandate",
-                    "Current subcategory weights from the reconciled book",
-                    "Liquidity requirement from the 24-month capital call schedule",
+              why={["Terms, manager record and security package on each offering",
+                    "Overlap with the 42 positions the family already holds",
+                    "Liquidity against the 24-month capital call schedule",
                     "Minimum check size against the sleeve's available cash",
-                    "Prohibited sectors: gaming / casinos, crypto-native"]}>
-              The three largest shortfalls are {gaps.map((g) => g.label).join(", ")} — together{" "}
-              <b>{u.usd(gaps.reduce((a, g) => a + g.gapUsd, 0))}</b> below target. Fit scores weight the size of the gap
-              closed, the illiquidity premium earned for taking it, and whether the minimum fits the sleeve that would hold it.
+                    "Mandate: " + mandateLabel + " · prohibited sectors: gaming / casinos, crypto-native",
+                    "Model allocation for this AUM tier, as context rather than as an instruction"]}>
+              Fit weights the merits of the instrument — terms, manager, security, and whether the family already owns
+              the risk — then checks it against the mandate and the cash that would fund it. The three ranked highest
+              today are <b>{top3.map((m) => m.name.split(" — ")[0]).join(", ")}</b>.
               {isSuccessor && <> {readyNow.length} private-market {readyNow.length === 1 ? "offering fits" : "offerings fit"} inside
                 your {u.usd(capacity)} of remaining capacity and can be committed without approval; the rest would go to the
                 Principal as a proposal.</>}
@@ -4651,36 +4666,12 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
               </div>
             )}
 
-            {/* gap sections */}
-            <h2 className="mt24 mb12">{gapFocus ? "Closing one gap" : "Your largest gaps"}</h2>
-            {shown.map((g) => {
-              const inGap = D.market.filter((m) => m.fills === g.key);
-              const items = inGap.filter(pass).sort((a, b) => b.fit - a.fit);
-              if (!items.length) return null;
-              const mix = { listed: items.filter((i) => i.kind === "listed").length, priv: items.filter((i) => i.kind === "private").length };
-              return (
-                <div className="gapsec" key={g.key}>
-                  <div className="gaphd">
-                    <span className="g-t">{g.label}</span>
-                    <span className="g-n">{u.pp(g.drift)} underweight</span>
-                    <span className="g-d">{u.usd(g.gapUsd)} to target</span>
-                    <span className="spacer" style={{ flex: 1 }} />
-                    <span className="tri" style={{ fontSize: 11.5 }}>
-                      {lens
-                        ? items.length + " private-market " + (items.length === 1 ? "offering" : "offerings")
-                        : items.length + " opportunities · " + mix.listed + " listed, " + mix.priv + " private, one list"}
-                    </span>
-                  </div>
-                  <table className="t dense"><Head />
-                    <tbody>{items.map((m) => <Row key={m.id} m={m} onOpen={open} onAct={onAct} />)}</tbody>
-                  </table>
-                </div>
-              );
-            })}
-
             <div className="between mt24 mb12">
-              <h2>All opportunities</h2>
-              <span className="tri" style={{ fontSize: 11.5 }}>{all.length} of {D.market.length} shown</span>
+              <h2>{gapFocus ? u.subLabel(gapFocus) : "Ranked for this family"}</h2>
+              <div className="btn-row">
+                {gapFocus && <button className="btn sm" onClick={() => S.navigate("/marketplace")}>Show everything</button>}
+                <span className="tri" style={{ fontSize: 11.5 }}>{all.length} of {D.market.length} shown</span>
+              </div>
             </div>
             <div className="panel">
               {all.length === 0 ? <div className="empty">Nothing matches these filters.</div> : (
@@ -4693,18 +4684,23 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
           {/* sidebar */}
           <div style={{ width: 280, flexShrink: 0 }}>
-            <Panel title="Allocation gaps" sub="Against the Balanced mandate">
+            <Panel title="Allocation context" sub={"Model for " + u.usdC(t) + " · " + mandateLabel}>
               <table className="t dense">
+                <thead><tr><th>Class</th><th className="n">Now</th><th className="n">Model</th></tr></thead>
                 <tbody>
-                  {u.bySub(st.positions).filter((s) => Math.abs(s.drift) > 0.15).sort((a, b) => a.drift - b.drift).map((s) => (
-                    <tr key={s.key} className="clickable" onClick={() => S.navigate("/marketplace?gap=" + s.key)}>
-                      <td><div className="tname" style={{ fontSize: 12 }}>{s.label}</div></td>
-                      <td className="n"><Delta v={s.drift} pp /></td>
+                  {u.byClass(st.positions).map((c) => (
+                    <tr key={c.key}>
+                      <td><div className="tname" style={{ fontSize: 12 }}>{c.label}</div></td>
+                      <td className="n num">{u.pct(c.wt)}</td>
+                      <td className="n num tri">{u.pct(model.classes[c.key])}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-              {gapFocus && <button className="btn sm block mt8" onClick={() => S.navigate("/marketplace")}>Show all gaps</button>}
+              <div className="tri mt8" style={{ fontSize: 11 }}>
+                Context, not a queue of trades. Nothing on this page is ranked by how far the book sits from the model.
+              </div>
+              <button className="btn sm block mt8" onClick={() => S.navigate("/portfolio")}>Open the model</button>
             </Panel>
 
             <div className="mt16">
@@ -4816,15 +4812,14 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
         <div className="mt16">
           <Agent where="Deal fit"
-            why={["Subcategory gap: " + gap.label + " at " + u.pp(gap.drift) + " (" + u.usd(gap.gapUsd) + " to target)",
-                  "Liquidity profile: " + m.liq + (m.term ? " · " + m.term : ""),
+            why={["Terms, manager record and security package",
+                  "Overlap with what the family already holds",
+                  "Liquidity: " + m.liq + (m.term ? " · " + m.term : ""),
                   "Minimum of " + u.usd(m.min) + " against sleeve cash of " + u.usd(capacity) + " in Alpha",
-                  "Mandate: Balanced, capital preservation bias, prohibited sectors respected"]}
-            actions={<button className="btn sm" onClick={() => S.navigate("/marketplace?gap=" + m.fills)}>Compare the alternatives</button>}>
-            {gap.drift < 0
-              ? <>A {u.usd(m.min)} minimum closes <b>{u.pp(Math.min(-gap.drift, (m.min / u.total(st.positions)) * 100))}</b> of the{" "}
-                {gap.label} gap. {m.why}</>
-              : <>{gap.label} is already at or above target ({u.pp(gap.drift)}). {m.why}</>}
+                  "Mandate: capital preservation bias, prohibited sectors respected"]}
+            actions={<button className="btn sm" onClick={() => S.navigate("/marketplace")}>Compare the alternatives</button>}>
+            {m.why} It settles in {u.subLabel(m.fills)}, which is {u.pct(gap.wt)} of the book today against a{" "}
+            {u.pct(gap.target)} target — context for the decision rather than the reason for it.
           </Agent>
         </div>
 
@@ -4934,13 +4929,11 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
             </Panel>
 
             <div className="mt16">
-              <Panel title="What this fills">
+              <Panel title="Allocation context">
                 <div className="kv">
                   <span className="k">Subcategory</span><span className="v">{gap.label}</span>
-                  <span className="k">Current</span><span className="v">{u.pct(gap.wt)}</span>
-                  <span className="k">Target</span><span className="v">{u.pct(gap.target)}</span>
-                  <span className="k">Drift</span><span className="v"><Delta v={gap.drift} pp /></span>
-                  <span className="k">To target</span><span className="v">{u.usd(gap.gapUsd)}</span>
+                  <span className="k">Held today</span><span className="v">{u.pct(gap.wt)}</span>
+                  <span className="k">Mandate target</span><span className="v">{u.pct(gap.target)}</span>
                 </div>
                 <div className="mt12"><BB.ui.MiniBar cur={gap.wt} target={gap.target} max={Math.max(gap.wt, gap.target) * 1.4} /></div>
               </Panel>

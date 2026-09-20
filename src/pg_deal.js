@@ -59,15 +59,14 @@
 
         <div className="mt16">
           <Agent where="Deal fit"
-            why={["Subcategory gap: " + gap.label + " at " + u.pp(gap.drift) + " (" + u.usd(gap.gapUsd) + " to target)",
-                  "Liquidity profile: " + m.liq + (m.term ? " · " + m.term : ""),
+            why={["Terms, manager record and security package",
+                  "Overlap with what the family already holds",
+                  "Liquidity: " + m.liq + (m.term ? " · " + m.term : ""),
                   "Minimum of " + u.usd(m.min) + " against sleeve cash of " + u.usd(capacity) + " in Alpha",
-                  "Mandate: Balanced, capital preservation bias, prohibited sectors respected"]}
-            actions={<button className="btn sm" onClick={() => S.navigate("/marketplace?gap=" + m.fills)}>Compare the alternatives</button>}>
-            {gap.drift < 0
-              ? <>A {u.usd(m.min)} minimum closes <b>{u.pp(Math.min(-gap.drift, (m.min / u.total(st.positions)) * 100))}</b> of the{" "}
-                {gap.label} gap. {m.why}</>
-              : <>{gap.label} is already at or above target ({u.pp(gap.drift)}). {m.why}</>}
+                  "Mandate: capital preservation bias, prohibited sectors respected"]}
+            actions={<button className="btn sm" onClick={() => S.navigate("/marketplace")}>Compare the alternatives</button>}>
+            {m.why} It settles in {u.subLabel(m.fills)}, which is {u.pct(gap.wt)} of the book today against a{" "}
+            {u.pct(gap.target)} target — context for the decision rather than the reason for it.
           </Agent>
         </div>
 
@@ -177,13 +176,11 @@
             </Panel>
 
             <div className="mt16">
-              <Panel title="What this fills">
+              <Panel title="Allocation context">
                 <div className="kv">
                   <span className="k">Subcategory</span><span className="v">{gap.label}</span>
-                  <span className="k">Current</span><span className="v">{u.pct(gap.wt)}</span>
-                  <span className="k">Target</span><span className="v">{u.pct(gap.target)}</span>
-                  <span className="k">Drift</span><span className="v"><Delta v={gap.drift} pp /></span>
-                  <span className="k">To target</span><span className="v">{u.usd(gap.gapUsd)}</span>
+                  <span className="k">Held today</span><span className="v">{u.pct(gap.wt)}</span>
+                  <span className="k">Mandate target</span><span className="v">{u.pct(gap.target)}</span>
                 </div>
                 <div className="mt12"><BB.ui.MiniBar cur={gap.wt} target={gap.target} max={Math.max(gap.wt, gap.target) * 1.4} /></div>
               </Panel>

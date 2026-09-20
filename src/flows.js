@@ -13,28 +13,26 @@
     return (
       <div className="panel">
         <div className="panel-hd"><h3>Allocation impact</h3>
-          <span className="tri" style={{ fontSize: 11 }}>against target</span></div>
+          <span className="tri" style={{ fontSize: 11 }}>for information</span></div>
         <table className="t dense">
-          <thead><tr><th></th><th className="n">Before</th><th className="n">After</th><th className="n">Drift after</th></tr></thead>
+          <thead><tr><th></th><th className="n">Before</th><th className="n">After</th><th className="n">vs target</th></tr></thead>
           <tbody>
             <tr>
               <td><div className="tname">{i.sub.label}</div><div className="tsub">target {u.pct(i.sub.target)}</div></td>
               <td className="n num">{u.pct(i.sub.wt)}</td>
               <td className="n num">{u.pct(i.subAfter)}</td>
-              <td className="n"><Delta v={i.subDriftAfter} pp /></td>
+              <td className="n tri num">{(i.subDriftAfter > 0 ? "+" : "−") + Math.abs(i.subDriftAfter).toFixed(1) + "pp"}</td>
             </tr>
             <tr>
               <td><div className="tname">{i.cls.label}</div><div className="tsub">target {u.pct(i.cls.target)}</div></td>
               <td className="n num">{u.pct(i.cls.wt)}</td>
               <td className="n num">{u.pct(i.clsAfter)}</td>
-              <td className="n"><Delta v={i.clsDriftAfter} pp /></td>
+              <td className="n tri num">{(i.clsDriftAfter > 0 ? "+" : "−") + Math.abs(i.clsDriftAfter).toFixed(1) + "pp"}</td>
             </tr>
           </tbody>
         </table>
         <div className="why" style={{ borderTop: "1px solid var(--g3)" }}>
-          {i.subDriftAfter > i.sub.drift && i.sub.drift < 0
-            ? <>Closes <b>{u.pp(Math.min(-i.sub.drift, (amount / u.total(st.positions)) * 100))}</b> of the {i.sub.label} gap.</>
-            : <>This moves {i.sub.label} further from target.</>}
+          {i.sub.label} would move from {u.pct(i.sub.wt)} to {u.pct(i.subAfter)} of total assets.
         </div>
       </div>
     );

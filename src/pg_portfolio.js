@@ -5,6 +5,11 @@
   const { Money, Delta, Panel, Tabs, Seg, MiniBar, AllocBar, ProvBadge, SleeveBadge, Modal, Lock } = BB.ui;
   const { Agent, runQuery } = BB.agent;
 
+  /* Drift is context, not a verdict: grey, unsigned by colour, no urgency. */
+  function VsTarget({ v }) {
+    return <span className="tri num">{(v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v).toFixed(1) + "pp"}</span>;
+  }
+
   /* --------------------------------------------------------- query bar */
   /* Read-only natural language over the book. Floats at the foot of the
      portfolio so it is reachable from anywhere in a long page, and answers
@@ -107,6 +112,9 @@
     const over = [...cls].sort((a, b) => b.drift - a.drift)[0];
     const short2 = subs.filter((s) => s.drift < 0).sort((a, b) => a.drift - b.drift).slice(0, 2);
     const mandateLabel = (D.mandates.find((m) => m.key === S.get().mandate) || D.mandates[1]).label;
+    const t2 = u.total(positions);
+    const model = u.modelWeights(t2, S.get().mandate);
+    const altShare = (u.total(positions.filter((p) => D.ALT_SUBS.indexOf(p.sub) >= 0)) / t2) * 100;
 
     return (
       <>
@@ -123,7 +131,7 @@
                 <th style={{ width: 160 }}>Weight vs target</th>
                 <th className="n">Current</th>
                 <th className="n">Target</th>
-                <th className="n">Drift</th>
+                <th className="n">vs target</th>
                 <th className="n">Value</th>
                 <th className="n">Unrealised</th>
                 <th></th>
@@ -149,7 +157,7 @@
                       <td><MiniBar cur={c.wt} target={c.target} max={45} /></td>
                       <td className="n num">{u.pct(c.wt)}</td>
                       <td className="n num tri">{u.pct(c.target)}</td>
-                      <td className="n"><Delta v={c.drift} pp /></td>
+                      <td className="n"><VsTarget v={c.drift} /></td>
                       <td className="n"><Money v={c.value} /></td>
                       <td className="n"><Delta v={un} usd /></td>
                       <td className="right"><button className="btn sm" onClick={(e) => { e.stopPropagation(); S.navigate("/portfolio/" + c.key); }}>Open</button></td>
@@ -164,7 +172,7 @@
                         <td><MiniBar cur={s.wt} target={s.target} max={30} /></td>
                         <td className="n num">{u.pct(s.wt)}</td>
                         <td className="n num tri">{u.pct(s.target)}</td>
-                        <td className="n"><Delta v={s.drift} pp /></td>
+                        <td className="n"><VsTarget v={s.drift} /></td>
                         <td className="n num">{u.usd(s.value)}</td>
                         <td className="n"><Delta v={u.unrealized(positions.filter((p) => p.sub === s.key))} usd /></td>
                         <td></td>
@@ -186,15 +194,18 @@
         </div>
 
         <div className="mt16">
-          <Agent where="Drift monitoring"
-            why={["Target allocation: " + mandateLabel + " mandate, as confirmed in the activity log",
-                  "Current marks: listed positions live, private positions as of 30 Jun 2026 capital accounts",
-                  "Q3 mark-ups applied to 2 private positions",
-                  "Drift measured against class targets, not subcategory targets"]}
-            actions={<button className="btn sm p" onClick={() => S.navigate("/marketplace")}>See what closes the gap</button>}>
-            <b>{over.label} is {u.pp(over.drift).replace("+", "")} over target</b> following the Q3 mark-up. The offsetting
-            shortfall is in {short2.map((s) => s.label).join(" and ")}, together{" "}
-            {u.usd(short2.reduce((a, s) => a + s.gapUsd, 0))} below target.
+          <Agent where="Allocation"
+            why={["Current class and subcategory weights from the reconciled book",
+                  "Mandate: " + mandateLabel + ", as confirmed in the activity log",
+                  "Model allocation for this AUM tier and objective",
+                  "Listed positions marked live; private marks as of 30 Jun 2026"]}
+            actions={<button className="btn sm" onClick={() => {
+              const el = document.getElementById("model-panel");
+              if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+            }}>Compare with the model</button>}>
+            The book is {cls.map((c) => u.pct(c.wt) + " " + c.label.toLowerCase()).join(", ")}, with{" "}
+            <b>{u.pct(altShare)}</b> in alternatives. The model for this size and objective suggests{" "}
+            {u.pct(model.alts)}. Differences of a few points are normal and not, on their own, a reason to trade.
           </Agent>
         </div>
 
@@ -274,7 +285,7 @@
               <span style={{ flex: 1 }}>
                 <b>What-if.</b> The family's mandate is <b>{(D.mandates.find((x) => x.key === st.mandate) || {}).label}</b>;
                 this chart is drawn for <b>{model.goal.goal}</b>. Adopting it rewrites the Core/Alpha split and every class
-                target, which moves every drift number and fit score in the product.
+                target the model is drawn against, and the mandate line shown throughout the product.
               </span>
               <span className="btn-row">
                 <button className="btn sm" onClick={() => setGoal(st.mandate)}>Discard</button>
@@ -885,7 +896,7 @@
         </div>
 
         <div className="grid mt16" style={{ gridTemplateColumns: "1.4fr 1fr" }}>
-          <Panel title="Discovery" sub="Highest-fit opportunities against the family's gaps"
+          <Panel title="Discovery" sub="Highest-ranked offerings for this family"
             right={<button className="btn sm" onClick={() => S.navigate("/marketplace")}>Open marketplace</button>}>
             <table className="t dense">
               <thead><tr><th>Opportunity</th><th>Fills</th><th>Liquidity</th><th className="n">Minimum</th><th className="n">Fit</th><th></th></tr></thead>
@@ -932,7 +943,8 @@
     const t = u.total(ps);
     const sl = u.sleeveTotals(ps);
     const cls = u.byClass(ps);
-    const drift = cls.reduce((a, c) => a + Math.abs(c.drift), 0) / 2;
+    const model = u.modelWeights(t, st.mandate);
+    const altShare = (u.total(ps.filter((p) => D.ALT_SUBS.indexOf(p.sub) >= 0)) / t) * 100;
     const liq = u.liquidity90(ps);
     const stale = ps.filter((p) => p.prov === "self" && u.staleness(p).d > 90);
     const alpha = ps.filter((p) => p.sleeve === "alpha");
@@ -981,8 +993,8 @@
                 <div className="stat-s">direct commitment limit</div></div>
               <div className="cell"><div className="stat-l">Total assets (read-only)</div><div className="stat-v"><Money v={t} compact /></div>
                 <div className="stat-s">Core {u.usd(sl.core)} · Principal authority</div></div>
-              <div className="cell"><div className="stat-l">Drift from target</div><div className="stat-v">{u.pp(drift, 1).replace("+", "")}</div>
-                <div className="stat-s">absolute, across four classes</div></div>
+              <div className="cell"><div className="stat-l">Alternatives</div><div className="stat-v">{u.pct(altShare)}</div>
+                <div className="stat-s">of assets · model {u.pct(model.alts)}</div></div>
             </>
           ) : (
             <>
@@ -994,8 +1006,8 @@
                 <div className="stat-s">{u.sgn((u.unrealized(ps) / (t - u.unrealized(ps))) * 100)} on cost</div></div>
               <div className="cell"><div className="stat-l">Liquidity · next 90 days</div><div className="stat-v"><Money v={liq.within90} compact /></div>
                 <div className="stat-s">{u.usdC(liq.cash)} cash · {u.usdC(liq.listed)} listed</div></div>
-              <div className="cell"><div className="stat-l">Drift from target</div><div className="stat-v">{u.num(drift, 1)}pp</div>
-                <div className="stat-s">largest: {[...cls].sort((a, b) => Math.abs(b.drift) - Math.abs(a.drift))[0].label} {u.pp([...cls].sort((a, b) => Math.abs(b.drift) - Math.abs(a.drift))[0].drift)}</div></div>
+              <div className="cell"><div className="stat-l">Alternatives</div><div className="stat-v">{u.pct(altShare)}</div>
+                <div className="stat-s">of assets · model suggests {u.pct(model.alts)} at this size</div></div>
             </>
           )}
         </div>

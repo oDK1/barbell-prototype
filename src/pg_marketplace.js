@@ -1,5 +1,6 @@
-/* /marketplace — one ranked surface organised by allocation gap.
-   No public/private tabs. Liquidity, not wrapper, is the meaningful axis. */
+/* /marketplace — one ranked surface, ordered by how well each offering suits
+   this family. The model allocation is context in the sidebar, not the
+   organising principle. No public/private tabs. */
 (function () {
   const { useState } = React;
   const D = BB.data, u = BB.u, S = BB.store;
@@ -64,12 +65,14 @@
        same surface carries private-market offerings only. */
     const lens = isSuccessor;
 
-    const gaps = u.gaps(st.positions).slice(0, 3);
     const t = u.total(st.positions);
     const capacity = S.alphaCapacity();
+    const mandateLabel = (D.mandates.find((m) => m.key === st.mandate) || D.mandates[1]).label;
+    const model = u.modelWeights(t, st.mandate);
 
     const pass = (m) => {
       if (lens && m.kind !== "private") return false;
+      if (gapFocus && m.fills !== gapFocus) return false;
       if (f.cls && m.cls !== f.cls) return false;
       if (f.liq && m.liq !== f.liq) return false;
       if (f.min && m.min > +f.min) return false;
@@ -85,13 +88,13 @@
     const readyNow = D.market
       .filter((m) => m.kind === "private" && m.min <= capacity)
       .sort((a, b) => b.fit - a.fit);
+    const top3 = all.slice(0, 3);
     const sectors = Array.from(new Set(D.market.map((m) => m.sector))).sort();
     const geos = Array.from(new Set(D.market.map((m) => m.geo))).sort();
 
     const open = (m) => S.navigate("/marketplace/" + m.id);
     const onAct = (m) => setAct(m);
 
-    const shown = gapFocus ? u.bySub(st.positions).filter((s) => s.key === gapFocus) : gaps;
 
     return (
       <div className="wrap page">
@@ -101,12 +104,12 @@
             <h1 className="mt8">What to buy next</h1>
             <div className="sub mt8" style={{ maxWidth: "76ch" }}>
               {isSuccessor
-                ? <>Ranked by the gap between current and target allocation. This account holds the Alpha sleeve, so the
-                  list is the private-market side of the book — funds, co-investments, secondaries and direct credit.
-                  Listed instruments trade in Core, under the Principal.</>
-                : <>Ranked by the gap between current and target allocation. A treasury ETF and a senior secured credit
-                  facility sit on the same list and compete on the same merits; the only difference is what happens when
-                  you press the button.</>}
+                ? <>One ranked list, judged on merit — terms, manager, security, and what the family already owns. This
+                  account holds the Alpha sleeve, so the list is the private-market side of the book. Listed instruments
+                  trade in Core, under the Principal.</>
+                : <>One ranked list, judged on merit — terms, manager, security, liquidity, and what the family already
+                  owns. A treasury ETF and a senior secured credit facility sit on the same list and compete on the same
+                  grounds; the only difference is what happens when you press the button.</>}
             </div>
           </div>
         </div>
@@ -114,14 +117,15 @@
         <div className="row mt16" style={{ alignItems: "flex-start", gap: 16 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
             <Agent where="Deal fit"
-              why={["Target allocation from the Balanced mandate",
-                    "Current subcategory weights from the reconciled book",
-                    "Liquidity requirement from the 24-month capital call schedule",
+              why={["Terms, manager record and security package on each offering",
+                    "Overlap with the 42 positions the family already holds",
+                    "Liquidity against the 24-month capital call schedule",
                     "Minimum check size against the sleeve's available cash",
-                    "Prohibited sectors: gaming / casinos, crypto-native"]}>
-              The three largest shortfalls are {gaps.map((g) => g.label).join(", ")} — together{" "}
-              <b>{u.usd(gaps.reduce((a, g) => a + g.gapUsd, 0))}</b> below target. Fit scores weight the size of the gap
-              closed, the illiquidity premium earned for taking it, and whether the minimum fits the sleeve that would hold it.
+                    "Mandate: " + mandateLabel + " · prohibited sectors: gaming / casinos, crypto-native",
+                    "Model allocation for this AUM tier, as context rather than as an instruction"]}>
+              Fit weights the merits of the instrument — terms, manager, security, and whether the family already owns
+              the risk — then checks it against the mandate and the cash that would fund it. The three ranked highest
+              today are <b>{top3.map((m) => m.name.split(" — ")[0]).join(", ")}</b>.
               {isSuccessor && <> {readyNow.length} private-market {readyNow.length === 1 ? "offering fits" : "offerings fit"} inside
                 your {u.usd(capacity)} of remaining capacity and can be committed without approval; the rest would go to the
                 Principal as a proposal.</>}
@@ -194,36 +198,12 @@
               </div>
             )}
 
-            {/* gap sections */}
-            <h2 className="mt24 mb12">{gapFocus ? "Closing one gap" : "Your largest gaps"}</h2>
-            {shown.map((g) => {
-              const inGap = D.market.filter((m) => m.fills === g.key);
-              const items = inGap.filter(pass).sort((a, b) => b.fit - a.fit);
-              if (!items.length) return null;
-              const mix = { listed: items.filter((i) => i.kind === "listed").length, priv: items.filter((i) => i.kind === "private").length };
-              return (
-                <div className="gapsec" key={g.key}>
-                  <div className="gaphd">
-                    <span className="g-t">{g.label}</span>
-                    <span className="g-n">{u.pp(g.drift)} underweight</span>
-                    <span className="g-d">{u.usd(g.gapUsd)} to target</span>
-                    <span className="spacer" style={{ flex: 1 }} />
-                    <span className="tri" style={{ fontSize: 11.5 }}>
-                      {lens
-                        ? items.length + " private-market " + (items.length === 1 ? "offering" : "offerings")
-                        : items.length + " opportunities · " + mix.listed + " listed, " + mix.priv + " private, one list"}
-                    </span>
-                  </div>
-                  <table className="t dense"><Head />
-                    <tbody>{items.map((m) => <Row key={m.id} m={m} onOpen={open} onAct={onAct} />)}</tbody>
-                  </table>
-                </div>
-              );
-            })}
-
             <div className="between mt24 mb12">
-              <h2>All opportunities</h2>
-              <span className="tri" style={{ fontSize: 11.5 }}>{all.length} of {D.market.length} shown</span>
+              <h2>{gapFocus ? u.subLabel(gapFocus) : "Ranked for this family"}</h2>
+              <div className="btn-row">
+                {gapFocus && <button className="btn sm" onClick={() => S.navigate("/marketplace")}>Show everything</button>}
+                <span className="tri" style={{ fontSize: 11.5 }}>{all.length} of {D.market.length} shown</span>
+              </div>
             </div>
             <div className="panel">
               {all.length === 0 ? <div className="empty">Nothing matches these filters.</div> : (
@@ -236,18 +216,23 @@
 
           {/* sidebar */}
           <div style={{ width: 280, flexShrink: 0 }}>
-            <Panel title="Allocation gaps" sub="Against the Balanced mandate">
+            <Panel title="Allocation context" sub={"Model for " + u.usdC(t) + " · " + mandateLabel}>
               <table className="t dense">
+                <thead><tr><th>Class</th><th className="n">Now</th><th className="n">Model</th></tr></thead>
                 <tbody>
-                  {u.bySub(st.positions).filter((s) => Math.abs(s.drift) > 0.15).sort((a, b) => a.drift - b.drift).map((s) => (
-                    <tr key={s.key} className="clickable" onClick={() => S.navigate("/marketplace?gap=" + s.key)}>
-                      <td><div className="tname" style={{ fontSize: 12 }}>{s.label}</div></td>
-                      <td className="n"><Delta v={s.drift} pp /></td>
+                  {u.byClass(st.positions).map((c) => (
+                    <tr key={c.key}>
+                      <td><div className="tname" style={{ fontSize: 12 }}>{c.label}</div></td>
+                      <td className="n num">{u.pct(c.wt)}</td>
+                      <td className="n num tri">{u.pct(model.classes[c.key])}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-              {gapFocus && <button className="btn sm block mt8" onClick={() => S.navigate("/marketplace")}>Show all gaps</button>}
+              <div className="tri mt8" style={{ fontSize: 11 }}>
+                Context, not a queue of trades. Nothing on this page is ranked by how far the book sits from the model.
+              </div>
+              <button className="btn sm block mt8" onClick={() => S.navigate("/portfolio")}>Open the model</button>
             </Panel>
 
             <div className="mt16">

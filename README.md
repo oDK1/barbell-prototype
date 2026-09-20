@@ -2,7 +2,7 @@
 
 A clickable, desktop-first prototype for a Korean family office with $62.4M across public and
 private markets. Two accounts, one balance sheet, three arguments: a single reconciled view that
-replaces Excel, one marketplace ranked by allocation gap rather than instrument wrapper, and a
+replaces Excel, one marketplace that ranks every opportunity on merit rather than by instrument wrapper, and a
 members-only secondary board that gives the illiquid half a price.
 
 No backend, no auth, no network calls. All data is seeded in `src/mockData.js` and every action
@@ -62,7 +62,7 @@ Start at `/` (the account switcher) or jump in anywhere:
 | `/onboarding/mandate` | Four postures + the optional 8-question survey |
 | `/portfolio` | The core screen — holdings by class, the model explorer, every position, plus Liquidity and Tax tabs (and an Alpha sleeve tab for the Successor) |
 | `/portfolio/:assetClass` | Position level: live prices, FX attribution, concentration, trading |
-| `/marketplace` | One ranked surface, organised by allocation gap |
+| `/marketplace` | One ranked surface — listed and private judged on the same grounds |
 | `/marketplace/:dealId` | Detail template serving listed and private identically |
 | `/secondary` | Bulletin board + your eligibility |
 | `/secondary/:listingId` | Capital account, bid flow, seller's bid queue |
@@ -112,7 +112,7 @@ vendor/             React 18 + Babel standalone, vendored so it runs offline
 exceptions, the mandate ladder, model portfolios, capital calls and distributions, performance and
 attribution, 34 marketplace instruments, 12 secondary listings, seeded approvals, the activity log
 and the settlement ledger. Everything else derives from it at render time, so changing a position's
-value moves the drift, the gap sections, the fit ranking and the liquidity runway together.
+value moves the model comparison, the fit ranking and the liquidity runway together.
 
 ## Conventions worth knowing
 
@@ -123,8 +123,8 @@ value moves the drift, the gap sections, the fit ranking and the liquidity runwa
   public/private filter and no tabs; listed and private compete in one ranked list, and the
   distinction surfaces only at the button — Buy versus Commit, Sell versus List on secondary.
 - **The account decides the inventory.** The Successor holds the Alpha sleeve, whose mandate is
-  private growth, so their marketplace carries private-market offerings only — the same gap
-  sections, the same row schema, one kind of instrument. Listed instruments trade in Core, which
+  private growth, so their marketplace carries private-market offerings only — the same ranked
+  list, the same row schema, one kind of instrument. Listed instruments trade in Core, which
   is the Principal's remit; the Successor reaches them from the portfolio, where Core rows carry a
   *Propose* action beside the disabled Trade and Sell.
 - **Custody language only.** Transfer, settlement, ownership record, settles same-day. The
@@ -133,8 +133,12 @@ value moves the drift, the gap sections, the fit ranking and the liquidity runwa
   Growth / Opportunistic — is set at `/onboarding/mandate` and restated at the top of the model
   portfolio panel, which is where the Principal changes it. Picking a different objective in the model chart is
   a what-if until they press *Adopt as mandate*; adopting rewrites the Core/Alpha split and every
-  class target, which moves every drift number, gap section and fit score in the product, and
-  writes a line to the activity log. The Successor sees the mandate read-only.
+  class target the model is drawn against, and writes a line to the activity log. The Successor sees the mandate read-only.
+- **The model is a recommendation, not a queue of trades.** Nothing in the marketplace is ordered
+  by how far the book sits from target, and the allocation numbers that do appear — "vs target" in
+  the holdings table, the impact panel on a ticket, the context line on a deal — are grey, unsigned
+  by colour, and phrased as information rather than instruction. Fit scores weight the merits of
+  the instrument: terms, manager, security, and whether the family already owns the risk.
 - **The model portfolio is a chart you can argue with.** Set an AUM on the log slider and pick an
   objective, and the glide path redraws: the stacked bands are the recommended class mix across
   $1M–$150M, and the dashed line is the alternatives share. It rises with size on purpose — the

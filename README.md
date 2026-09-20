@@ -78,11 +78,11 @@ exceptions (an unmatched ticker, a fund with no NAV since Q1, a duplicate across
 ambiguous currency, a misfiled asset class, an unlinked capital call, a missing cost basis) →
 *Set the mandate* → the portfolio.
 
-**Gap → transaction.** `/marketplace` → the Sovereign gap opens with six ETFs and bonds and one
-private placement on the same list → open any row → *Buy* opens an order ticket, *Commit* opens a
-subscription; both show the allocation impact before confirmation. Switch to the Successor and the
-same page carries private-market offerings only, led by "Within your authority" — the eight that
-fit the $760,000 Alpha capacity and need no approval.
+**Opportunity → transaction.** `/marketplace` → one ranked list, a treasury ETF and a senior
+secured credit facility competing on the same grounds → open any row → *Buy* opens an order ticket,
+*Commit* opens a subscription; both show the allocation impact before confirmation. Switch to the
+Successor and the same page carries private-market offerings only, led by "Within your authority" —
+the eight that fit the $760,000 Alpha capacity and need no approval.
 
 **Authority.** Switch to Jae-won Park (top right). Core controls render disabled with
 "Core sleeve — Principal authority required." Commit $1,000,000 to Northgate Facility II — the

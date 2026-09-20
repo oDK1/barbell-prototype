@@ -50,6 +50,17 @@ git add -A && git commit -m "…" && git push
 To take it down: `gh api repos/oDK1/barbell-prototype/pages -X DELETE` disables the site and leaves
 the code, or delete the repository to remove both.
 
+### Vercel
+
+`vercel.json` configures this repo for a zero-build static deploy, so importing it needs no
+settings changed. At [vercel.com/new](https://vercel.com/new), import `oDK1/barbell-prototype` and
+press Deploy — framework preset **Other**, no build command, output directory the repository root,
+all of which `vercel.json` already declares. Every later push to `main` redeploys automatically,
+the same as Pages, so the two can run side by side or you can retire Pages once Vercel is up.
+
+The config also sends `X-Robots-Tag: noindex`, caches `vendor/` (React and Babel, which never
+change) for a year, and revalidates `src/` on every request so edits appear on reload.
+
 `barbell.html` and `take2.html` in the repository root are the two prototypes inlined into
 self-contained single files — email one, or drop it on any static host. Regenerate both after
 changes with `python3 build.py`.

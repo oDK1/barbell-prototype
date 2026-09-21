@@ -115,7 +115,7 @@
     else if (p === "/onboarding/upload") view = <P.Upload />;
     else if (p === "/onboarding/reconcile") view = <P.Reconcile />;
     else if (p === "/onboarding/mandate") view = <P.Mandate />;
-    else if (p === "/portfolio") view = <P.Portfolio />;
+    else if (p === "/portfolio") view = <P.Portfolio route={route} />;
     else if (p.startsWith("/portfolio/")) view = <P.AssetClass route={route} />;
     else if (p === "/marketplace") view = <P.Marketplace route={route} />;
     else if (p.startsWith("/marketplace/")) view = <P.Deal route={route} />;

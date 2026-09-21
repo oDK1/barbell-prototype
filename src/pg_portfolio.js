@@ -822,12 +822,15 @@
   }
 
   /* ------------------------------------------------------------- the page */
-  function Portfolio() {
+  function Portfolio({ route }) {
     const st = S.useStore();
     const isSuccessor = st.account === "successor";
-    const [tab, setTab] = useState(isSuccessor ? "alpha" : "alloc");
+    const wanted = route && route.query && route.query.tab;
+    const [tab, setTab] = useState(wanted || (isSuccessor ? "alpha" : "alloc"));
     /* Switching account changes the home view, not just the permissions. */
     React.useEffect(() => { setTab(st.account === "successor" ? "alpha" : "alloc"); }, [st.account]);
+    /* …and a link may ask for a particular tab. */
+    React.useEffect(() => { if (wanted) setTab(wanted); }, [wanted]);
     const ps = st.positions;
     const t = u.total(ps);
     const sl = u.sleeveTotals(ps);

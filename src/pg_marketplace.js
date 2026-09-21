@@ -227,7 +227,7 @@
 
           {/* sidebar */}
           <div style={{ width: 280, flexShrink: 0 }}>
-            <Panel title="Allocation context" sub={"Model for " + u.usdC(t) + " · " + mandateLabel}>
+            <Panel title="Allocation context" sub={"Against the model for " + u.usdC(t)}>
               <table className="t dense">
                 <thead><tr><th>Class</th><th className="n">Now</th><th className="n">Model</th></tr></thead>
                 <tbody>
@@ -245,6 +245,43 @@
               </div>
               <button className="btn sm block mt8" onClick={() => S.navigate("/portfolio")}>Open the model</button>
             </Panel>
+
+            <div className="mt16">
+              <Panel title="Liquidity context" sub="What the next two years demand">
+                <div className="kv">
+                  <span className="k">Calls · next 90 days</span><span className="v">{u.usdC(ctx.calls90)}</span>
+                  <span className="k">Calls · 24 months</span><span className="v">{u.usdC(ctx.calls24)}</span>
+                  <span className="k">Redeemable in 90 days</span><span className="v">{u.usdC(ctx.liq.within90)}</span>
+                  <span className="k">Runway</span>
+                  <span className="v" style={ctx.short ? { color: "var(--neg)" } : null}>
+                    {ctx.short ? "breaks " + ctx.short.month : "holds 24 months"}
+                  </span>
+                </div>
+                <div className="tri mt8" style={{ fontSize: 11 }}>
+                  {ctx.short
+                    ? "Offerings that lock capital past " + ctx.short.month + " are scored down."
+                    : "Illiquidity can be paid for, so locked offerings are scored up."}
+                </div>
+                <button className="btn sm block mt8" onClick={() => S.navigate("/portfolio?tab=liq")}>Open the liquidity view</button>
+              </Panel>
+            </div>
+
+            <div className="mt16">
+              <Panel title="Tax context" sub="Observations, not advice">
+                <div className="kv">
+                  <span className="k">Realised year to date</span><span className="v">{u.usdC(ctx.tax.realized)}</span>
+                  <span className="k">Harvestable loss</span>
+                  <span className="v">{u.usdC(ctx.tax.harvestable)}{ctx.tax.harvestCount ? " · " + ctx.tax.harvestCount + " lots" : ""}</span>
+                  <span className="k">Inside 65 days of long-term</span><span className="v">{ctx.tax.nearLT} lots</span>
+                </div>
+                <div className="tri mt8" style={{ fontSize: 11 }}>
+                  {ctx.tax.realized > 250000
+                    ? "With gains already booked, offerings that defer to exit score above those paying taxable income now."
+                    : "Little realised so far, so income and deferral are scored alike."}
+                </div>
+                <button className="btn sm block mt8" onClick={() => S.navigate("/portfolio?tab=tax")}>Open the tax view</button>
+              </Panel>
+            </div>
 
             <div className="mt16">
               <Panel title="Invitations" sub={st.referrals.sent + " sent · " + st.referrals.joined + " joined"}>

@@ -113,8 +113,8 @@
 
         {!isPrincipal && (
           <div className="note mt16">
-            This inbox belongs to the Principal. It is shown here read-only so both sides of the workflow are visible in
-            the prototype — switch accounts in the top right to decide.
+            This inbox belongs to the Principal. You can see what you sent and what came back, but the decision is
+            theirs — switch accounts in the top right to see it from their side.
           </div>
         )}
 

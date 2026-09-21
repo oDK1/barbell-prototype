@@ -29,8 +29,8 @@
       title: "Chairman · Principal",
       age: 68,
       mandate: "Capital preservation",
-      scope: "Read/write — 100% of balance sheet",
-      desc: "Sets the Core/Alpha split and target allocation. Holds the approval inbox. Default view is balance-sheet posture: total assets, drift, liquidity runway, capital calls.",
+      scope: "Acts on the whole portfolio · has the final say on proposals",
+      desc: "Buys, sells and commits anywhere in the book, and sets the objective everything else is measured against. Anything the successor wants to do beyond their own sleeve arrives here first.",
     },
     successor: {
       id: "successor",
@@ -39,8 +39,8 @@
       title: "Director · Successor",
       age: 34,
       mandate: "Growth",
-      scope: "Read/write — Alpha sleeve only · Read-only Core",
-      desc: "Full authority inside the 10% Alpha sleeve. Core is visible but locked; anything outside the sleeve is submitted to the Principal as a proposal.",
+      scope: "Acts inside the Alpha sleeve · proposes anything beyond it",
+      desc: "A free hand with the 10% Alpha sleeve — no permission needed. The other 90% is fully visible but not theirs to move; acting on it means sending the Principal a proposal.",
     },
   };
 
@@ -762,7 +762,7 @@
     { id: "l1", ts: "2026-09-18T16:31:00+09:00", who: "successor", kind: "Valuation", text: "Updated valuation for Viva Republica (Toss) common — 2023 block", detail: "No change to carrying value; flagged as stale pending a Q3 statement." },
     { id: "l2", ts: "2026-09-17T11:22:00+09:00", who: "successor", kind: "Proposal", text: "Submitted proposal — Commit $1,000,000 to Northgate Data Center Credit Facility II", detail: "Exceeds Alpha sleeve capacity of $760,000. Routed to the Principal." },
     { id: "l3", ts: "2026-09-16T10:14:00+09:00", who: "principal", kind: "Mandate", text: "Confirmed target allocation — Balanced (90/10)", detail: "Equity 35.0 · Debt 40.0 · Real Assets 18.0 · Cash 7.0" },
-    { id: "l4", ts: "2026-09-12T09:05:00+09:00", who: "successor", kind: "Proposal", text: "Submitted proposal — Buy $420,000 IEF in Core", detail: "Core sleeve trade. Principal authority required." },
+    { id: "l4", ts: "2026-09-12T09:05:00+09:00", who: "successor", kind: "Proposal", text: "Submitted proposal — Buy $420,000 IEF in Core", detail: "A Core sleeve trade — only the Principal can approve it." },
     { id: "l5", ts: "2026-09-08T14:48:00+09:00", who: "principal", kind: "Trade", text: "Bought 2,000 shares NVIDIA Corporation", detail: "$428,000 at $214.00. Core sleeve. Settled same day." },
     { id: "l6", ts: "2026-09-02T09:30:00+09:00", who: "system", kind: "Capital call", text: "Capital call received — Foundry Venture Partners VII, $1,100,000", detail: "Due 28 October 2026. Added to the liquidity projection." },
     { id: "l7", ts: "2026-08-31T18:00:00+09:00", who: "system", kind: "Valuation", text: "Hanwha-sourced NAVs refreshed for 9 positions", detail: "As of 30 June 2026 capital accounts." },

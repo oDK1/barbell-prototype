@@ -805,14 +805,14 @@
           </Panel>
           <Panel title="Authority" sub="What this account can do without asking">
             <div className="kv">
-              <span className="k">Alpha sleeve</span><span className="v">Full read/write</span>
-              <span className="k">Core sleeve</span><span className="v">Read-only</span>
-              <span className="k">Direct commitment limit</span><span className="v">{u.usd(capacity)}</span>
-              <span className="k">Above that limit</span><span className="v">Proposal to the Principal</span>
+              <span className="k">The Alpha sleeve</span><span className="v">Yours to act on</span>
+              <span className="k">The rest of the book</span><span className="v">Visible, not yours to move</span>
+              <span className="k">Commit without asking, up to</span><span className="v">{u.usd(capacity)}</span>
+              <span className="k">Beyond that</span><span className="v">The Principal decides</span>
             </div>
             <div className="note mt12">
-              Core controls render disabled throughout the product, with the reason attached. Anything outside the sleeve
-              can still be composed as a proposal — it queues in the Principal's approval inbox with your rationale.
+              Wherever you cannot act, the button is still there — greyed, with the reason on it. You can always write the
+              trade or commitment up and send it: it lands in the Principal's inbox with your reasoning attached.
             </div>
             <button className="btn mt12 block" onClick={() => S.navigate("/approvals")}>View submitted proposals</button>
           </Panel>
@@ -887,7 +887,7 @@
           {(isSuccessor
             ? [["Unrealised", <Delta v={u.unrealized(alpha)} usd />, u.sgn((u.unrealized(alpha) / (u.total(alpha) - u.unrealized(alpha))) * 100) + " on cost"],
                ["Remaining capacity", u.usdC(S.alphaCapacity()), "commit direct up to this"],
-               ["Total assets", u.usdC(t), "read-only"]]
+               ["Total assets", u.usdC(t), "yours to see, not to move"]]
             : [["Unrealised", <Delta v={u.unrealized(ps)} usd />, u.sgn((u.unrealized(ps) / (t - u.unrealized(ps))) * 100) + " on cost"],
                ["Liquidity · 90 days", u.usdC(liq.within90), u.usdC(liq.cash) + " cash"]]
           ).map((m, i) => (

@@ -731,8 +731,8 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       title: "Chairman · Principal",
       age: 68,
       mandate: "Capital preservation",
-      scope: "Read/write — 100% of balance sheet",
-      desc: "Sets the Core/Alpha split and target allocation. Holds the approval inbox. Default view is balance-sheet posture: total assets, drift, liquidity runway, capital calls.",
+      scope: "Acts on the whole portfolio · has the final say on proposals",
+      desc: "Buys, sells and commits anywhere in the book, and sets the objective everything else is measured against. Anything the successor wants to do beyond their own sleeve arrives here first.",
     },
     successor: {
       id: "successor",
@@ -741,8 +741,8 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       title: "Director · Successor",
       age: 34,
       mandate: "Growth",
-      scope: "Read/write — Alpha sleeve only · Read-only Core",
-      desc: "Full authority inside the 10% Alpha sleeve. Core is visible but locked; anything outside the sleeve is submitted to the Principal as a proposal.",
+      scope: "Acts inside the Alpha sleeve · proposes anything beyond it",
+      desc: "A free hand with the 10% Alpha sleeve — no permission needed. The other 90% is fully visible but not theirs to move; acting on it means sending the Principal a proposal.",
     },
   };
 
@@ -1464,7 +1464,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     { id: "l1", ts: "2026-09-18T16:31:00+09:00", who: "successor", kind: "Valuation", text: "Updated valuation for Viva Republica (Toss) common — 2023 block", detail: "No change to carrying value; flagged as stale pending a Q3 statement." },
     { id: "l2", ts: "2026-09-17T11:22:00+09:00", who: "successor", kind: "Proposal", text: "Submitted proposal — Commit $1,000,000 to Northgate Data Center Credit Facility II", detail: "Exceeds Alpha sleeve capacity of $760,000. Routed to the Principal." },
     { id: "l3", ts: "2026-09-16T10:14:00+09:00", who: "principal", kind: "Mandate", text: "Confirmed target allocation — Balanced (90/10)", detail: "Equity 35.0 · Debt 40.0 · Real Assets 18.0 · Cash 7.0" },
-    { id: "l4", ts: "2026-09-12T09:05:00+09:00", who: "successor", kind: "Proposal", text: "Submitted proposal — Buy $420,000 IEF in Core", detail: "Core sleeve trade. Principal authority required." },
+    { id: "l4", ts: "2026-09-12T09:05:00+09:00", who: "successor", kind: "Proposal", text: "Submitted proposal — Buy $420,000 IEF in Core", detail: "A Core sleeve trade — only the Principal can approve it." },
     { id: "l5", ts: "2026-09-08T14:48:00+09:00", who: "principal", kind: "Trade", text: "Bought 2,000 shares NVIDIA Corporation", detail: "$428,000 at $214.00. Core sleeve. Settled same day." },
     { id: "l6", ts: "2026-09-02T09:30:00+09:00", who: "system", kind: "Capital call", text: "Capital call received — Foundry Venture Partners VII, $1,100,000", detail: "Due 28 October 2026. Added to the liquidity projection." },
     { id: "l7", ts: "2026-08-31T18:00:00+09:00", who: "system", kind: "Valuation", text: "Hanwha-sourced NAVs refreshed for 9 positions", detail: "As of 30 June 2026 capital accounts." },
@@ -1879,7 +1879,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   function alphaCapacity() {
     return u.total(state.positions.filter((p) => p.sleeve === "alpha" && p.cls === "cash"));
   }
-  const LOCK_TIP = "Core sleeve — Principal authority required.";
+  const LOCK_TIP = "Only the Principal can act on the Core sleeve.";
 
   /* ------------------------------------------------------------------ cash */
   function drawCash(amount, sleeve) {
@@ -2672,7 +2672,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                   <input type="text" value={limit} onChange={(e) => setLimit(e.target.value)} /></label>
               )}
               <SleevePicker sleeve={sleeve} setSleeve={setSleeve}
-                note={needsApproval ? "Core is read-only for this account. The order becomes a proposal." : null} />
+                note={needsApproval ? "This sleeve is not yours to act on, so the order becomes a proposal." : null} />
               {needsApproval && (
                 <label className="f"><span>Rationale for the Principal</span>
                   <textarea rows="3" value={rationale} onChange={(e) => setRationale(e.target.value)}
@@ -3164,8 +3164,8 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
         <div className="sub mt8" style={{ maxWidth: "74ch" }}>
           This sets the Core/Alpha split and the target allocation the model is drawn against. It is the reference the rest
           of the product reads from — not a trading trigger.
-          {st.account === "successor" && <> <b>The Principal confirms it</b>; this account can read the postures but not
-          adopt one.</>}
+          {st.account === "successor" && <> <b>The Principal settles this one</b> — you can look at the three postures,
+          but choosing between them is theirs.</>}
         </div>
 
         <div className="grid mt16" style={{ gridTemplateColumns: "repeat(" + D.mandates.length + ", 1fr)" }}>
@@ -4079,14 +4079,14 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
           </Panel>
           <Panel title="Authority" sub="What this account can do without asking">
             <div className="kv">
-              <span className="k">Alpha sleeve</span><span className="v">Full read/write</span>
-              <span className="k">Core sleeve</span><span className="v">Read-only</span>
-              <span className="k">Direct commitment limit</span><span className="v">{u.usd(capacity)}</span>
-              <span className="k">Above that limit</span><span className="v">Proposal to the Principal</span>
+              <span className="k">The Alpha sleeve</span><span className="v">Yours to act on</span>
+              <span className="k">The rest of the book</span><span className="v">Visible, not yours to move</span>
+              <span className="k">Commit without asking, up to</span><span className="v">{u.usd(capacity)}</span>
+              <span className="k">Beyond that</span><span className="v">The Principal decides</span>
             </div>
             <div className="note mt12">
-              Core controls render disabled throughout the product, with the reason attached. Anything outside the sleeve
-              can still be composed as a proposal — it queues in the Principal's approval inbox with your rationale.
+              Wherever you cannot act, the button is still there — greyed, with the reason on it. You can always write the
+              trade or commitment up and send it: it lands in the Principal's inbox with your reasoning attached.
             </div>
             <button className="btn mt12 block" onClick={() => S.navigate("/approvals")}>View submitted proposals</button>
           </Panel>
@@ -4161,7 +4161,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
           {(isSuccessor
             ? [["Unrealised", <Delta v={u.unrealized(alpha)} usd />, u.sgn((u.unrealized(alpha) / (u.total(alpha) - u.unrealized(alpha))) * 100) + " on cost"],
                ["Remaining capacity", u.usdC(S.alphaCapacity()), "commit direct up to this"],
-               ["Total assets", u.usdC(t), "read-only"]]
+               ["Total assets", u.usdC(t), "yours to see, not to move"]]
             : [["Unrealised", <Delta v={u.unrealized(ps)} usd />, u.sgn((u.unrealized(ps) / (t - u.unrealized(ps))) * 100) + " on cost"],
                ["Liquidity · 90 days", u.usdC(liq.within90), u.usdC(liq.cash) + " cash"]]
           ).map((m, i) => (
@@ -4818,16 +4818,17 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
             </div>
 
             <div className="mt16">
-              <Panel title="Your authority">
+              <Panel title="What you can do here">
                 <div className="kv">
-                  <span className="k">Account</span><span className="v">{st.account === "principal" ? "Principal" : "Successor"}</span>
-                  <span className="k">Direct limit</span>
-                  <span className="v">{st.account === "principal" ? "No limit" : u.usd(S.alphaCapacity())}</span>
+                  <span className="k">Signed in as</span>
+                  <span className="v">{st.account === "principal" ? D.accounts.principal.name : D.accounts.successor.name}</span>
+                  <span className="k">Can commit without asking</span>
+                  <span className="v">{st.account === "principal" ? "Any amount" : "Up to " + u.usd(S.alphaCapacity())}</span>
                 </div>
                 <div className="tri mt8" style={{ fontSize: 11 }}>
                   {st.account === "principal"
-                    ? "Commitments and orders execute directly."
-                    : "Above the Alpha sleeve's capacity, the same button submits a proposal to the Principal."}
+                    ? "Whatever you buy or commit to here happens straight away."
+                    : "Past that amount the button changes: instead of buying, it sends the Principal a proposal."}
                 </div>
               </Panel>
             </div>
@@ -5468,8 +5469,8 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
         {!isPrincipal && (
           <div className="note mt16">
-            This inbox belongs to the Principal. It is shown here read-only so both sides of the workflow are visible in
-            the prototype — switch accounts in the top right to decide.
+            This inbox belongs to the Principal. You can see what you sent and what came back, but the decision is
+            theirs — switch accounts in the top right to see it from their side.
           </div>
         )}
 

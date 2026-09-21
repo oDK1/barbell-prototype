@@ -181,8 +181,8 @@
         <div className="sub mt8" style={{ maxWidth: "74ch" }}>
           This sets the Core/Alpha split and the target allocation the model is drawn against. It is the reference the rest
           of the product reads from — not a trading trigger.
-          {st.account === "successor" && <> <b>The Principal confirms it</b>; this account can read the postures but not
-          adopt one.</>}
+          {st.account === "successor" && <> <b>The Principal settles this one</b> — you can look at the three postures,
+          but choosing between them is theirs.</>}
         </div>
 
         <div className="grid mt16" style={{ gridTemplateColumns: "repeat(" + D.mandates.length + ", 1fr)" }}>

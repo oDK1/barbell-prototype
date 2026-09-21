@@ -134,7 +134,7 @@
                   <input type="text" value={limit} onChange={(e) => setLimit(e.target.value)} /></label>
               )}
               <SleevePicker sleeve={sleeve} setSleeve={setSleeve}
-                note={needsApproval ? "Core is read-only for this account. The order becomes a proposal." : null} />
+                note={needsApproval ? "This sleeve is not yours to act on, so the order becomes a proposal." : null} />
               {needsApproval && (
                 <label className="f"><span>Rationale for the Principal</span>
                   <textarea rows="3" value={rationale} onChange={(e) => setRationale(e.target.value)}

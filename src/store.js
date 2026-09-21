@@ -59,7 +59,7 @@
   function alphaCapacity() {
     return u.total(state.positions.filter((p) => p.sleeve === "alpha" && p.cls === "cash"));
   }
-  const LOCK_TIP = "Core sleeve — Principal authority required.";
+  const LOCK_TIP = "Only the Principal can act on the Core sleeve.";
 
   /* ------------------------------------------------------------------ cash */
   function drawCash(amount, sleeve) {

@@ -302,16 +302,17 @@
             </div>
 
             <div className="mt16">
-              <Panel title="Your authority">
+              <Panel title="What you can do here">
                 <div className="kv">
-                  <span className="k">Account</span><span className="v">{st.account === "principal" ? "Principal" : "Successor"}</span>
-                  <span className="k">Direct limit</span>
-                  <span className="v">{st.account === "principal" ? "No limit" : u.usd(S.alphaCapacity())}</span>
+                  <span className="k">Signed in as</span>
+                  <span className="v">{st.account === "principal" ? D.accounts.principal.name : D.accounts.successor.name}</span>
+                  <span className="k">Can commit without asking</span>
+                  <span className="v">{st.account === "principal" ? "Any amount" : "Up to " + u.usd(S.alphaCapacity())}</span>
                 </div>
                 <div className="tri mt8" style={{ fontSize: 11 }}>
                   {st.account === "principal"
-                    ? "Commitments and orders execute directly."
-                    : "Above the Alpha sleeve's capacity, the same button submits a proposal to the Principal."}
+                    ? "Whatever you buy or commit to here happens straight away."
+                    : "Past that amount the button changes: instead of buying, it sends the Principal a proposal."}
                 </div>
               </Panel>
             </div>

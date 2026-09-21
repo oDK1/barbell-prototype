@@ -2829,13 +2829,10 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 /* / — demo entry. Two accounts, one family office. */
 (function () {
   const D = BB.data, u = BB.u, S = BB.store;
-  const { Money, Dropzone, FileRow, AccountCards } = BB.ui;
+  const { Dropzone, FileRow, AccountCards } = BB.ui;
 
   function Switcher() {
     const st = S.useStore();
-    const t = u.total(st.positions);
-    const sl = u.sleeveTotals(st.positions);
-    const a = D.accounts[st.account];
 
     return (
       <div className="wrap page" style={{ maxWidth: 1080 }}>
@@ -2882,40 +2879,6 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
           </div>
         </div>
 
-        <h2 className="mt32 mb12">Or open the book as it stands</h2>
-        <div className="band">
-          <div className="cell"><div className="stat-l">Total assets</div><div className="stat-v"><Money v={t} compact /></div></div>
-          <div className="cell"><div className="stat-l">Core sleeve</div><div className="stat-v"><Money v={sl.core} compact /></div>
-            <div className="stat-s">{u.pct(sl.corePct)} · target {u.pct(D.family.coreTarget * 100)}</div></div>
-          <div className="cell"><div className="stat-l">Alpha sleeve</div><div className="stat-v"><Money v={sl.alpha} compact /></div>
-            <div className="stat-s">{u.pct(sl.alphaPct)} · target {u.pct(D.family.alphaTarget * 100)}</div></div>
-          <div className="cell"><div className="stat-l">Positions</div><div className="stat-v">{st.positions.length}</div>
-            <div className="stat-s">{st.positions.filter((p) => p.liq === "Daily").length} listed · {st.positions.filter((p) => p.liq !== "Daily").length} private</div></div>
-        </div>
-
-        <div className="btn-row mt16">
-          <button className="btn p lg" onClick={() => S.navigate("/portfolio")}>
-            Open the portfolio as {a.name} · {a.mode} →
-          </button>
-          <span className="tri" style={{ fontSize: 11.5 }}>
-            42 positions already reconciled — skip the ingestion and go straight to the book.
-          </span>
-        </div>
-
-        <div className="panel mt24">
-          <div className="panel-hd"><h3>Start elsewhere</h3></div>
-          <div className="panel-bd">
-            <div className="btn-row">
-              <button className="btn" onClick={() => S.navigate("/marketplace")}>Marketplace</button>
-              <button className="btn" onClick={() => S.navigate("/secondary")}>Secondary board</button>
-              <button className="btn" onClick={() => S.navigate("/activity")}>Activity log</button>
-            </div>
-            <div className="note mt12">
-              Prototype. All data is seeded and held in memory; every action resolves locally and is written to the
-              shared activity log. Nothing leaves the browser.
-            </div>
-          </div>
-        </div>
       </div>
     );
   }
@@ -5674,7 +5637,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 <span className="mark"><span /></span><b>Barbell</b>
               </div>
               <span className="spacer" />
-              {p !== "/" && <button className="btn sm" onClick={() => S.navigate("/portfolio")}>Skip to the portfolio</button>}
+              <button className="btn sm" onClick={() => S.navigate("/portfolio")}>Skip to the portfolio</button>
               <AccountSwitcher />
             </div>
           </header>

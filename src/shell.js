@@ -145,7 +145,7 @@
                 <span className="mark"><span /></span><b>Barbell</b>
               </div>
               <span className="spacer" />
-              {p !== "/" && <button className="btn sm" onClick={() => S.navigate("/portfolio")}>Skip to the portfolio</button>}
+              <button className="btn sm" onClick={() => S.navigate("/portfolio")}>Skip to the portfolio</button>
               <AccountSwitcher />
             </div>
           </header>

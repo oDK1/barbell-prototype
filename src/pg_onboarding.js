@@ -2,7 +2,7 @@
 (function () {
   const { useState, useEffect, useRef } = React;
   const D = BB.data, u = BB.u, S = BB.store;
-  const { Money, Panel, Crumb, Amount, Dropzone, FileRow, ModeStrip, Lock } = BB.ui;
+  const { Money, Panel, Crumb, Amount, Dropzone, FileRow, ModeStrip, AccountCards, Lock } = BB.ui;
   const { Agent } = BB.agent;
 
   const STEP_MS = 750;
@@ -29,7 +29,8 @@
 
     return (
       <div className="wrap page" style={{ maxWidth: 1080 }}>
-        <ModeStrip />
+        <AccountCards />
+        <div className="mt24" />
         <Crumb items={[{ label: "Onboarding" }, { label: "Upload" }]} />
         <h1>Bring the spreadsheets in</h1>
         <div className="sub mt8" style={{ maxWidth: "72ch" }}>

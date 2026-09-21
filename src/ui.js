@@ -186,6 +186,44 @@
     );
   }
 
+  /* The two accounts in full: who they are, what they may do, and why.
+     Clicking one makes it the active account. */
+  function AccountCard({ a, on, onPick }) {
+    return (
+      <button className="panel" onClick={onPick}
+        style={{ textAlign: "left", cursor: "pointer", padding: 0, borderColor: on ? "var(--navy)" : "var(--g3)", background: "var(--paper)" }}>
+        <div className="panel-hd">
+          <div>
+            <div className="eyebrow" style={{ color: "var(--navy)" }}>{a.mode}</div>
+            <h2 style={{ marginTop: 4 }}>{a.name}</h2>
+            <div className="sub" style={{ fontSize: 12 }}>{a.title} · {a.age}</div>
+          </div>
+          {on && <span className="bdg hanwha"><i className="pt" />Active</span>}
+        </div>
+        <div className="panel-bd">
+          <div className="kv" style={{ gridTemplateColumns: "auto 1fr" }}>
+            <span className="k">Mandate</span><span className="v">{a.mandate}</span>
+            <span className="k">Authority</span><span className="v">{a.scope}</span>
+          </div>
+          <hr className="hr" />
+          <div className="prose" style={{ fontSize: 12.5 }}>{a.desc}</div>
+        </div>
+      </button>
+    );
+  }
+
+  function AccountCards({ onPick }) {
+    const st = S.useStore();
+    return (
+      <div className="grid" style={{ gridTemplateColumns: "1fr 1fr" }}>
+        {["principal", "successor"].map((k) => (
+          <AccountCard key={k} a={D.accounts[k]} on={st.account === k}
+            onPick={() => (onPick ? onPick(k) : S.actions.setAccount(k))} />
+        ))}
+      </div>
+    );
+  }
+
   /* Which account is doing the onboarding, stated at the top of every step.
      The two modes have different authority over what these screens set. */
   function ModeStrip() {
@@ -275,5 +313,5 @@
     );
   }
 
-  BB.ui = { Money, Delta, ProvBadge, SleeveBadge, LiqBadge, Lock, Stat, Band, Panel, Tabs, Seg, Modal, MiniBar, Fit, Crumb, Toast, Amount, Dropzone, FileRow, ModeStrip };
+  BB.ui = { Money, Delta, ProvBadge, SleeveBadge, LiqBadge, Lock, Stat, Band, Panel, Tabs, Seg, Modal, MiniBar, Fit, Crumb, Toast, Amount, Dropzone, FileRow, ModeStrip, AccountCard, AccountCards };
 })();

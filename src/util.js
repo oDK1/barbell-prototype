@@ -225,6 +225,61 @@
     return { subs, classes, alts, goal: g };
   }
 
+  /* --------------------------------------------- what the family faces now */
+  /* The three situations a recommendation has to answer to: where the book
+     sits against the model, what the next two years of cash look like, and
+     what has already been realised for tax. */
+  function marketContext(ps, mandateKey) {
+    const t = total(ps);
+    const model = modelWeights(t, mandateKey);
+    const cur = {}, under = {};
+    bySub(ps).forEach((s) => { cur[s.key] = s.wt; });
+    D.subs.forEach((s) => { under[s.key] = model.subs[s.key] - (cur[s.key] || 0); });
+
+    const short = shortfall(ps);
+    const liq = liquidity90(ps);
+    const calls24 = sum(D.capitalCalls, (c) => c.amount);
+    const calls90 = sum(D.capitalCalls.filter((c) => days(D.TODAY, c.date) <= 90 && days(D.TODAY, c.date) >= 0), (c) => c.amount);
+
+    const lots = taxLots(ps);
+    const harvest = lots.filter((l) => l.harvest);
+    const tax = {
+      realized: realizedYTD(ps),
+      harvestable: Math.abs(sum(harvest, (l) => l.gain)),
+      harvestCount: harvest.length,
+      nearLT: lots.filter((l) => !l.longTerm && l.held > 300).length,
+    };
+
+    /* 0 = calls are comfortably covered, 1 = the runway breaks inside 24 months */
+    const stress = short ? 1 : Math.min(1, calls24 / Math.max(liq.within90, 1));
+    const worst = D.subs.map((s) => ({ ...s, under: under[s.key] }))
+      .sort((a, b) => b.under - a.under)[0];
+
+    return { t, model, cur, under, short, liq, calls24, calls90, tax, stress, worst };
+  }
+
+  /* A score with its reasons attached. Instrument merit still counts, but it
+     is weighed against the three situations above rather than standing alone. */
+  function scoreFor(m, ctx) {
+    const merit = m.fit;
+    const allocation = Math.max(0, Math.min(100, 50 + (ctx.under[m.fills] || 0) * 6));
+
+    const locked = m.liq === "Locked", quarterly = m.liq === "Quarterly";
+    const tight = ctx.stress > 0.6;
+    const liquidity = tight ? (locked ? 32 : quarterly ? 62 : 88)
+                            : (locked ? 78 : quarterly ? 72 : 60);
+
+    /* Interest and coupons are taxed as they arrive; capital gains wait for the
+       exit. With gains already booked this year, deferral is worth something. */
+    const deferred = ["pe", "vc", "preipo"].indexOf(m.fills) >= 0;
+    const incomeNow = (m.retNum || 0) >= 5 && !deferred;
+    let tax = 50 + (deferred ? 25 : 0) - (incomeNow && ctx.tax.realized > 250000 ? 20 : 0);
+    tax = Math.max(0, Math.min(100, tax));
+
+    const score = Math.round(0.35 * merit + 0.30 * allocation + 0.20 * liquidity + 0.15 * tax);
+    return { score, merit, allocation, liquidity, tax };
+  }
+
   /* -------------------------------------------------------- deal fit logic */
   function fitFor(item, ps) {
     const g = bySub(ps).find((s) => s.key === item.fills);
@@ -252,6 +307,6 @@
     usd, usdC, krwC, krwFull, pct, pp, sgn, sgnUsd, num, localPx, days, fmtDate, fmtTs, monthKey, monthLabel,
     staleness, provLabel, sum, total, byClass, bySub, gaps, sleeveTotals, unrealized, realizedYTD,
     liquidity90, liquidityProjection, shortfall, coverage, topHoldings, affiliateExposure, taxLots, eligibility,
-    fitFor, subLabel, clsLabel, clsOf, impact, modelWeights,
+    fitFor, subLabel, clsLabel, clsOf, impact, modelWeights, marketContext, scoreFor,
   };
 })();

@@ -24,7 +24,7 @@
         </td>
         <td className="n num">{u.usd(m.min)}</td>
         <td className="tri hide-narrow" style={{ fontSize: 11.5, maxWidth: 150 }}>{m.avail}</td>
-        <td className="n"><Fit score={m.fit} /></td>
+        <td className="n"><Fit score={m.s ? m.s.score : m.fit} /></td>
         <td style={{ maxWidth: 260 }}><div className="tsub" style={{ fontSize: 11.5, color: "var(--g1)" }}>{m.why}</div></td>
         <td className="right">
           <div className="rowbtns">
@@ -83,11 +83,13 @@
       if (q && !(m.name + " " + (m.ticker || "") + " " + m.sector).toLowerCase().includes(q.toLowerCase())) return false;
       return true;
     };
-    const all = D.market.filter(pass).sort((a, b) => b.fit - a.fit);
+    const ctx = u.marketContext(st.positions, st.mandate);
+    const scored = D.market.map((m) => ({ ...m, s: u.scoreFor(m, ctx) }));
+    const all = scored.filter(pass).sort((a, b) => b.s.score - a.s.score);
     /* Private, inside the sleeve's remaining cash — committable without asking. */
-    const readyNow = D.market
+    const readyNow = scored
       .filter((m) => m.kind === "private" && m.min <= capacity)
-      .sort((a, b) => b.fit - a.fit);
+      .sort((a, b) => b.s.score - a.s.score);
     const top3 = all.slice(0, 3);
     const sectors = Array.from(new Set(D.market.map((m) => m.sector))).sort();
     const geos = Array.from(new Set(D.market.map((m) => m.geo))).sort();
@@ -104,12 +106,12 @@
             <h1 className="mt8">What to buy next</h1>
             <div className="sub mt8" style={{ maxWidth: "76ch" }}>
               {isSuccessor
-                ? <>One ranked list, judged on merit — terms, manager, security, and what the family already owns. This
-                  account holds the Alpha sleeve, so the list is the private-market side of the book. Listed instruments
-                  trade in Core, under the Principal.</>
-                : <>One ranked list, judged on merit — terms, manager, security, liquidity, and what the family already
-                  owns. A treasury ETF and a senior secured credit facility sit on the same list and compete on the same
-                  grounds; the only difference is what happens when you press the button.</>}
+                ? <>One ranked list, scored against where the book sits versus the model, what the next two years of
+                  capital calls demand, and what has already been realised for tax. This account holds the Alpha sleeve,
+                  so the list is the private-market side of the book.</>
+                : <>One ranked list, scored against three things: where the book sits versus the model, what the next two
+                  years of capital calls demand, and what has already been realised for tax. A treasury ETF and a senior
+                  secured credit facility compete on the same grounds; only the button differs.</>}
             </div>
           </div>
         </div>
@@ -117,18 +119,27 @@
         <div className="row mt16" style={{ alignItems: "flex-start", gap: 16 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
             <Agent where="Deal fit"
-              why={["Terms, manager record and security package on each offering",
-                    "Overlap with the 42 positions the family already holds",
-                    "Liquidity against the 24-month capital call schedule",
-                    "Minimum check size against the sleeve's available cash",
-                    "Mandate: " + mandateLabel + " · prohibited sectors: gaming / casinos, crypto-native",
-                    "Model allocation for this AUM tier, as context rather than as an instruction"]}>
-              Fit weights the merits of the instrument — terms, manager, security, and whether the family already owns
-              the risk — then checks it against the mandate and the cash that would fund it. The three ranked highest
-              today are <b>{top3.map((m) => m.name.split(" — ")[0]).join(", ")}</b>.
+              why={["Allocation: current subcategory weights against the model for " + u.usdC(t) + " · " + mandateLabel,
+                    "Liquidity: " + u.usdC(ctx.calls24) + " of capital calls over 24 months against " +
+                      u.usdC(ctx.liq.within90) + " redeemable inside 90 days" +
+                      (ctx.short ? " · projected cash breaks in " + ctx.short.month : ""),
+                    "Tax: " + u.usd(ctx.tax.realized) + " realised year to date, " + u.usd(ctx.tax.harvestable) +
+                      " of harvestable loss in " + ctx.tax.harvestCount + " positions, " + ctx.tax.nearLT +
+                      " lots inside 65 days of long-term",
+                    "Instrument merit: terms, manager record, security package, overlap with what is already held",
+                    "Weighting: merit 35% · allocation 30% · liquidity 20% · tax 15%"]}>
+              Ranked on three situations rather than one. <b>Allocation</b> —{" "}
+              {ctx.worst.under > 0
+                ? <>the book is {u.num(ctx.worst.under, 1)}pp under the model in {ctx.worst.label}</>
+                : <>the book sits at or above the model in every subcategory</>}. <b>Liquidity</b> —{" "}
+              {ctx.short
+                ? <>{u.usdC(ctx.calls24)} of calls over 24 months break projected cash in {ctx.short.month}, so a ten-year
+                  lock-up is scored against that</>
+                : <>{u.usdC(ctx.calls24)} of calls are covered, so illiquidity can be paid for</>}.{" "}
+              <b>Tax</b> — {u.usd(ctx.tax.realized)} of gains are already realised this year, which favours deferral over
+              instruments that pay taxable income now.
               {isSuccessor && <> {readyNow.length} private-market {readyNow.length === 1 ? "offering fits" : "offerings fit"} inside
-                your {u.usd(capacity)} of remaining capacity and can be committed without approval; the rest would go to the
-                Principal as a proposal.</>}
+                your {u.usd(capacity)} of remaining capacity and can be committed without approval.</>}
             </Agent>
 
             {/* filters */}

@@ -18,6 +18,9 @@
 
     const isListed = m.kind === "listed";
     const gap = u.bySub(st.positions).find((s) => s.key === m.fills);
+    const ctx = u.marketContext(st.positions, st.mandate);
+    const sc = u.scoreFor(m, ctx);
+    const gapWord = (x) => u.num(Math.abs(x), 1) + "pp " + (x > 0 ? "below" : "above") + " the model";
     const capacity = S.alphaCapacity();
     const needsProposal = st.account === "successor" && (isListed ? false : m.min > capacity);
 
@@ -53,20 +56,34 @@
           <div className="cell"><div className="stat-l">Liquidity</div><div className="stat-v sm">{m.liq}</div><div className="stat-s">{m.term || "—"}</div></div>
           <div className="cell"><div className="stat-l">Minimum</div><div className="stat-v sm"><Money v={m.min} compact /></div></div>
           <div className="cell"><div className="stat-l">Availability</div><div className="stat-v sm" style={{ fontSize: 14 }}>{m.avail}</div></div>
-          <div className="cell"><div className="stat-l">Fit</div><div className="stat-v sm"><Fit score={m.fit} /></div>
+          <div className="cell"><div className="stat-l">Fit</div><div className="stat-v sm"><Fit score={sc.score} /></div>
             <div className="stat-s">{m.why}</div></div>
         </div>
 
         <div className="mt16">
           <Agent where="Deal fit"
-            why={["Terms, manager record and security package",
-                  "Overlap with what the family already holds",
-                  "Liquidity: " + m.liq + (m.term ? " · " + m.term : ""),
-                  "Minimum of " + u.usd(m.min) + " against sleeve cash of " + u.usd(capacity) + " in Alpha",
-                  "Mandate: capital preservation bias, prohibited sectors respected"]}
+            why={["Allocation " + sc.allocation + "/100 — " + u.subLabel(m.fills) + " sits " + gapWord(ctx.under[m.fills]),
+                  "Liquidity " + sc.liquidity + "/100 — " + m.liq + (m.term ? " · " + m.term : "") + " against " +
+                    u.usdC(ctx.calls24) + " of calls over 24 months",
+                  "Tax " + sc.tax + "/100 — " + u.usd(ctx.tax.realized) + " realised year to date",
+                  "Merit " + sc.merit + "/100 — terms, manager, security, overlap with what is held",
+                  "Weighting: merit 35% · allocation 30% · liquidity 20% · tax 15%"]}
             actions={<button className="btn sm" onClick={() => S.navigate("/marketplace")}>Compare the alternatives</button>}>
-            {m.why} It settles in {u.subLabel(m.fills)}, which is {u.pct(gap.wt)} of the book today against a{" "}
-            {u.pct(gap.target)} target — context for the decision rather than the reason for it.
+            {m.why}
+            <table className="t dense mt12" style={{ maxWidth: 520 }}>
+              <tbody>
+                {[["Allocation", sc.allocation, u.subLabel(m.fills) + " " + gapWord(ctx.under[m.fills])],
+                  ["Liquidity", sc.liquidity, m.liq + (ctx.short ? " · cash breaks " + ctx.short.month : " · calls covered")],
+                  ["Tax", sc.tax, ["pe", "vc", "preipo"].indexOf(m.fills) >= 0 ? "gain deferred to exit" : "taxable as it arrives"],
+                  ["Instrument merit", sc.merit, "terms, manager, security"]].map((r) => (
+                  <tr key={r[0]}>
+                    <td style={{ width: 140 }} className="tri">{r[0]}</td>
+                    <td style={{ width: 90 }}><BB.ui.Fit score={r[1]} /></td>
+                    <td className="tsub">{r[2]}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </Agent>
         </div>
 

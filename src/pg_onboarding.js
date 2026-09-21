@@ -226,7 +226,7 @@
           adopt one.</>}
         </div>
 
-        <div className="grid mt16" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
+        <div className="grid mt16" style={{ gridTemplateColumns: "repeat(" + D.mandates.length + ", 1fr)" }}>
           {D.mandates.map((x) => (
             <button key={x.key} className="panel" onClick={() => setSel(x.key)}
               style={{ textAlign: "left", cursor: "pointer", padding: 14, borderColor: sel === x.key ? "var(--navy)" : "var(--g3)", background: sel === x.key ? "var(--navy-wash)" : "var(--paper)" }}>

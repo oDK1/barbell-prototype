@@ -327,9 +327,6 @@
     { key: "growth", label: "Grow the estate", core: 80, alpha: 20,
       line: "Total return, equity-led, with private growth alongside rather than instead of it.",
       targets: { equity: 46, debt: 28, real: 20, cash: 6 } },
-    { key: "opportunistic", label: "Own private markets", core: 70, alpha: 30,
-      line: "The illiquidity premium taken as far as the balance sheet can fund the capital calls.",
-      targets: { equity: 52, debt: 20, real: 23, cash: 5 } },
   ];
 
   const survey = [
@@ -382,9 +379,6 @@
     { key: "growth", label: "Grow the estate",
       tilt: { pubeq: 1.50, pe: 1.35, vc: 1.35, preipo: 1.25, infra: 1.00, re: 0.80, sov: 0.55, ig: 0.70,
               pcred: 0.95, struct: 0.80, comm: 0.80, mmf: 0.70, tbill: 0.70, dep: 0.70, fx: 0.70 } },
-    { key: "opportunistic", label: "Own private markets",
-      tilt: { vc: 2.00, pe: 1.90, preipo: 1.90, pcred: 1.50, infra: 1.35, re: 1.05, pubeq: 0.45, sov: 0.35,
-              ig: 0.50, struct: 0.70, comm: 0.70, mmf: 0.60, tbill: 0.60, dep: 0.60, fx: 0.60 } },
   ];
 
   /* --------------------------------------------------- calls & distributions */

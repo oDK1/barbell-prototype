@@ -300,6 +300,23 @@ label.f>span{display:block;font-size:10.5px;letter-spacing:.08em;text-transform:
 .dz.hot{border-color:var(--navy);background:var(--navy-wash)}
 .dz.sm{padding:30px 20px}
 
+/* The three onboarding steps, always all three. */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--g3);background:var(--paper);margin-bottom:18px}
+.steps .step{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:10px;
+  align-items:center;text-align:left;width:100%;padding:10px 14px;border:0;border-right:1px solid var(--g3);
+  background:none;font:inherit;cursor:pointer}
+.steps .tip:last-child .step,.steps .step:last-child{border-right:0}
+.steps .step:hover:not(:disabled){background:#FCFBF8}
+.steps .step:disabled{opacity:.45;cursor:not-allowed}
+.steps .step .n{grid-row:1 / span 2;width:22px;height:22px;border:1px solid var(--g3);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--g1)}
+.steps .step .l{font-size:13px;font-weight:600}
+.steps .step .s{font-size:11px;color:var(--g2)}
+.steps .step.on{background:var(--navy-wash)}
+.steps .step.on .n{background:var(--navy);border-color:var(--navy);color:#fff}
+.steps .step.on .l{color:var(--navy)}
+.steps .step.done .n{background:var(--pos);border-color:var(--pos);color:#fff}
+
 /* Mode selector carried across the onboarding steps. */
 .modestrip{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--g3);background:var(--paper);margin-bottom:18px}
 .modestrip .mode{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;

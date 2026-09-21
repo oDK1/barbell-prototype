@@ -1,7 +1,7 @@
 /* / — demo entry. Two accounts, one family office. */
 (function () {
   const D = BB.data, u = BB.u, S = BB.store;
-  const { Dropzone, FileRow, AccountCards } = BB.ui;
+  const { Dropzone, FileRow, AccountCards, Steps } = BB.ui;
 
   function Switcher() {
     const st = S.useStore();
@@ -22,8 +22,14 @@
         </div>
         <AccountCards onPick={(k) => { S.actions.setAccount(k); S.navigate("/portfolio"); }} />
 
-        {/* the way in: give the product the spreadsheets the family already runs on */}
-        <div className="panel mt24">
+        {/* the way in: three steps, stated before the first one is asked for */}
+        <div className="between mt32 mb12">
+          <h2>Set the book up</h2>
+          <span className="tri" style={{ fontSize: 11.5 }}>Three steps · about two minutes</span>
+        </div>
+        <Steps at="upload" />
+
+        <div className="panel">
           <div className="panel-hd">
             <div>
               <h3>Start here — bring the spreadsheets in</h3>

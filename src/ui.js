@@ -224,6 +224,39 @@
     );
   }
 
+  /* The onboarding session in full, so the mandate step is visible from the
+     start rather than appearing only once the files are read. A step you have
+     not earned yet is disabled with the reason attached. */
+  function Steps({ at }) {
+    const st = S.useStore();
+    const cleared = st.exceptions.every((e) => e.resolved);
+    const steps = [
+      { k: "upload", n: 1, label: "Upload", sub: "bring the spreadsheets in", to: "/onboarding/upload",
+        done: st.ingestDone, block: null },
+      { k: "reconcile", n: 2, label: "Reconcile", sub: "clear the exceptions", to: "/onboarding/reconcile",
+        done: st.ingestDone && cleared, block: st.ingestDone ? null : "Read the files first" },
+      { k: "mandate", n: 3, label: "Mandate", sub: "set the posture", to: "/onboarding/mandate",
+        done: false, block: cleared ? null : "Clear the exceptions first" },
+    ];
+    return (
+      <div className="steps">
+        {steps.map((x) => {
+          const cls = "step" + (at === x.k ? " on" : "") + (x.done && at !== x.k ? " done" : "");
+          const btn = (
+            <button className={cls} disabled={!!x.block && at !== x.k} onClick={() => S.navigate(x.to)}>
+              <span className="n">{x.done && at !== x.k ? "✓" : x.n}</span>
+              <span className="l">{x.label}</span>
+              <span className="s">{x.sub}</span>
+            </button>
+          );
+          return x.block && at !== x.k
+            ? <span className="tip" key={x.k} data-tip={x.block} style={{ display: "block" }}>{btn}</span>
+            : <React.Fragment key={x.k}>{btn}</React.Fragment>;
+        })}
+      </div>
+    );
+  }
+
   /* Which account is doing the onboarding, stated at the top of every step.
      The two modes have different authority over what these screens set. */
   function ModeStrip() {
@@ -313,5 +346,5 @@
     );
   }
 
-  BB.ui = { Money, Delta, ProvBadge, SleeveBadge, LiqBadge, Lock, Stat, Band, Panel, Tabs, Seg, Modal, MiniBar, Fit, Crumb, Toast, Amount, Dropzone, FileRow, ModeStrip, AccountCard, AccountCards };
+  BB.ui = { Money, Delta, ProvBadge, SleeveBadge, LiqBadge, Lock, Stat, Band, Panel, Tabs, Seg, Modal, MiniBar, Fit, Crumb, Toast, Amount, Dropzone, FileRow, ModeStrip, AccountCard, AccountCards, Steps };
 })();

@@ -2,7 +2,7 @@
 (function () {
   const { useState, useEffect, useRef } = React;
   const D = BB.data, u = BB.u, S = BB.store;
-  const { Money, Panel, Crumb, Amount, Dropzone, FileRow, ModeStrip, AccountCards, Lock } = BB.ui;
+  const { Money, Panel, Amount, Dropzone, FileRow, ModeStrip, AccountCards, Steps, Lock } = BB.ui;
   const { Agent } = BB.agent;
 
   const STEP_MS = 750;
@@ -31,7 +31,7 @@
       <div className="wrap page" style={{ maxWidth: 1080 }}>
         <AccountCards />
         <div className="mt24" />
-        <Crumb items={[{ label: "Onboarding" }, { label: "Upload" }]} />
+        <Steps at="upload" />
         <h1>Bring the spreadsheets in</h1>
         <div className="sub mt8" style={{ maxWidth: "72ch" }}>
           {files.length} {files.length === 1 ? "file is" : "files are"} staged. Drop more if you have them — format
@@ -130,7 +130,7 @@
     return (
       <div className="wrap page">
         <ModeStrip />
-        <Crumb items={[{ label: "Onboarding", to: "/onboarding/upload" }, { label: "Reconcile" }]} />
+        <Steps at="reconcile" />
         <div className="between">
           <div>
             <h1>Review the extraction</h1>
@@ -217,7 +217,7 @@
     return (
       <div className="wrap page" style={{ maxWidth: 1180 }}>
         <ModeStrip />
-        <Crumb items={[{ label: "Onboarding", to: "/onboarding/upload" }, { label: "Mandate" }]} />
+        <Steps at="mandate" />
         <h1>Set the posture</h1>
         <div className="sub mt8" style={{ maxWidth: "74ch" }}>
           This sets the Core/Alpha split and the target allocation the model is drawn against. It is the reference the rest

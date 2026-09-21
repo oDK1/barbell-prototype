@@ -311,6 +311,23 @@ label.f>span{display:block;font-size:10.5px;letter-spacing:.08em;text-transform:
 .dz.hot{border-color:var(--navy);background:var(--navy-wash)}
 .dz.sm{padding:30px 20px}
 
+/* The three onboarding steps, always all three. */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--g3);background:var(--paper);margin-bottom:18px}
+.steps .step{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:10px;
+  align-items:center;text-align:left;width:100%;padding:10px 14px;border:0;border-right:1px solid var(--g3);
+  background:none;font:inherit;cursor:pointer}
+.steps .tip:last-child .step,.steps .step:last-child{border-right:0}
+.steps .step:hover:not(:disabled){background:#FCFBF8}
+.steps .step:disabled{opacity:.45;cursor:not-allowed}
+.steps .step .n{grid-row:1 / span 2;width:22px;height:22px;border:1px solid var(--g3);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--g1)}
+.steps .step .l{font-size:13px;font-weight:600}
+.steps .step .s{font-size:11px;color:var(--g2)}
+.steps .step.on{background:var(--navy-wash)}
+.steps .step.on .n{background:var(--navy);border-color:var(--navy);color:#fff}
+.steps .step.on .l{color:var(--navy)}
+.steps .step.done .n{background:var(--pos);border-color:var(--pos);color:#fff}
+
 /* Mode selector carried across the onboarding steps. */
 .modestrip{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--g3);background:var(--paper);margin-bottom:18px}
 .modestrip .mode{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;
@@ -2347,6 +2364,39 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     );
   }
 
+  /* The onboarding session in full, so the mandate step is visible from the
+     start rather than appearing only once the files are read. A step you have
+     not earned yet is disabled with the reason attached. */
+  function Steps({ at }) {
+    const st = S.useStore();
+    const cleared = st.exceptions.every((e) => e.resolved);
+    const steps = [
+      { k: "upload", n: 1, label: "Upload", sub: "bring the spreadsheets in", to: "/onboarding/upload",
+        done: st.ingestDone, block: null },
+      { k: "reconcile", n: 2, label: "Reconcile", sub: "clear the exceptions", to: "/onboarding/reconcile",
+        done: st.ingestDone && cleared, block: st.ingestDone ? null : "Read the files first" },
+      { k: "mandate", n: 3, label: "Mandate", sub: "set the posture", to: "/onboarding/mandate",
+        done: false, block: cleared ? null : "Clear the exceptions first" },
+    ];
+    return (
+      <div className="steps">
+        {steps.map((x) => {
+          const cls = "step" + (at === x.k ? " on" : "") + (x.done && at !== x.k ? " done" : "");
+          const btn = (
+            <button className={cls} disabled={!!x.block && at !== x.k} onClick={() => S.navigate(x.to)}>
+              <span className="n">{x.done && at !== x.k ? "✓" : x.n}</span>
+              <span className="l">{x.label}</span>
+              <span className="s">{x.sub}</span>
+            </button>
+          );
+          return x.block && at !== x.k
+            ? <span className="tip" key={x.k} data-tip={x.block} style={{ display: "block" }}>{btn}</span>
+            : <React.Fragment key={x.k}>{btn}</React.Fragment>;
+        })}
+      </div>
+    );
+  }
+
   /* Which account is doing the onboarding, stated at the top of every step.
      The two modes have different authority over what these screens set. */
   function ModeStrip() {
@@ -2436,7 +2486,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     );
   }
 
-  BB.ui = { Money, Delta, ProvBadge, SleeveBadge, LiqBadge, Lock, Stat, Band, Panel, Tabs, Seg, Modal, MiniBar, Fit, Crumb, Toast, Amount, Dropzone, FileRow, ModeStrip, AccountCard, AccountCards };
+  BB.ui = { Money, Delta, ProvBadge, SleeveBadge, LiqBadge, Lock, Stat, Band, Panel, Tabs, Seg, Modal, MiniBar, Fit, Crumb, Toast, Amount, Dropzone, FileRow, ModeStrip, AccountCard, AccountCards, Steps };
 })();
 
 </script>
@@ -2882,7 +2932,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 /* / — demo entry. Two accounts, one family office. */
 (function () {
   const D = BB.data, u = BB.u, S = BB.store;
-  const { Dropzone, FileRow, AccountCards } = BB.ui;
+  const { Dropzone, FileRow, AccountCards, Steps } = BB.ui;
 
   function Switcher() {
     const st = S.useStore();
@@ -2903,8 +2953,14 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
         </div>
         <AccountCards onPick={(k) => { S.actions.setAccount(k); S.navigate("/portfolio"); }} />
 
-        {/* the way in: give the product the spreadsheets the family already runs on */}
-        <div className="panel mt24">
+        {/* the way in: three steps, stated before the first one is asked for */}
+        <div className="between mt32 mb12">
+          <h2>Set the book up</h2>
+          <span className="tri" style={{ fontSize: 11.5 }}>Three steps · about two minutes</span>
+        </div>
+        <Steps at="upload" />
+
+        <div className="panel">
           <div className="panel-hd">
             <div>
               <h3>Start here — bring the spreadsheets in</h3>
@@ -2949,7 +3005,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 (function () {
   const { useState, useEffect, useRef } = React;
   const D = BB.data, u = BB.u, S = BB.store;
-  const { Money, Panel, Crumb, Amount, Dropzone, FileRow, ModeStrip, AccountCards, Lock } = BB.ui;
+  const { Money, Panel, Amount, Dropzone, FileRow, ModeStrip, AccountCards, Steps, Lock } = BB.ui;
   const { Agent } = BB.agent;
 
   const STEP_MS = 750;
@@ -2978,7 +3034,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       <div className="wrap page" style={{ maxWidth: 1080 }}>
         <AccountCards />
         <div className="mt24" />
-        <Crumb items={[{ label: "Onboarding" }, { label: "Upload" }]} />
+        <Steps at="upload" />
         <h1>Bring the spreadsheets in</h1>
         <div className="sub mt8" style={{ maxWidth: "72ch" }}>
           {files.length} {files.length === 1 ? "file is" : "files are"} staged. Drop more if you have them — format
@@ -3077,7 +3133,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     return (
       <div className="wrap page">
         <ModeStrip />
-        <Crumb items={[{ label: "Onboarding", to: "/onboarding/upload" }, { label: "Reconcile" }]} />
+        <Steps at="reconcile" />
         <div className="between">
           <div>
             <h1>Review the extraction</h1>
@@ -3164,7 +3220,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     return (
       <div className="wrap page" style={{ maxWidth: 1180 }}>
         <ModeStrip />
-        <Crumb items={[{ label: "Onboarding", to: "/onboarding/upload" }, { label: "Mandate" }]} />
+        <Steps at="mandate" />
         <h1>Set the posture</h1>
         <div className="sub mt8" style={{ maxWidth: "74ch" }}>
           This sets the Core/Alpha split and the target allocation the model is drawn against. It is the reference the rest

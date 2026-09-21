@@ -310,23 +310,23 @@
   ];
 
   const survey = [
-    { id: "q1", q: "Liquidity needed from the portfolio over the next 24 months",
+    { id: "q1", sharpens: "Sets how hard locked offerings are marked down in the marketplace", q: "Liquidity needed from the portfolio over the next 24 months",
       type: "select", options: ["None — external income covers spending", "Under $2M", "$2M – $5M", "Over $5M"], a: "$2M – $5M" },
-    { id: "q2", q: "Known capital calls already committed",
+    { id: "q2", sharpens: "Checked against the call schedule already read from your files", q: "Known capital calls already committed",
       type: "select", options: ["None", "Under $2M", "$2M – $6M", "Over $6M"], a: "$2M – $6M" },
-    { id: "q3", q: "Concentration in the family operating company",
+    { id: "q3", sharpens: "Sets the level the concentration flag fires at", q: "Concentration in the family operating company",
       type: "select", options: ["Under 5% of assets", "5 – 10%", "10 – 25%", "Over 25%"], a: "5 – 10%",
       note: "Currently 6.8% — Hanmi Chemical Holdings." },
-    { id: "q4", q: "FX base currency for reporting and risk",
+    { id: "q4", sharpens: "Decides which currency the return is decomposed against", q: "FX base currency for reporting and risk",
       type: "select", options: ["KRW", "USD", "USD with KRW reporting"], a: "USD with KRW reporting" },
-    { id: "q5", q: "Tax residency",
+    { id: "q5", sharpens: "Frames the holding-period observations on the Tax tab", q: "Tax residency",
       type: "select", options: ["Korea", "United States", "Dual KR / US", "Other"], a: "Korea" },
-    { id: "q6", q: "Drawdown tolerance — the loss that would force a change of plan",
+    { id: "q6", sharpens: "Bounds how far the model may tilt from the posture above", q: "Drawdown tolerance — the loss that would force a change of plan",
       type: "select", options: ["$3M (−4.8%)", "$6M (−9.6%)", "$12M (−19.2%)", "$19M (−30.4%)"], a: "$6M (−9.6%)",
       note: "Stated in dollars, not percentages, because that is how the decision is actually made." },
-    { id: "q7", q: "Generational transfer horizon",
+    { id: "q7", sharpens: "Sets how long an illiquid holding may reasonably lock up", q: "Generational transfer horizon",
       type: "select", options: ["Within 5 years", "5 – 10 years", "10 – 20 years", "No defined horizon"], a: "5 – 10 years" },
-    { id: "q8", q: "Prohibited sectors",
+    { id: "q8", sharpens: "Removes those sectors from the marketplace entirely", q: "Prohibited sectors",
       type: "multi", options: ["Tobacco", "Gaming / casinos", "Defence", "Fossil fuel extraction", "Crypto-native"], a: ["Gaming / casinos", "Crypto-native"] },
   ];
 

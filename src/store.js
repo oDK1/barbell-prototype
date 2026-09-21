@@ -129,7 +129,20 @@
         D.classes.map((c) => c.label + " " + c.target.toFixed(1)).join(" · "));
       emit();
     },
-    setSurvey(id, v) { state.survey[id] = v; emit(); },
+    setSurvey(id, v) {
+      if (v === "" || (Array.isArray(v) && !v.length)) delete state.survey[id];
+      else state.survey[id] = v;
+      emit();
+    },
+    /* The family has answered these before; offer them rather than presume them. */
+    fillSurvey() {
+      D.survey.forEach((q) => { state.survey[q.id] = q.a; });
+      log("Mandate", "Applied the family's answers to the eight refining questions",
+        "Liquidity needs, capital calls, concentration, FX base, tax residency, drawdown tolerance, transfer horizon, prohibited sectors.");
+      toast("Eight answers applied");
+      emit();
+    },
+    clearSurvey() { state.survey = {}; emit(); },
 
     /* ---- trading listed instruments ---- */
     trade({ side, name, ticker, sub, cls, amount, qty, px, sleeve, orderType, limit, source }) {

@@ -1012,23 +1012,23 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   ];
 
   const survey = [
-    { id: "q1", q: "Liquidity needed from the portfolio over the next 24 months",
+    { id: "q1", sharpens: "Sets how hard locked offerings are marked down in the marketplace", q: "Liquidity needed from the portfolio over the next 24 months",
       type: "select", options: ["None — external income covers spending", "Under $2M", "$2M – $5M", "Over $5M"], a: "$2M – $5M" },
-    { id: "q2", q: "Known capital calls already committed",
+    { id: "q2", sharpens: "Checked against the call schedule already read from your files", q: "Known capital calls already committed",
       type: "select", options: ["None", "Under $2M", "$2M – $6M", "Over $6M"], a: "$2M – $6M" },
-    { id: "q3", q: "Concentration in the family operating company",
+    { id: "q3", sharpens: "Sets the level the concentration flag fires at", q: "Concentration in the family operating company",
       type: "select", options: ["Under 5% of assets", "5 – 10%", "10 – 25%", "Over 25%"], a: "5 – 10%",
       note: "Currently 6.8% — Hanmi Chemical Holdings." },
-    { id: "q4", q: "FX base currency for reporting and risk",
+    { id: "q4", sharpens: "Decides which currency the return is decomposed against", q: "FX base currency for reporting and risk",
       type: "select", options: ["KRW", "USD", "USD with KRW reporting"], a: "USD with KRW reporting" },
-    { id: "q5", q: "Tax residency",
+    { id: "q5", sharpens: "Frames the holding-period observations on the Tax tab", q: "Tax residency",
       type: "select", options: ["Korea", "United States", "Dual KR / US", "Other"], a: "Korea" },
-    { id: "q6", q: "Drawdown tolerance — the loss that would force a change of plan",
+    { id: "q6", sharpens: "Bounds how far the model may tilt from the posture above", q: "Drawdown tolerance — the loss that would force a change of plan",
       type: "select", options: ["$3M (−4.8%)", "$6M (−9.6%)", "$12M (−19.2%)", "$19M (−30.4%)"], a: "$6M (−9.6%)",
       note: "Stated in dollars, not percentages, because that is how the decision is actually made." },
-    { id: "q7", q: "Generational transfer horizon",
+    { id: "q7", sharpens: "Sets how long an illiquid holding may reasonably lock up", q: "Generational transfer horizon",
       type: "select", options: ["Within 5 years", "5 – 10 years", "10 – 20 years", "No defined horizon"], a: "5 – 10 years" },
-    { id: "q8", q: "Prohibited sectors",
+    { id: "q8", sharpens: "Removes those sectors from the marketplace entirely", q: "Prohibited sectors",
       type: "multi", options: ["Tobacco", "Gaming / casinos", "Defence", "Fossil fuel extraction", "Crypto-native"], a: ["Gaming / casinos", "Crypto-native"] },
   ];
 
@@ -1949,7 +1949,20 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
         D.classes.map((c) => c.label + " " + c.target.toFixed(1)).join(" · "));
       emit();
     },
-    setSurvey(id, v) { state.survey[id] = v; emit(); },
+    setSurvey(id, v) {
+      if (v === "" || (Array.isArray(v) && !v.length)) delete state.survey[id];
+      else state.survey[id] = v;
+      emit();
+    },
+    /* The family has answered these before; offer them rather than presume them. */
+    fillSurvey() {
+      D.survey.forEach((q) => { state.survey[q.id] = q.a; });
+      log("Mandate", "Applied the family's answers to the eight refining questions",
+        "Liquidity needs, capital calls, concentration, FX base, tax residency, drawdown tolerance, transfer horizon, prohibited sectors.");
+      toast("Eight answers applied");
+      emit();
+    },
+    clearSurvey() { state.survey = {}; emit(); },
 
     /* ---- trading listed instruments ---- */
     trade({ side, name, ticker, sub, cls, amount, qty, px, sleeve, orderType, limit, source }) {
@@ -3153,7 +3166,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   function Mandate() {
     const st = S.useStore();
     const [sel, setSel] = useState(st.mandate);
-    const [refine, setRefine] = useState(false);
+    const answered = D.survey.filter((q) => st.survey[q.id] !== undefined).length;
     const m = D.mandates.find((x) => x.key === sel);
 
     return (
@@ -3207,47 +3220,68 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
             </div>
           </div>
 
-          <div className="panel">
-            <div className="panel-hd">
-              <h3>Refine this</h3>
-              <button className="link" onClick={() => setRefine(!refine)}>{refine ? "Collapse" : "Refine this →"}</button>
+        </div>
+
+        {/* Optional by construction: nothing below gates the button above. */}
+        <div className="panel mt16">
+          <div className="panel-hd">
+            <div>
+              <div className="row tight" style={{ alignItems: "center" }}>
+                <h3>Refine this</h3>
+                <span className="bdg plain">Optional</span>
+              </div>
+              <div className="tri" style={{ fontSize: 11.5, marginTop: 2 }}>
+                The posture above is enough to start. Answer any of these and the recommendations get more specific —
+                skip them all and nothing is lost.
+              </div>
             </div>
-            <div className="panel-bd">
-              {!refine ? (
-                <div className="sub" style={{ fontSize: 12.5, lineHeight: 1.7 }}>
-                  Eight questions — liquidity needs, known capital calls, concentration in the operating company, FX base,
-                  tax residency, drawdown tolerance in dollars, transfer horizon, prohibited sectors. Optional, but the
-                  answers sharpen the fit scores in the marketplace and the liquidity runway.
-                </div>
-              ) : (
-                <div className="grid" style={{ gap: 12 }}>
-                  {D.survey.map((q) => (
-                    <div key={q.id}>
-                      <label className="f">
-                        <span>{q.q}</span>
-                        {q.type === "select" ? (
-                          <select value={st.survey[q.id] !== undefined ? st.survey[q.id] : q.a}
-                            onChange={(e) => S.actions.setSurvey(q.id, e.target.value)}>
-                            {q.options.map((o) => <option key={o} value={o}>{o}</option>)}
-                          </select>
-                        ) : (
-                          <div className="btn-row">
-                            {q.options.map((o) => {
-                              const cur = st.survey[q.id] || q.a;
-                              const on = cur.indexOf(o) >= 0;
-                              return (
-                                <button key={o} className={"btn sm" + (on ? " p" : "")}
-                                  onClick={() => S.actions.setSurvey(q.id, on ? cur.filter((x) => x !== o) : cur.concat([o]))}>{o}</button>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </label>
-                      {q.note && <div className="tri" style={{ fontSize: 11, marginTop: 3 }}>{q.note}</div>}
+            <div className="btn-row">
+              <span className="tri num" style={{ fontSize: 11.5 }}>{answered} of {D.survey.length} answered</span>
+              {answered > 0
+                ? <button className="btn sm" onClick={() => S.actions.clearSurvey()}>Clear</button>
+                : <button className="btn sm" onClick={() => S.actions.fillSurvey()}>Use the family's answers on file</button>}
+            </div>
+          </div>
+          <div className="panel-bd">
+            <div className="grid" style={{ gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+              {D.survey.map((q, i) => {
+                const val = st.survey[q.id];
+                return (
+                  <div key={q.id}>
+                    <label className="f">
+                      <span><span className="tri">{i + 1}</span>&nbsp;&nbsp;{q.q}</span>
+                      {q.type === "select" ? (
+                        <select value={val === undefined ? "" : val}
+                          onChange={(e) => S.actions.setSurvey(q.id, e.target.value)}>
+                          <option value="">Not answered</option>
+                          {q.options.map((o) => <option key={o} value={o}>{o}</option>)}
+                        </select>
+                      ) : (
+                        <div className="btn-row">
+                          {q.options.map((o) => {
+                            const cur = val || [];
+                            const on = cur.indexOf(o) >= 0;
+                            return (
+                              <button key={o} className={"btn sm" + (on ? " p" : "")}
+                                onClick={() => S.actions.setSurvey(q.id, on ? cur.filter((x) => x !== o) : cur.concat([o]))}>{o}</button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </label>
+                    <div className="tri" style={{ fontSize: 11, marginTop: 4, opacity: val !== undefined ? 1 : .75 }}>
+                      {q.sharpens}{q.note ? " · " + q.note : ""}
                     </div>
-                  ))}
-                </div>
-              )}
+                  </div>
+                );
+              })}
+            </div>
+            <div className={"note mt16" + (answered ? " ok" : "")}>
+              {answered
+                ? <>{answered} of {D.survey.length} answered. The rest simply leave the product's defaults in place — the
+                  posture above still governs.</>
+                : <>Nothing here is required. Confirm the mandate as it stands, and come back to these whenever you want
+                  sharper recommendations.</>}
             </div>
           </div>
         </div>

@@ -2843,9 +2843,12 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
           Choose an account to begin, or switch at any time from the top right.
         </div>
 
-        {/* who is doing this, before anything is asked of them */}
-        <h2 className="mt24 mb12">Choose an account</h2>
-        <AccountCards />
+        {/* picking an account signs in as them and opens their book */}
+        <div className="between mt24 mb12">
+          <h2>Choose an account</h2>
+          <span className="tri" style={{ fontSize: 11.5 }}>Opens the reconciled book as that account</span>
+        </div>
+        <AccountCards onPick={(k) => { S.actions.setAccount(k); S.navigate("/portfolio"); }} />
 
         {/* the way in: give the product the spreadsheets the family already runs on */}
         <div className="panel mt24">

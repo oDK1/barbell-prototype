@@ -310,6 +310,18 @@ label.f>span{display:block;font-size:10.5px;letter-spacing:.08em;text-transform:
 }
 .dz.hot{border-color:var(--navy);background:var(--navy-wash)}
 .dz.sm{padding:30px 20px}
+
+/* Mode selector carried across the onboarding steps. */
+.modestrip{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--g3);background:var(--paper);margin-bottom:18px}
+.modestrip .mode{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;
+  padding:10px 14px;border:0;border-right:1px solid var(--g3);background:none;cursor:pointer;font:inherit}
+.modestrip .mode:last-child{border-right:0}
+.modestrip .mode:hover{background:#FCFBF8}
+.modestrip .mode.on{background:var(--navy-wash)}
+.modestrip .m-mode{font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--g2);font-weight:600}
+.modestrip .mode.on .m-mode{color:var(--navy)}
+.modestrip .m-name{font-size:13.5px;font-weight:600}
+.modestrip .m-scope{font-size:11.5px;color:var(--g1)}
 .filelist .fi .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .filelist{border:1px solid var(--g3);border-bottom:0}
 .filelist .fi{display:flex;align-items:center;gap:12px;padding:10px 12px;border-bottom:1px solid var(--g3);background:var(--paper)}
@@ -2244,6 +2256,33 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     );
   }
 
+  /* Which account is doing the onboarding, stated at the top of every step.
+     The two modes have different authority over what these screens set. */
+  function ModeStrip() {
+    const st = S.useStore();
+    return (
+      <div className="modestrip">
+        {["principal", "successor"].map((k) => {
+          const a = D.accounts[k];
+          const on = st.account === k;
+          return (
+            <button key={k} className={"mode" + (on ? " on" : "")} onClick={() => S.actions.setAccount(k)}>
+              <span style={{ display: "flex", alignItems: "center", width: "100%", gap: 10 }}>
+                <span className="m-mode">{a.mode}</span>
+                <span style={{ flex: 1 }} />
+                {on
+                  ? <span className="bdg hanwha"><i className="pt" />Active</span>
+                  : <span className="tri" style={{ fontSize: 10.5 }}>Switch</span>}
+              </span>
+              <span className="m-name">{a.name}</span>
+              <span className="m-scope">{a.scope}</span>
+            </button>
+          );
+        })}
+      </div>
+    );
+  }
+
   /* Drop target for spreadsheets. Used on the entry screen and in onboarding,
      so a file added in one place shows up in the other. */
   function Dropzone({ onFiles, title, hint, compact }) {
@@ -2306,7 +2345,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     );
   }
 
-  BB.ui = { Money, Delta, ProvBadge, SleeveBadge, LiqBadge, Lock, Stat, Band, Panel, Tabs, Seg, Modal, MiniBar, Fit, Crumb, Toast, Amount, Dropzone, FileRow };
+  BB.ui = { Money, Delta, ProvBadge, SleeveBadge, LiqBadge, Lock, Stat, Band, Panel, Tabs, Seg, Modal, MiniBar, Fit, Crumb, Toast, Amount, Dropzone, FileRow, ModeStrip };
 })();
 
 </script>
@@ -2869,7 +2908,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 (function () {
   const { useState, useEffect, useRef } = React;
   const D = BB.data, u = BB.u, S = BB.store;
-  const { Money, Panel, Crumb, Amount, Dropzone, FileRow } = BB.ui;
+  const { Money, Panel, Crumb, Amount, Dropzone, FileRow, ModeStrip, Lock } = BB.ui;
   const { Agent } = BB.agent;
 
   const STEP_MS = 750;
@@ -2896,6 +2935,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
     return (
       <div className="wrap page" style={{ maxWidth: 1080 }}>
+        <ModeStrip />
         <Crumb items={[{ label: "Onboarding" }, { label: "Upload" }]} />
         <h1>Bring the spreadsheets in</h1>
         <div className="sub mt8" style={{ maxWidth: "72ch" }}>
@@ -2975,8 +3015,8 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
             </div>
             <div className="btn-row">
               {e.resolved
-                ? <button className="btn" onClick={() => S.actions.unresolveException(e.id)}>Reopen</button>
-                : <button className="btn p" onClick={() => onResolve(e.id, v)}>Apply</button>}
+                ? <Lock sleeve="core"><button className="btn" onClick={() => S.actions.unresolveException(e.id)}>Reopen</button></Lock>
+                : <Lock sleeve="core"><button className="btn p" onClick={() => onResolve(e.id, v)}>Apply</button></Lock>}
             </div>
           </div>
           {e.suggestion && !e.resolved && <div className="tri mt8" style={{ fontSize: 11.5 }}>Agent suggestion pre-filled from the registry record.</div>}
@@ -2994,6 +3034,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
     return (
       <div className="wrap page">
+        <ModeStrip />
         <Crumb items={[{ label: "Onboarding", to: "/onboarding/upload" }, { label: "Reconcile" }]} />
         <div className="between">
           <div>
@@ -3011,7 +3052,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
         {open.length > 0 && (
           <div className="note warn mt16">
-            <b>{open.length} exceptions require a decision.</b> These are the rows the agent could not resolve on its own.
+            <b>{open.length} exceptions require a decision{st.account === "successor" ? " from the Principal" : ""}.</b> These are the rows the agent could not resolve on its own.
             Clear them to continue — an unresolved exception is the difference between a reconciled book and a spreadsheet.
           </div>
         )}
@@ -3080,11 +3121,14 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
     return (
       <div className="wrap page" style={{ maxWidth: 1180 }}>
+        <ModeStrip />
         <Crumb items={[{ label: "Onboarding", to: "/onboarding/upload" }, { label: "Mandate" }]} />
         <h1>Set the posture</h1>
         <div className="sub mt8" style={{ maxWidth: "74ch" }}>
           This sets the Core/Alpha split and the target allocation the model is drawn against. It is the reference the rest
           of the product reads from — not a trading trigger.
+          {st.account === "successor" && <> <b>The Principal confirms it</b>; this account can read the postures but not
+          adopt one.</>}
         </div>
 
         <div className="grid mt16" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
@@ -3172,9 +3216,11 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
         </div>
 
         <div className="btn-row mt16">
-          <button className="btn p lg" onClick={() => { S.actions.setMandate(sel); S.navigate("/portfolio"); }}>
-            Confirm mandate and open the portfolio →
-          </button>
+          <Lock sleeve="core">
+            <button className="btn p lg" onClick={() => { S.actions.setMandate(sel); S.navigate("/portfolio"); }}>
+              Confirm mandate and open the portfolio →
+            </button>
+          </Lock>
           <button className="btn lg" onClick={() => S.navigate("/onboarding/reconcile")}>Back</button>
         </div>
       </div>

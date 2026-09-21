@@ -186,6 +186,33 @@
     );
   }
 
+  /* Which account is doing the onboarding, stated at the top of every step.
+     The two modes have different authority over what these screens set. */
+  function ModeStrip() {
+    const st = S.useStore();
+    return (
+      <div className="modestrip">
+        {["principal", "successor"].map((k) => {
+          const a = D.accounts[k];
+          const on = st.account === k;
+          return (
+            <button key={k} className={"mode" + (on ? " on" : "")} onClick={() => S.actions.setAccount(k)}>
+              <span style={{ display: "flex", alignItems: "center", width: "100%", gap: 10 }}>
+                <span className="m-mode">{a.mode}</span>
+                <span style={{ flex: 1 }} />
+                {on
+                  ? <span className="bdg hanwha"><i className="pt" />Active</span>
+                  : <span className="tri" style={{ fontSize: 10.5 }}>Switch</span>}
+              </span>
+              <span className="m-name">{a.name}</span>
+              <span className="m-scope">{a.scope}</span>
+            </button>
+          );
+        })}
+      </div>
+    );
+  }
+
   /* Drop target for spreadsheets. Used on the entry screen and in onboarding,
      so a file added in one place shows up in the other. */
   function Dropzone({ onFiles, title, hint, compact }) {
@@ -248,5 +275,5 @@
     );
   }
 
-  BB.ui = { Money, Delta, ProvBadge, SleeveBadge, LiqBadge, Lock, Stat, Band, Panel, Tabs, Seg, Modal, MiniBar, Fit, Crumb, Toast, Amount, Dropzone, FileRow };
+  BB.ui = { Money, Delta, ProvBadge, SleeveBadge, LiqBadge, Lock, Stat, Band, Panel, Tabs, Seg, Modal, MiniBar, Fit, Crumb, Toast, Amount, Dropzone, FileRow, ModeStrip };
 })();

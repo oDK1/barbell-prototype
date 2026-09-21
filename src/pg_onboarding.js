@@ -2,7 +2,7 @@
 (function () {
   const { useState, useEffect, useRef } = React;
   const D = BB.data, u = BB.u, S = BB.store;
-  const { Money, Panel, Crumb, Amount, Dropzone, FileRow } = BB.ui;
+  const { Money, Panel, Crumb, Amount, Dropzone, FileRow, ModeStrip, Lock } = BB.ui;
   const { Agent } = BB.agent;
 
   const STEP_MS = 750;
@@ -29,6 +29,7 @@
 
     return (
       <div className="wrap page" style={{ maxWidth: 1080 }}>
+        <ModeStrip />
         <Crumb items={[{ label: "Onboarding" }, { label: "Upload" }]} />
         <h1>Bring the spreadsheets in</h1>
         <div className="sub mt8" style={{ maxWidth: "72ch" }}>
@@ -108,8 +109,8 @@
             </div>
             <div className="btn-row">
               {e.resolved
-                ? <button className="btn" onClick={() => S.actions.unresolveException(e.id)}>Reopen</button>
-                : <button className="btn p" onClick={() => onResolve(e.id, v)}>Apply</button>}
+                ? <Lock sleeve="core"><button className="btn" onClick={() => S.actions.unresolveException(e.id)}>Reopen</button></Lock>
+                : <Lock sleeve="core"><button className="btn p" onClick={() => onResolve(e.id, v)}>Apply</button></Lock>}
             </div>
           </div>
           {e.suggestion && !e.resolved && <div className="tri mt8" style={{ fontSize: 11.5 }}>Agent suggestion pre-filled from the registry record.</div>}
@@ -127,6 +128,7 @@
 
     return (
       <div className="wrap page">
+        <ModeStrip />
         <Crumb items={[{ label: "Onboarding", to: "/onboarding/upload" }, { label: "Reconcile" }]} />
         <div className="between">
           <div>
@@ -144,7 +146,7 @@
 
         {open.length > 0 && (
           <div className="note warn mt16">
-            <b>{open.length} exceptions require a decision.</b> These are the rows the agent could not resolve on its own.
+            <b>{open.length} exceptions require a decision{st.account === "successor" ? " from the Principal" : ""}.</b> These are the rows the agent could not resolve on its own.
             Clear them to continue — an unresolved exception is the difference between a reconciled book and a spreadsheet.
           </div>
         )}
@@ -213,11 +215,14 @@
 
     return (
       <div className="wrap page" style={{ maxWidth: 1180 }}>
+        <ModeStrip />
         <Crumb items={[{ label: "Onboarding", to: "/onboarding/upload" }, { label: "Mandate" }]} />
         <h1>Set the posture</h1>
         <div className="sub mt8" style={{ maxWidth: "74ch" }}>
           This sets the Core/Alpha split and the target allocation the model is drawn against. It is the reference the rest
           of the product reads from — not a trading trigger.
+          {st.account === "successor" && <> <b>The Principal confirms it</b>; this account can read the postures but not
+          adopt one.</>}
         </div>
 
         <div className="grid mt16" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
@@ -305,9 +310,11 @@
         </div>
 
         <div className="btn-row mt16">
-          <button className="btn p lg" onClick={() => { S.actions.setMandate(sel); S.navigate("/portfolio"); }}>
-            Confirm mandate and open the portfolio →
-          </button>
+          <Lock sleeve="core">
+            <button className="btn p lg" onClick={() => { S.actions.setMandate(sel); S.navigate("/portfolio"); }}>
+              Confirm mandate and open the portfolio →
+            </button>
+          </Lock>
           <button className="btn lg" onClick={() => S.navigate("/onboarding/reconcile")}>Back</button>
         </div>
       </div>

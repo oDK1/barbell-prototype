@@ -299,6 +299,18 @@ label.f>span{display:block;font-size:10.5px;letter-spacing:.08em;text-transform:
 }
 .dz.hot{border-color:var(--navy);background:var(--navy-wash)}
 .dz.sm{padding:30px 20px}
+
+/* Mode selector carried across the onboarding steps. */
+.modestrip{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--g3);background:var(--paper);margin-bottom:18px}
+.modestrip .mode{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;
+  padding:10px 14px;border:0;border-right:1px solid var(--g3);background:none;cursor:pointer;font:inherit}
+.modestrip .mode:last-child{border-right:0}
+.modestrip .mode:hover{background:#FCFBF8}
+.modestrip .mode.on{background:var(--navy-wash)}
+.modestrip .m-mode{font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--g2);font-weight:600}
+.modestrip .mode.on .m-mode{color:var(--navy)}
+.modestrip .m-name{font-size:13.5px;font-weight:600}
+.modestrip .m-scope{font-size:11.5px;color:var(--g1)}
 .filelist .fi .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .filelist{border:1px solid var(--g3);border-bottom:0}
 .filelist .fi{display:flex;align-items:center;gap:12px;padding:10px 12px;border-bottom:1px solid var(--g3);background:var(--paper)}

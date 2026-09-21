@@ -57,9 +57,9 @@
                   "Capital call schedules cross-referenced against fund names",
                   "Duplicate detection across files on name, value and date"]}>
             {done
-              ? <>Extraction complete. <b>49 rows read · 42 positions mapped · 7 need review.</b> Seven rows could not be
-                resolved without a decision from you — an unmatched ticker, a fund with no NAV since Q1, a duplicate
-                across two files, an ambiguous currency, and three others.</>
+              ? <>Extraction complete. <b>45 rows read · 42 positions mapped · {D.exceptions.length} need review.</b>{" "}
+                Three rows could not be resolved without a decision from you: an unmatched ticker, a position counted
+                twice across two files, and an amount with no currency on it.</>
               : <>Reading the files. Positions are matched against the security master, then reconciled against the capital
                 call schedule.</>}
           </Agent>
@@ -124,8 +124,6 @@
     const st = S.useStore();
     const open = st.exceptions.filter((e) => !e.resolved);
     const mapped = D.positions;
-    const [q, setQ] = useState("");
-    const rows = mapped.filter((p) => !q || (p.name + (p.legacy || "") + p.src.file).toLowerCase().includes(q.toLowerCase()));
 
     return (
       <div className="wrap page">
@@ -147,8 +145,9 @@
 
         {open.length > 0 && (
           <div className="note warn mt16">
-            <b>{open.length} exceptions require a decision{st.account === "successor" ? " from the Principal" : ""}.</b> These are the rows the agent could not resolve on its own.
-            Clear them to continue — an unresolved exception is the difference between a reconciled book and a spreadsheet.
+            <b>{open.length} {open.length === 1 ? "exception requires" : "exceptions require"} a decision{st.account === "successor" ? " from the Principal" : ""}.</b>{" "}
+            Everything else mapped cleanly. These are the rows the agent could not resolve on its own — clear them to
+            continue, because an unresolved exception is the difference between a reconciled book and a spreadsheet.
           </div>
         )}
 
@@ -156,46 +155,6 @@
         {st.exceptions.map((e) => (
           <ExceptionRow key={e.id} e={e} onResolve={(id, v) => S.actions.resolveException(id, v)} />
         ))}
-
-        <div className="between mt24 mb12">
-          <h2>Mapped positions</h2>
-          <div className="search" style={{ width: 280 }}>
-            <input type="text" placeholder="Filter by name or source file" value={q} onChange={(e) => setQ(e.target.value)} />
-          </div>
-        </div>
-        <div className="panel">
-          <table className="t dense">
-            <thead>
-              <tr>
-                <th style={{ width: 230 }}>Source</th>
-                <th>Extracted instrument</th>
-                <th className="n">Quantity</th>
-                <th className="n">Cost basis</th>
-                <th>Asset class</th>
-                <th className="n">Confidence</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((p, i) => {
-                const conf = 0.88 + ((i * 7) % 12) / 100;
-                return (
-                  <tr key={p.id}>
-                    <td><div className="mono tri" style={{ fontSize: 11 }}>{p.src.file}</div>
-                      <div className="mono" style={{ fontSize: 11, color: "var(--g1)" }}>{p.src.cell}</div></td>
-                    <td>
-                      <div className="tname">{p.name}</div>
-                      {p.legacy && <div className="tsub">was: <span className="mono">{p.legacy}</span></div>}
-                    </td>
-                    <td className="n num">{p.qty ? u.num(p.qty) : "—"}</td>
-                    <td className="n num">{u.usd(p.cost)}</td>
-                    <td><div>{u.clsLabel(p.cls)}</div><div className="tsub">{u.subLabel(p.sub)}</div></td>
-                    <td className="n"><span className="bdg live"><i className="pt" />{Math.round(conf * 100)}%</span></td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
 
         <div className="btn-row mt16">
           <button className="btn p lg" disabled={open.length > 0} onClick={() => S.navigate("/onboarding/mandate")}>

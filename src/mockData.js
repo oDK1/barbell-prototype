@@ -284,11 +284,6 @@
       issue: "Ticker string matches two listed securities. Cost basis suggests a 2009 acquisition.",
       type: "select", options: ["Hanmi Chemical Holdings Co., Ltd. · 004370.KS", "Hanmi Pharm Co., Ltd. · 128940.KS", "Create as unlisted holding"],
       answer: "Hanmi Chemical Holdings Co., Ltd. · 004370.KS" },
-    { id: "e2", kind: "Stale valuation", file: "PE_Capital_Calls_v7_FINAL.xlsx", cell: "Sheet3!C22",
-      raw: "비바리퍼블리카 구주 (2023년 매입)", qty: "—", conf: 0.52,
-      issue: "Private holding with no NAV since Q1 2026 (2026-03-31). No GP statement in the uploaded files.",
-      type: "select", options: ["Carry at last NAV — $440,000 (mark as stale)", "Carry at cost — $440,000", "Enter a valuation now"],
-      answer: "Carry at last NAV — $440,000 (mark as stale)" },
     { id: "e3", kind: "Duplicate across files", file: "PE_Capital_Calls_v7_FINAL.xlsx + 부동산_임대현황.xlsx", cell: "Fund List!A18 ↔ Sheet1!B22",
       raw: "Songdo Hyperscale DC Platform / 송도 데이터센터 지분", qty: "—", conf: 0.63,
       issue: "The same position appears in two files with values $2,340,000 and ₩3.24B ($2,342,733). Booking both would overstate assets by 3.8%.",
@@ -299,21 +294,6 @@
       issue: "No currency column on this sheet. 1,080,000,000 reads as KRW ($780,910) but the adjacent column is formatted as USD.",
       type: "select", options: ["KRW — ₩1.08B ≈ $780,000", "USD — $1,080,000,000", "USD — $1,080,000"],
       answer: "KRW — ₩1.08B ≈ $780,000" },
-    { id: "e5", kind: "Asset class conflict", file: "Holdings_Master_2026Q3.xlsx", cell: "Sheet1!B72",
-      raw: "KRX 금현물 340g 보관계좌", qty: "340", conf: 0.58,
-      issue: "Booked under “Cash & Equivalents” in the source file. Bullion is priced daily but is not a cash equivalent under the mandate.",
-      type: "select", options: ["Real Assets · Commodities", "Cash Equivalents · Deposits", "Equity · Public Equity"],
-      answer: "Real Assets · Commodities" },
-    { id: "e6", kind: "Unlinked capital call", file: "PE_Capital_Calls_v7_FINAL.xlsx", cell: "Calls!D31",
-      raw: "Call #7  1,100,000  due 10/28  — “VII?”", qty: "—", conf: 0.47,
-      issue: "Capital call with no fund reference. Amount and date match Foundry Venture Partners VII's published schedule.",
-      type: "select", options: ["Foundry Venture Partners VII, L.P.", "Sunrise Growth Partners IV, L.P.", "Leave unlinked"],
-      answer: "Foundry Venture Partners VII, L.P." },
-    { id: "e7", kind: "Missing cost basis", file: "부동산_임대현황.xlsx", cell: "Sheet1!D12",
-      raw: "용산 아파트 (임대중) — 2호", qty: "1 unit", conf: 0.55,
-      issue: "Acquisition cost is blank. Registry record shows a 2014-10-20 transfer; without a basis, tax lot treatment cannot be computed.",
-      type: "input", placeholder: "Acquisition cost (USD)", suggestion: "1,320,000",
-      answer: "1,320,000" },
   ];
 
   /* ----------------------------------------------------------------- mandate */
@@ -789,7 +769,7 @@
     { id: "l8", ts: "2026-08-29T08:15:00+09:00", who: "principal", kind: "Approval", text: "Approved proposal — Commit $250,000 to Helios AI Infrastructure SPV II", detail: "Comment: keep single-company exposure under 5% of the sleeve." },
     { id: "l9", ts: "2026-08-15T10:02:00+09:00", who: "principal", kind: "Approval", text: "Returned proposal — Sell $600,000 Apple 3.85% 2043", detail: "Returned with comment for resubmission." },
     { id: "l10", ts: "2026-08-04T11:40:00+09:00", who: "successor", kind: "Commitment", text: "Committed $250,000 to Meridian Venture Partners XII", detail: "Within Alpha sleeve capacity. Executed directly." },
-    { id: "l11", ts: "2026-07-22T15:05:00+09:00", who: "principal", kind: "Onboarding", text: "Portfolio ingestion completed — 42 positions mapped", detail: "3 source files. 7 exceptions resolved by the Principal." },
+    { id: "l11", ts: "2026-07-22T15:05:00+09:00", who: "principal", kind: "Onboarding", text: "Portfolio ingestion completed — 42 positions mapped", detail: "3 source files. 3 exceptions resolved by the Principal." },
   ];
 
   /* ------------------------------------------------ operations (internal) */

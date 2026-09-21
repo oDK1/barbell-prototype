@@ -224,36 +224,34 @@
             </div>
           </div>
 
-        </div>
-
-        {/* Optional by construction: nothing below gates the button above. */}
-        <div className="panel mt16">
-          <div className="panel-hd">
-            <div>
-              <div className="row tight" style={{ alignItems: "center" }}>
-                <h3>Refine this</h3>
-                <span className="bdg plain">Optional</span>
+          {/* Beside the allocation it is answering to. Eight questions in a
+              scroller: the first few are visible, the rest are a scroll away,
+              and none of them gate the button below. */}
+          <div className="panel">
+            <div className="panel-hd">
+              <div>
+                <div className="row tight" style={{ alignItems: "center" }}>
+                  <h3>Refine this</h3>
+                  <span className="bdg plain">Optional</span>
+                </div>
+                <div className="tri" style={{ fontSize: 11.5, marginTop: 2 }}>
+                  The posture is enough to start.
+                </div>
               </div>
-              <div className="tri" style={{ fontSize: 11.5, marginTop: 2 }}>
-                The posture above is enough to start. Answer any of these and the recommendations get more specific —
-                skip them all and nothing is lost.
+              <div className="right" style={{ whiteSpace: "nowrap" }}>
+                <div className="tri num" style={{ fontSize: 11.5 }}>{answered} of {D.survey.length}</div>
+                {answered > 0
+                  ? <button className="link g" onClick={() => S.actions.clearSurvey()}>Clear</button>
+                  : <button className="link" onClick={() => S.actions.fillSurvey()}>Use answers on file</button>}
               </div>
             </div>
-            <div className="btn-row">
-              <span className="tri num" style={{ fontSize: 11.5 }}>{answered} of {D.survey.length} answered</span>
-              {answered > 0
-                ? <button className="btn sm" onClick={() => S.actions.clearSurvey()}>Clear</button>
-                : <button className="btn sm" onClick={() => S.actions.fillSurvey()}>Use the family's answers on file</button>}
-            </div>
-          </div>
-          <div className="panel-bd">
-            <div className="grid" style={{ gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+            <div className="qscroll">
               {D.survey.map((q, i) => {
                 const val = st.survey[q.id];
                 return (
-                  <div key={q.id}>
+                  <div key={q.id} className="qitem">
                     <label className="f">
-                      <span><span className="tri">{i + 1}</span>&nbsp;&nbsp;{q.q}</span>
+                      <span><span className="tri">{i + 1} / {D.survey.length}</span>&nbsp;&nbsp;{q.q}</span>
                       {q.type === "select" ? (
                         <select value={val === undefined ? "" : val}
                           onChange={(e) => S.actions.setSurvey(q.id, e.target.value)}>
@@ -274,18 +272,16 @@
                       )}
                     </label>
                     <div className="tri" style={{ fontSize: 11, marginTop: 4, opacity: val !== undefined ? 1 : .75 }}>
-                      {q.sharpens}{q.note ? " · " + q.note : ""}
+                      {q.sharpens}
                     </div>
                   </div>
                 );
               })}
             </div>
-            <div className={"note mt16" + (answered ? " ok" : "")}>
+            <div className="qfoot tri">
               {answered
-                ? <>{answered} of {D.survey.length} answered. The rest simply leave the product's defaults in place — the
-                  posture above still governs.</>
-                : <>Nothing here is required. Confirm the mandate as it stands, and come back to these whenever you want
-                  sharper recommendations.</>}
+                ? answered + " answered · the rest leave the product's defaults in place"
+                : "Scroll for all " + D.survey.length + " · none of them are required"}
             </div>
           </div>
         </div>

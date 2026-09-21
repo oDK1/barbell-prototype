@@ -300,6 +300,12 @@ label.f>span{display:block;font-size:10.5px;letter-spacing:.08em;text-transform:
 .dz.hot{border-color:var(--navy);background:var(--navy-wash)}
 .dz.sm{padding:30px 20px}
 
+/* Eight optional questions in the space of three. */
+.qscroll{max-height:268px;overflow-y:auto;padding:12px 14px}
+.qscroll .qitem{padding-bottom:12px;margin-bottom:12px;border-bottom:1px solid var(--g4)}
+.qscroll .qitem:last-child{padding-bottom:0;margin-bottom:0;border-bottom:0}
+.qfoot{border-top:1px solid var(--g3);padding:8px 14px;font-size:11px;background:#FCFBF8}
+
 /* The three onboarding steps, always all three. */
 .steps{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--g3);background:var(--paper);margin-bottom:18px}
 .steps .step{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:10px;

@@ -318,17 +318,17 @@
 
   /* ----------------------------------------------------------------- mandate */
   const mandates = [
-    { key: "preservation", label: "Preserve capital", core: 95, alpha: 5,
-      line: "Core in sovereign duration and cash, Alpha in co-invest only",
+    { key: "preservation", label: "Protect capital", core: 95, alpha: 5,
+      line: "Sovereign duration and cash carry the book. Alternatives only where they are contractual and secured.",
       targets: { equity: 25, debt: 50, real: 17, cash: 8 } },
-    { key: "balanced", label: "Income and growth", core: 90, alpha: 10,
-      line: "Core in fixed income and real assets, Alpha in venture and pre-IPO",
+    { key: "balanced", label: "Fund the family", core: 90, alpha: 10,
+      line: "Income first — private credit, property and investment grade credit pay the distributions.",
       targets: { equity: 35, debt: 40, real: 18, cash: 7 }, current: true },
     { key: "growth", label: "Grow the estate", core: 80, alpha: 20,
-      line: "Core tilted to equity, Alpha in venture, growth and secondaries",
+      line: "Total return, equity-led, with private growth alongside rather than instead of it.",
       targets: { equity: 46, debt: 28, real: 20, cash: 6 } },
-    { key: "opportunistic", label: "Build alternatives", core: 70, alpha: 30,
-      line: "Concentrated private exposure, liquidity held for calls only",
+    { key: "opportunistic", label: "Own private markets", core: 70, alpha: 30,
+      line: "The illiquidity premium taken as far as the balance sheet can fund the capital calls.",
       targets: { equity: 52, debt: 20, real: 23, cash: 5 } },
   ];
 
@@ -364,22 +364,27 @@
      group — alternatives, liquid markets, cash — and equity against debt.
      Weights are renormalised to 100 after the tilt. */
   const ALT_SUBS = ["pe", "vc", "preipo", "pcred", "re", "infra"];
-  /* One set of keys with `mandates` above: the posture the family states in
-     onboarding is the same posture the model is drawn for. Changing it here
-     changes every target, every drift number and every fit score. */
+  /* One set of keys with `mandates` above: the posture stated in onboarding is
+     the posture the model is drawn for.
+
+     Each objective is a different SHAPE, not a different point on one risk
+     ladder — tilts are per subcategory, so "fund the family" loads credit and
+     property while "grow the estate" loads equity, and the two produce visibly
+     different books rather than two doses of the same medicine.
+     Anything unlisted stays at 1.0. */
   const modelGoals = [
-    { key: "preservation", label: "Preserve capital",
-      line: "Liquidity and duration first. Alternatives only where they are contractual and secured.",
-      alt: 0.55, liquid: 1.25, cash: 1.55, equity: 0.85, debt: 1.2 },
-    { key: "balanced", label: "Income and growth", default: true,
-      line: "The tier model as published, untilted. What most families at this size actually hold.",
-      alt: 1.0, liquid: 1.0, cash: 1.0, equity: 1.0, debt: 1.0 },
+    { key: "preservation", label: "Protect capital",
+      tilt: { sov: 1.70, tbill: 1.60, dep: 1.50, mmf: 1.50, fx: 1.20, ig: 1.25, struct: 0.80,
+              pcred: 0.65, re: 0.85, infra: 0.75, comm: 1.15, pubeq: 0.65, pe: 0.35, vc: 0.20, preipo: 0.15 } },
+    { key: "balanced", label: "Fund the family", default: true,
+      tilt: { pcred: 1.65, re: 1.45, infra: 1.40, ig: 1.35, struct: 1.20, sov: 0.90, tbill: 0.90, fx: 0.80,
+              pubeq: 0.85, pe: 0.70, vc: 0.30, preipo: 0.25, comm: 0.60 } },
     { key: "growth", label: "Grow the estate",
-      line: "Equity-led, with private exposure rising as the balance sheet can fund the calls.",
-      alt: 1.35, liquid: 0.92, cash: 0.7, equity: 1.25, debt: 0.82 },
-    { key: "opportunistic", label: "Build alternatives",
-      line: "Maximise the illiquidity premium the family is able to underwrite at this size.",
-      alt: 1.75, liquid: 0.68, cash: 0.6, equity: 1.0, debt: 0.95 },
+      tilt: { pubeq: 1.50, pe: 1.35, vc: 1.35, preipo: 1.25, infra: 1.00, re: 0.80, sov: 0.55, ig: 0.70,
+              pcred: 0.95, struct: 0.80, comm: 0.80, mmf: 0.70, tbill: 0.70, dep: 0.70, fx: 0.70 } },
+    { key: "opportunistic", label: "Own private markets",
+      tilt: { vc: 2.00, pe: 1.90, preipo: 1.90, pcred: 1.50, infra: 1.35, re: 1.05, pubeq: 0.45, sov: 0.35,
+              ig: 0.50, struct: 0.70, comm: 0.70, mmf: 0.60, tbill: 0.60, dep: 0.60, fx: 0.60 } },
   ];
 
   /* --------------------------------------------------- calls & distributions */

@@ -211,9 +211,8 @@
     const raw = {};
     D.subs.forEach((sub) => {
       const base = tiers[i][sub.key] * (1 - f) + tiers[i + 1][sub.key] * f;
-      const group = D.ALT_SUBS.indexOf(sub.key) >= 0 ? g.alt : sub.cls === "cash" ? g.cash : g.liquid;
-      const bias = sub.cls === "equity" ? g.equity : sub.cls === "debt" ? g.debt : 1;
-      raw[sub.key] = base * group * bias;
+      const tilt = g.tilt && g.tilt[sub.key] !== undefined ? g.tilt[sub.key] : 1;
+      raw[sub.key] = base * tilt;
     });
     const total = D.subs.reduce((a, sub) => a + raw[sub.key], 0);
 

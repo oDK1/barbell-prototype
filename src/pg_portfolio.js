@@ -174,7 +174,8 @@
             }}>Compare with the model</button>}>
             The book is {cls.map((c) => u.pct(c.wt) + " " + c.label.toLowerCase()).join(", ")}. The model for this size
             and objective suggests {D.classes.map((c) => u.pct(model.classes[c.key])).join(" / ")} in the same order.
-            Differences of a few points are normal and not, on their own, a reason to trade.
+            The model is a reference shape, not a queue of trades — a difference is a question worth asking, not an
+            instruction to act on.
           </Agent>
         </div>
 

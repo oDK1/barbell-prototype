@@ -1075,16 +1075,20 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   /* Long-run assumptions used only for the projection strip under the model.
      Nominal USD, before fees and tax. Stated on the chart, not hidden in code. */
   const expectedReturn = { equity: 7.5, debt: 5.0, real: 7.0, cash: 4.0 };
-  const expectedVol = { equity: 16.0, debt: 6.0, real: 12.0, cash: 1.0 };
+  const expectedVol = { equity: 18.0, debt: 5.0, real: 11.0, cash: 1.0 };
   /* Correlations between the four classes. Private holdings are marked
      quarterly, which understates their true correlation to listed markets;
      these are the economic figures, not the smoothed ones. */
   const classCorr = {
-    equity: { equity: 1.0, debt: 0.20, real: 0.60, cash: 0.00 },
-    debt:   { equity: 0.20, debt: 1.0, real: 0.30, cash: 0.10 },
-    real:   { equity: 0.60, debt: 0.30, real: 1.0, cash: 0.00 },
+    equity: { equity: 1.0, debt: 0.10, real: 0.55, cash: 0.00 },
+    debt:   { equity: 0.10, debt: 1.0, real: 0.25, cash: 0.10 },
+    real:   { equity: 0.55, debt: 0.25, real: 1.0, cash: 0.00 },
     cash:   { equity: 0.00, debt: 0.10, real: 0.00, cash: 1.0 },
   };
+  /* A class average assumes the class is held as an index. It is not: the book
+     holds nine single names, one of them the family's own operating company.
+     Specific risk on an individual equity, over and above its market. */
+  const idiosyncraticVol = 45.0;
 
   /* --------------------------------------------------- calls & distributions */
   const capitalCalls = [
@@ -1519,7 +1523,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   BB.data = {
     KRW, TODAY, family, accounts, classes, subs, positions,
     uploadFiles, ingestSteps, exceptions, mandates, survey, modelPortfolios,
-    capitalCalls, distributions, benchmark, performance, attribution, modelGoals, ALT_SUBS, expectedReturn, expectedVol, classCorr,
+    capitalCalls, distributions, benchmark, performance, attribution, modelGoals, ALT_SUBS, expectedReturn, expectedVol, classCorr, idiosyncraticVol,
     market, secondary, approvalsSeed, activitySeed, opsLedger, referrals, liquidityAssumptions,
   };
 })();
@@ -1758,13 +1762,27 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
      the class weights, their expected returns, their volatilities and how
      they move together. Not a forecast — a range of outcomes the assumptions
      imply. */
-  function projectMix(w, v0, years) {
+  function projectMix(w, v0, years, ps) {
     const mu = D.classes.reduce((a, c) => a + (w[c.key] / 100) * (D.expectedReturn[c.key] / 100), 0);
     let varSum = 0;
     D.classes.forEach((a) => D.classes.forEach((b) => {
       varSum += (w[a.key] / 100) * (w[b.key] / 100)
         * (D.expectedVol[a.key] / 100) * (D.expectedVol[b.key] / 100) * D.classCorr[a.key][b.key];
     }));
+    const marketVar = varSum;
+
+    /* If we are given the actual holdings, charge for the single names in them.
+       A model expressed in classes carries no such risk: it is an index by
+       construction, which is most of why it sits lower. */
+    let specificVar = 0;
+    if (ps) {
+      const tot = total(ps);
+      ps.filter((p) => p.cls === "equity" && p.liq === "Daily" && p.grp !== "ETF").forEach((p) => {
+        const wt = p.value / tot;
+        specificVar += wt * wt * Math.pow(D.idiosyncraticVol / 100, 2);
+      });
+    }
+    varSum = marketVar + specificVar;
     const sigma = Math.sqrt(varSum);
     const drift = Math.log(1 + mu) - (sigma * sigma) / 2;
     const Z = 1.2816;                                   // 10th / 90th percentile
@@ -1778,7 +1796,11 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
         p90: v0 * Math.exp(drift * y + Z * sd),
       });
     }
-    return { mu: mu * 100, sigma: sigma * 100, path };
+    return {
+      mu: mu * 100, sigma: sigma * 100, path,
+      marketSigma: Math.sqrt(marketVar) * 100,
+      specificSigma: specificVar ? (Math.sqrt(varSum) - Math.sqrt(marketVar)) * 100 : 0,
+    };
   }
 
   /* --------------------------------------------- what the family faces now */
@@ -3760,7 +3782,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     /* two fans: today's mix and the model, each with its 10th–90th range */
     const YEARS = 10, CW = 720, CH = 230;
     const curW = {}; cls.forEach((c) => { curW[c.key] = c.wt; });
-    const cur = u.projectMix(curW, t, YEARS);
+    const cur = u.projectMix(curW, t, YEARS, positions);
     const mod = u.projectMix(model.classes, t, YEARS);
     const hi = Math.max(...cur.path.map((q) => q.p90), ...mod.path.map((q) => q.p90));
     const lo = Math.min(...cur.path.map((q) => q.p10), ...mod.path.map((q) => q.p10), t) * 0.97;
@@ -3955,7 +3977,9 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                   <tr>
                     <td><span className="sw" style={{ display: "inline-block", width: 9, height: 9, background: "#9A7B2E", marginRight: 8 }} />
                       Today's mix</td>
-                    <td className="n num">{u.pct(curR)}</td><td className="n num tri">{u.pct(cur.sigma)}</td>
+                    <td className="n num">{u.pct(curR)}</td>
+                    <td className="n"><span className="num">{u.pct(cur.sigma)}</span>
+                      <div className="tsub">{u.pct(cur.marketSigma)} market + {u.pct(cur.specificSigma)} single names</div></td>
                     <td className="n num">{u.usdC(curEnd)}</td>
                     <td className="n num tri">{u.usdC(cur.path[YEARS].p10)}</td>
                     <td className="n num tri">{u.usdC(cur.path[YEARS].p90)}</td>
@@ -3963,7 +3987,9 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                   <tr>
                     <td><span className="sw" style={{ display: "inline-block", width: 9, height: 9, background: "var(--navy)", marginRight: 8 }} />
                       Model · {selected.label}</td>
-                    <td className="n num">{u.pct(modR)}</td><td className="n num tri">{u.pct(mod.sigma)}</td>
+                    <td className="n num">{u.pct(modR)}</td>
+                    <td className="n"><span className="num">{u.pct(mod.sigma)}</span>
+                      <div className="tsub">diversified by construction</div></td>
                     <td className="n num">{u.usdC(modEnd)}</td>
                     <td className="n num tri">{u.usdC(mod.path[YEARS].p10)}</td>
                     <td className="n num tri">{u.usdC(mod.path[YEARS].p90)}</td>
@@ -3975,8 +4001,11 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 Shaded bands are the 10th to 90th percentile, dashed lines the 10th — the poor decade, which is the
                 number worth looking at. Lognormal outcomes from fixed assumptions:
                 {" " + D.classes.map((c) => c.label.split(" ")[0] + " " + u.pct(D.expectedReturn[c.key]) + " ± " + u.pct(D.expectedVol[c.key])).join(" · ")},
-                correlated as listed markets normally are, before fees, tax and capital calls. Not a backtest and not a
-                forecast — the range the assumptions imply.
+                correlated as listed markets normally are, before fees, tax and capital calls.
+                {" "}Today's mix carries {u.pct(cur.specificSigma)} on top of that for specific risk — the book holds
+                nine single names including {u.pct(u.affiliateExposure(positions).wt)} in the family's own operating
+                company, and a class average assumes an index. The model is stated in classes, so it carries none, which
+                is most of the gap. Not a backtest and not a forecast — the range these assumptions imply.
               </div>
             </div>
           )}

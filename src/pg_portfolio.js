@@ -231,7 +231,7 @@
     /* two fans: today's mix and the model, each with its 10th–90th range */
     const YEARS = 10, CW = 720, CH = 230;
     const curW = {}; cls.forEach((c) => { curW[c.key] = c.wt; });
-    const cur = u.projectMix(curW, t, YEARS);
+    const cur = u.projectMix(curW, t, YEARS, positions);
     const mod = u.projectMix(model.classes, t, YEARS);
     const hi = Math.max(...cur.path.map((q) => q.p90), ...mod.path.map((q) => q.p90));
     const lo = Math.min(...cur.path.map((q) => q.p10), ...mod.path.map((q) => q.p10), t) * 0.97;
@@ -426,7 +426,9 @@
                   <tr>
                     <td><span className="sw" style={{ display: "inline-block", width: 9, height: 9, background: "#9A7B2E", marginRight: 8 }} />
                       Today's mix</td>
-                    <td className="n num">{u.pct(curR)}</td><td className="n num tri">{u.pct(cur.sigma)}</td>
+                    <td className="n num">{u.pct(curR)}</td>
+                    <td className="n"><span className="num">{u.pct(cur.sigma)}</span>
+                      <div className="tsub">{u.pct(cur.marketSigma)} market + {u.pct(cur.specificSigma)} single names</div></td>
                     <td className="n num">{u.usdC(curEnd)}</td>
                     <td className="n num tri">{u.usdC(cur.path[YEARS].p10)}</td>
                     <td className="n num tri">{u.usdC(cur.path[YEARS].p90)}</td>
@@ -434,7 +436,9 @@
                   <tr>
                     <td><span className="sw" style={{ display: "inline-block", width: 9, height: 9, background: "var(--navy)", marginRight: 8 }} />
                       Model · {selected.label}</td>
-                    <td className="n num">{u.pct(modR)}</td><td className="n num tri">{u.pct(mod.sigma)}</td>
+                    <td className="n num">{u.pct(modR)}</td>
+                    <td className="n"><span className="num">{u.pct(mod.sigma)}</span>
+                      <div className="tsub">diversified by construction</div></td>
                     <td className="n num">{u.usdC(modEnd)}</td>
                     <td className="n num tri">{u.usdC(mod.path[YEARS].p10)}</td>
                     <td className="n num tri">{u.usdC(mod.path[YEARS].p90)}</td>
@@ -446,8 +450,11 @@
                 Shaded bands are the 10th to 90th percentile, dashed lines the 10th — the poor decade, which is the
                 number worth looking at. Lognormal outcomes from fixed assumptions:
                 {" " + D.classes.map((c) => c.label.split(" ")[0] + " " + u.pct(D.expectedReturn[c.key]) + " ± " + u.pct(D.expectedVol[c.key])).join(" · ")},
-                correlated as listed markets normally are, before fees, tax and capital calls. Not a backtest and not a
-                forecast — the range the assumptions imply.
+                correlated as listed markets normally are, before fees, tax and capital calls.
+                {" "}Today's mix carries {u.pct(cur.specificSigma)} on top of that for specific risk — the book holds
+                nine single names including {u.pct(u.affiliateExposure(positions).wt)} in the family's own operating
+                company, and a class average assumes an index. The model is stated in classes, so it carries none, which
+                is most of the gap. Not a backtest and not a forecast — the range these assumptions imply.
               </div>
             </div>
           )}

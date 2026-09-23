@@ -230,13 +230,27 @@
      the class weights, their expected returns, their volatilities and how
      they move together. Not a forecast — a range of outcomes the assumptions
      imply. */
-  function projectMix(w, v0, years) {
+  function projectMix(w, v0, years, ps) {
     const mu = D.classes.reduce((a, c) => a + (w[c.key] / 100) * (D.expectedReturn[c.key] / 100), 0);
     let varSum = 0;
     D.classes.forEach((a) => D.classes.forEach((b) => {
       varSum += (w[a.key] / 100) * (w[b.key] / 100)
         * (D.expectedVol[a.key] / 100) * (D.expectedVol[b.key] / 100) * D.classCorr[a.key][b.key];
     }));
+    const marketVar = varSum;
+
+    /* If we are given the actual holdings, charge for the single names in them.
+       A model expressed in classes carries no such risk: it is an index by
+       construction, which is most of why it sits lower. */
+    let specificVar = 0;
+    if (ps) {
+      const tot = total(ps);
+      ps.filter((p) => p.cls === "equity" && p.liq === "Daily" && p.grp !== "ETF").forEach((p) => {
+        const wt = p.value / tot;
+        specificVar += wt * wt * Math.pow(D.idiosyncraticVol / 100, 2);
+      });
+    }
+    varSum = marketVar + specificVar;
     const sigma = Math.sqrt(varSum);
     const drift = Math.log(1 + mu) - (sigma * sigma) / 2;
     const Z = 1.2816;                                   // 10th / 90th percentile
@@ -250,7 +264,11 @@
         p90: v0 * Math.exp(drift * y + Z * sd),
       });
     }
-    return { mu: mu * 100, sigma: sigma * 100, path };
+    return {
+      mu: mu * 100, sigma: sigma * 100, path,
+      marketSigma: Math.sqrt(marketVar) * 100,
+      specificSigma: specificVar ? (Math.sqrt(varSum) - Math.sqrt(marketVar)) * 100 : 0,
+    };
   }
 
   /* --------------------------------------------- what the family faces now */

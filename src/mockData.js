@@ -364,16 +364,20 @@
   /* Long-run assumptions used only for the projection strip under the model.
      Nominal USD, before fees and tax. Stated on the chart, not hidden in code. */
   const expectedReturn = { equity: 7.5, debt: 5.0, real: 7.0, cash: 4.0 };
-  const expectedVol = { equity: 16.0, debt: 6.0, real: 12.0, cash: 1.0 };
+  const expectedVol = { equity: 18.0, debt: 5.0, real: 11.0, cash: 1.0 };
   /* Correlations between the four classes. Private holdings are marked
      quarterly, which understates their true correlation to listed markets;
      these are the economic figures, not the smoothed ones. */
   const classCorr = {
-    equity: { equity: 1.0, debt: 0.20, real: 0.60, cash: 0.00 },
-    debt:   { equity: 0.20, debt: 1.0, real: 0.30, cash: 0.10 },
-    real:   { equity: 0.60, debt: 0.30, real: 1.0, cash: 0.00 },
+    equity: { equity: 1.0, debt: 0.10, real: 0.55, cash: 0.00 },
+    debt:   { equity: 0.10, debt: 1.0, real: 0.25, cash: 0.10 },
+    real:   { equity: 0.55, debt: 0.25, real: 1.0, cash: 0.00 },
     cash:   { equity: 0.00, debt: 0.10, real: 0.00, cash: 1.0 },
   };
+  /* A class average assumes the class is held as an index. It is not: the book
+     holds nine single names, one of them the family's own operating company.
+     Specific risk on an individual equity, over and above its market. */
+  const idiosyncraticVol = 45.0;
 
   /* --------------------------------------------------- calls & distributions */
   const capitalCalls = [
@@ -808,7 +812,7 @@
   BB.data = {
     KRW, TODAY, family, accounts, classes, subs, positions,
     uploadFiles, ingestSteps, exceptions, mandates, survey, modelPortfolios,
-    capitalCalls, distributions, benchmark, performance, attribution, modelGoals, ALT_SUBS, expectedReturn, expectedVol, classCorr,
+    capitalCalls, distributions, benchmark, performance, attribution, modelGoals, ALT_SUBS, expectedReturn, expectedVol, classCorr, idiosyncraticVol,
     market, secondary, approvalsSeed, activitySeed, opsLedger, referrals, liquidityAssumptions,
   };
 })();

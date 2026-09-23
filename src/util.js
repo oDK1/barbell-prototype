@@ -225,6 +225,34 @@
     return { subs, classes, alts, goal: g };
   }
 
+  /* ----------------------------------------------------------- projection */
+  /* A lognormal fan: the mean path plus the 10th and 90th percentiles, given
+     the class weights, their expected returns, their volatilities and how
+     they move together. Not a forecast — a range of outcomes the assumptions
+     imply. */
+  function projectMix(w, v0, years) {
+    const mu = D.classes.reduce((a, c) => a + (w[c.key] / 100) * (D.expectedReturn[c.key] / 100), 0);
+    let varSum = 0;
+    D.classes.forEach((a) => D.classes.forEach((b) => {
+      varSum += (w[a.key] / 100) * (w[b.key] / 100)
+        * (D.expectedVol[a.key] / 100) * (D.expectedVol[b.key] / 100) * D.classCorr[a.key][b.key];
+    }));
+    const sigma = Math.sqrt(varSum);
+    const drift = Math.log(1 + mu) - (sigma * sigma) / 2;
+    const Z = 1.2816;                                   // 10th / 90th percentile
+    const path = [];
+    for (let y = 0; y <= years; y++) {
+      const sd = sigma * Math.sqrt(y);
+      path.push({
+        y,
+        mean: v0 * Math.pow(1 + mu, y),
+        p10: v0 * Math.exp(drift * y - Z * sd),
+        p90: v0 * Math.exp(drift * y + Z * sd),
+      });
+    }
+    return { mu: mu * 100, sigma: sigma * 100, path };
+  }
+
   /* --------------------------------------------- what the family faces now */
   /* The three situations a recommendation has to answer to: where the book
      sits against the model, what the next two years of cash look like, and
@@ -322,7 +350,7 @@
   BB.u = {
     usd, usdC, krwC, krwFull, pct, pp, sgn, sgnUsd, num, localPx, days, fmtDate, fmtTs, monthKey, monthLabel,
     staleness, provLabel, sum, total, byClass, bySub, gaps, sleeveTotals, unrealized, realizedYTD,
-    liquidity90, liquidityProjection, shortfall, coverage, topHoldings, affiliateExposure, taxLots, eligibility,
+    liquidity90, liquidityProjection, shortfall, coverage, projectMix, topHoldings, affiliateExposure, taxLots, eligibility,
     fitFor, subLabel, clsLabel, clsOf, impact, modelWeights, marketContext, scoreFor, suggestAmount,
   };
 })();

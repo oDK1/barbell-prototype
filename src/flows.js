@@ -327,6 +327,58 @@
     );
   }
 
+  /* Buying a listing outright at the asking price. */
+  function BuyNowFlow({ listing, onClose }) {
+    const st = S.useStore();
+    const consideration = Math.round(listing.size * listing.askPct / 100);
+    const capacity = S.alphaCapacity();
+    const overCapacity = st.account === "successor" && consideration > capacity;
+    const discount = 100 - listing.askPct;
+    return (
+      <Modal title="Buy at the ask" sub={listing.instrument} onClose={onClose}
+        footer={<>
+          <div className="tri" style={{ fontSize: 11.5 }}>No negotiation · ownership record updated on settlement.</div>
+          <div className="btn-row">
+            <button className="btn" onClick={onClose}>Cancel</button>
+            <button className="btn p" onClick={() => {
+              if (overCapacity) {
+                S.actions.propose({
+                  type: "Secondary purchase", sleeve: "core", amount: consideration,
+                  title: "Buy " + u.usd(listing.size) + " of " + listing.instrument + " at " + listing.askPct.toFixed(1) + "% of NAV",
+                  target: listing.id,
+                  rationale: "Taking the ask on the secondary board. Above the Alpha sleeve's capacity of " + u.usd(capacity) + ".",
+                  payload: { kind: "buyListing", args: { listing, sleeve: "core" } },
+                });
+              } else {
+                S.actions.buyListing({ listing, sleeve: st.account === "successor" ? "alpha" : "core" });
+              }
+              onClose();
+            }}>{overCapacity ? "Submit proposal to Principal" : "Buy at " + u.pct(listing.askPct)}</button>
+          </div>
+        </>}>
+        <div className="kv mb16">
+          <span className="k">Size offered</span><span className="v">{u.usd(listing.size)} of NAV</span>
+          <span className="k">Ask</span><span className="v">{u.pct(listing.askPct)} of last NAV</span>
+          <span className="k">Indicative fair range</span><span className="v">{listing.indicative[0]}–{listing.indicative[1]}%</span>
+          <span className="k">You pay</span><span className="v" style={{ fontSize: 15 }}>{u.usd(consideration)}</span>
+        </div>
+        <Impact subKey={listing.sub} amount={listing.size} />
+        <div className={"note mt12 " + (discount > 0 ? "ok" : "")}>
+          {discount > 0
+            ? <>You acquire {u.usd(listing.size)} of stated NAV for {u.usd(consideration)} — a {u.pct(discount)} discount,
+              which books as unrealised gain at the next mark. The discount is the price of the seller's hurry, not a
+              judgement on the asset.</>
+            : <>The ask is {u.pct(-discount)} above last NAV. Above the indicative range means paying for access.</>}
+        </div>
+        {overCapacity && (
+          <div className="note warn mt12">
+            {u.usd(consideration)} exceeds the Alpha sleeve's remaining {u.usd(capacity)}, so this goes to the Principal.
+          </div>
+        )}
+      </Modal>
+    );
+  }
+
   /* ------------------------------------------------------------- sharing */
   function ShareModal({ deal, onClose }) {
     const st = S.useStore();
@@ -366,5 +418,5 @@
     );
   }
 
-  BB.flows = { TradeTicket, CommitFlow, ValuationEditor, ListingFlow, BidFlow, ShareModal, Impact };
+  BB.flows = { TradeTicket, CommitFlow, ValuationEditor, ListingFlow, BidFlow, BuyNowFlow, ShareModal, Impact };
 })();

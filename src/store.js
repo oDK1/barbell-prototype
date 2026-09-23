@@ -215,6 +215,7 @@
       if (status === "approved" && a.payload) {
         if (a.payload.kind === "trade") actions.trade(a.payload.args);
         if (a.payload.kind === "commit") actions.commit(a.payload.args);
+        if (a.payload.kind === "buyListing") actions.buyListing(a.payload.args);
       } else { toast(verb + " — " + a.title); emit(); }
     },
 
@@ -258,6 +259,26 @@
       emit();
       return b;
     },
+    /* Take the ask as it stands — no negotiation. */
+    buyListing({ listing, sleeve }) {
+      const consideration = Math.round(listing.size * listing.askPct / 100);
+      drawCash(consideration, sleeve);
+      state.positions.push({
+        id: nextId("p"), name: listing.instrument.replace(/ — .*$/, ""), cls: listing.cls, sub: listing.sub, grp: "Secondary",
+        sleeve, prov: "hanwha", value: listing.size, cost: consideration, ccy: "USD",
+        liq: "Locked", term: "As the original offering", sector: "—", geo: "—",
+        asOf: D.TODAY, acquired: D.TODAY, onBarbell: true, vintage: listing.vintage,
+        src: { file: "Barbell secondary", cell: "—" },
+      });
+      const l = state.listings.find((x) => x.id === listing.id);
+      if (l) { l.status = "Settled"; l.buyer = state.account; }
+      log("Secondary", "Bought " + u.usd(listing.size) + " of " + listing.instrument + " at " + listing.askPct.toFixed(1) + "% of NAV",
+        "Consideration " + u.usd(consideration) + " · taken at the ask · ownership record updated, settles same day.");
+      ops(listing.id.toUpperCase(), listing.instrument, u.usd(consideration));
+      toast("Bought at the ask — " + u.usd(consideration));
+      emit();
+    },
+
     decideBid(bidId, status) {
       const b = state.bids.find((x) => x.id === bidId);
       if (!b) return;

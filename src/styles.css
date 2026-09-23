@@ -348,10 +348,13 @@ label.f>span{display:block;font-size:10.5px;letter-spacing:.08em;text-transform:
 .sparkgrid{position:relative}
 
 /* "Ask the book" — floats at the foot of the portfolio, follows the scroll. */
+.askwrap{min-height:46px}
 .askbar{
   position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:70;
   width:min(920px,calc(100vw - 48px));background:var(--paper);border:1px solid var(--g2);
 }
+/* in the flow until it scrolls out of sight */
+.askbar.inline{position:static;transform:none;width:auto;border-color:var(--g3)}
 .askbar .askrow{display:flex;align-items:center;gap:10px;padding:8px 10px}
 .askbar .askhint{font-size:11px;color:var(--g2);padding:8px 12px 0;line-height:1.5}
 .askbar .res{max-height:44vh;overflow:auto;border-bottom:1px solid var(--g3)}

@@ -13,6 +13,7 @@
     const st = S.useStore();
     const [f, setF] = useState("");
     const [list, setList] = useState(null);
+    const [buy, setBuy] = useState(null);
     const rows = st.listings.filter((l) => !f || l.status === f);
     const mine = st.positions.filter((p) => p.liq !== "Daily");
 
@@ -74,7 +75,15 @@
                   <td className="mono" style={{ fontSize: 11 }}>{l.seller}</td>
                   <td className="n num">{l.days}</td>
                   <td><StatusBadge s={l.status} /></td>
-                  <td className="right"><span className="tri">›</span></td>
+                  <td className="right">
+                    {l.status === "Open" && !l.mine
+                      ? <Lock sleeve={st.account === "successor" ? "alpha" : "core"}>
+                          <button className="btn sm" onClick={(e) => { e.stopPropagation(); setBuy(l); }}>
+                            Buy at {u.pct(l.askPct)}
+                          </button>
+                        </Lock>
+                      : <span className="tri">›</span>}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -119,6 +128,7 @@
         </div>
 
         {list && <BB.flows.ListingFlow p={list} onClose={() => setList(null)} />}
+        {buy && <BB.flows.BuyNowFlow listing={buy} onClose={() => setBuy(null)} />}
       </div>
     );
   }
@@ -127,6 +137,7 @@
     const st = S.useStore();
     const l = st.listings.find((x) => x.id === route.parts[1]);
     const [bid, setBid] = useState(false);
+    const [buy, setBuy] = useState(false);
     if (!l) return <div className="wrap page"><div className="empty">Unknown listing.</div></div>;
     const bids = st.bids.filter((b) => b.listingId === l.id);
     const isSeller = !!l.mine;
@@ -145,7 +156,16 @@
             <div className="sub mt8">{l.manager} · seller {l.seller}</div>
           </div>
           <div className="btn-row">
-            {!isSeller && <button className="btn p lg" disabled={l.status === "Settled"} onClick={() => setBid(true)}>Place a bid</button>}
+            {!isSeller && (
+              <>
+                <Lock sleeve={st.account === "successor" ? "alpha" : "core"}>
+                  <button className="btn p lg" disabled={l.status === "Settled"} onClick={() => setBuy(true)}>
+                    Buy now at {u.pct(l.askPct)} · {u.usdC(Math.round(l.size * l.askPct / 100))}
+                  </button>
+                </Lock>
+                <button className="btn lg" disabled={l.status === "Settled"} onClick={() => setBid(true)}>Bid below the ask</button>
+              </>
+            )}
           </div>
         </div>
 
@@ -221,12 +241,13 @@
             </table>
           )}
           <div className="note" style={{ borderTop: "1px solid var(--g3)", borderLeft: 0, borderRight: 0, borderBottom: 0 }}>
-            Both sides of the board are walkable in this prototype: submit a bid and the listing moves to
-            “Under negotiation”, then accept it from the seller's queue above.
+Two ways in: take the ask and it settles immediately, or bid below it and the listing moves to
+            “Under negotiation” for the seller to accept from the queue above. Both are walkable here.
           </div>
         </div>
 
         {bid && <BB.flows.BidFlow listing={l} onClose={() => setBid(false)} />}
+        {buy && <BB.flows.BuyNowFlow listing={l} onClose={() => setBuy(false)} />}
       </div>
     );
   }

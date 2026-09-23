@@ -5,7 +5,7 @@
   const { useState } = React;
   const D = BB.data, u = BB.u, S = BB.store;
   const { Money, Delta, Panel, Fit, Lock } = BB.ui;
-  const { Agent } = BB.agent;
+  const { Agent, askMarket } = BB.agent;
 
   function Row({ m, onOpen, onAct }) {
     const st = S.get();
@@ -14,7 +14,10 @@
       <tr className="clickable" onClick={() => onOpen(m)}>
         <td style={{ minWidth: 260 }}>
           <div className="tname">{m.name}</div>
-          <div className="tsub">{m.ticker ? <span className="mono">{m.ticker}</span> : m.manager}{m.hanwha && <> · <span style={{ color: "var(--navy)" }}>Hanwha-originated</span></>}</div>
+          <div className="tsub" style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+            <span>{m.ticker ? <span className="mono">{m.ticker}</span> : m.manager}</span>
+            {m.hanwha && <span className="bdg hanwha"><i className="pt" />Hanwha-sourced</span>}
+          </div>
         </td>
         <td>{u.subLabel(m.fills)}<div className="tsub">{u.clsLabel(m.cls)}</div></td>
         <td className="n num">{m.ret}</td>
@@ -56,6 +59,8 @@
     const [f, setF] = useState({ cls: "", liq: "", min: "", sector: "", geo: "", ccy: "", ret: "" });
     const [q, setQ] = useState("");
     const [act, setAct] = useState(null);
+    const [ask, setAsk] = useState("");
+    const [asked, setAsked] = useState(null);
     const gapFocus = route.query.gap;
     const isSuccessor = st.account === "successor";
 
@@ -85,7 +90,7 @@
     };
     const ctx = u.marketContext(st.positions, st.mandate);
     const scored = D.market.map((m) => ({ ...m, s: u.scoreFor(m, ctx) }));
-    const all = scored.filter(pass).sort((a, b) => b.s.score - a.s.score);
+    const all = (asked && asked.rows.length ? asked.rows : scored.filter(pass)).sort((a, b) => b.s.score - a.s.score);
     /* Private, inside the sleeve's remaining cash — committable without asking. */
     const readyNow = scored
       .filter((m) => m.kind === "private" && m.min <= capacity)
@@ -140,6 +145,23 @@
               instruments that pay taxable income now.
               {isSuccessor && <> {readyNow.length} private-market {readyNow.length === 1 ? "offering fits" : "offerings fit"} inside
                 your {u.usd(capacity)} of remaining capacity and can be committed without approval.</>}
+              <div className="row tight mt12" style={{ alignItems: "center" }}>
+                <div className="search" style={{ flex: 1 }}>
+                  <input type="text" value={ask} placeholder="Ask: what closes the rebalancing? · Hanwha-sourced credit · private, under $500K"
+                    onChange={(e) => setAsk(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && setAsked(askMarket(ask, scored, ctx))} />
+                </div>
+                <button className="btn sm" onClick={() => setAsked(askMarket(ask, scored, ctx))}>Ask</button>
+                {asked && <button className="btn sm q" onClick={() => { setAsked(null); setAsk(""); }}>Clear</button>}
+              </div>
+              {asked && (
+                <div className="note mt8" style={{ background: "var(--paper)" }}>
+                  {asked.rows.length
+                    ? <><b>{asked.label}</b> — {asked.rows.length} shown below. {asked.note}</>
+                    : <>Nothing on the marketplace matches that. Members sometimes sell what they already hold on the{" "}
+                      <button className="link" onClick={() => S.navigate("/secondary")}>secondary board</button>.</>}
+                </div>
+              )}
             </Agent>
 
             {/* filters */}
@@ -210,14 +232,23 @@
             )}
 
             <div className="between mt24 mb12">
-              <h2>{gapFocus ? u.subLabel(gapFocus) : "Ranked for this family"}</h2>
+              <h2>{asked && asked.rows.length ? asked.label : gapFocus ? u.subLabel(gapFocus) : "Ranked for this family"}</h2>
               <div className="btn-row">
                 {gapFocus && <button className="btn sm" onClick={() => S.navigate("/marketplace")}>Show everything</button>}
                 <span className="tri" style={{ fontSize: 11.5 }}>{all.length} of {D.market.length} shown</span>
               </div>
             </div>
             <div className="panel">
-              {all.length === 0 ? <div className="empty">Nothing matches these filters.</div> : (
+              {all.length === 0 ? (
+                <div className="empty">
+                  <div>Nothing on the marketplace matches these filters.</div>
+                  <div className="tri mt8" style={{ fontSize: 12 }}>
+                    Allocation here is finite. Members sell positions they already hold on the secondary board —{" "}
+                    {st.listings.filter((l) => l.status === "Open").length} listings are open.
+                  </div>
+                  <button className="btn mt12" onClick={() => S.navigate("/secondary")}>Look at the secondary board</button>
+                </div>
+              ) : (
                 <table className="t dense"><Head />
                   <tbody>{all.map((m) => <Row key={m.id} m={m} onOpen={open} onAct={onAct} />)}</tbody>
                 </table>

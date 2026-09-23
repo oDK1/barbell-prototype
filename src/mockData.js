@@ -361,6 +361,10 @@
               pcred: 0.95, struct: 0.80, comm: 0.80, mmf: 0.70, tbill: 0.70, dep: 0.70, fx: 0.70 } },
   ];
 
+  /* Long-run assumptions used only for the projection strip under the model.
+     Nominal USD, before fees and tax. Stated on the chart, not hidden in code. */
+  const expectedReturn = { equity: 7.5, debt: 5.0, real: 7.0, cash: 4.0 };
+
   /* --------------------------------------------------- calls & distributions */
   const capitalCalls = [
     { id: "cc1", fund: "Foundry Venture Partners VII, L.P.", pid: "p15", date: "2026-10-28", amount: 1100000, status: "Due" },
@@ -794,7 +798,7 @@
   BB.data = {
     KRW, TODAY, family, accounts, classes, subs, positions,
     uploadFiles, ingestSteps, exceptions, mandates, survey, modelPortfolios,
-    capitalCalls, distributions, benchmark, performance, attribution, modelGoals, ALT_SUBS,
+    capitalCalls, distributions, benchmark, performance, attribution, modelGoals, ALT_SUBS, expectedReturn,
     market, secondary, approvalsSeed, activitySeed, opsLedger, referrals, liquidityAssumptions,
   };
 })();

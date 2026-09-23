@@ -18,11 +18,25 @@
     const [q, setQ] = useState("");
     const [res, setRes] = useState(null);
     const [focus, setFocus] = useState(false);
+    const [afloat, setAfloat] = useState(false);
+    const wrap = React.useRef(null);
     const run = () => setRes(runQuery(q, positions));
     const t = u.total(positions);
-    return (
-      <div className="askbar">
-        {res && (
+
+    /* Inline where it sits in the page; once it scrolls under the top bar it
+       detaches to the foot of the window so the agent is always reachable. */
+    React.useEffect(() => {
+      const onScroll = () => {
+        if (!wrap.current) return;
+        setAfloat(wrap.current.getBoundingClientRect().top < 64);
+      };
+      onScroll();
+      window.addEventListener("scroll", onScroll, { passive: true });
+      window.addEventListener("resize", onScroll);
+      return () => { window.removeEventListener("scroll", onScroll); window.removeEventListener("resize", onScroll); };
+    }, []);
+
+    const results = res && (
           <div className="res">
             {res.rows.length === 0
               ? <div className="empty">No positions match {res.labels.join(" + ")}.</div>
@@ -51,7 +65,12 @@
                 </>
               )}
           </div>
-        )}
+    );
+
+    return (
+      <div ref={wrap} className="askwrap mt16">
+        <div className={afloat ? "askbar" : "askbar inline"}>
+        {afloat && results}
         {!res && (focus || q) && (
           <div className="askhint">
             Read-only. Returns a filtered view of positions, never prose. Try “stale valuations”, “locked private
@@ -67,6 +86,8 @@
           </div>
           <button className="btn sm" onClick={run}>Filter</button>
           {res && <button className="btn sm q" onClick={() => { setRes(null); setQ(""); }}>Clear</button>}
+        </div>
+        {!afloat && results}
         </div>
       </div>
     );
@@ -162,22 +183,7 @@
           </table>
         </div>
 
-        <div className="mt16">
-          <Agent where="Allocation"
-            why={["Current class and subcategory weights from the reconciled book",
-                  "Mandate: " + mandateLabel + ", as confirmed in the activity log",
-                  "Model allocation for this AUM tier and objective",
-                  "Listed positions marked live; private marks as of 30 Jun 2026"]}
-            actions={<button className="btn sm" onClick={() => {
-              const el = document.getElementById("model-panel");
-              if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-            }}>Compare with the model</button>}>
-            The book is {cls.map((c) => u.pct(c.wt) + " " + c.label.toLowerCase()).join(", ")}. The model for this size
-            and objective suggests {D.classes.map((c) => u.pct(model.classes[c.key])).join(" / ")} in the same order.
-            The model is a reference shape, not a queue of trades — a difference is a question worth asking, not an
-            instruction to act on.
-          </Agent>
-        </div>
+        <QueryBar positions={positions} />
 
         <ModelPanel positions={positions} />
         <ProvenancePanel positions={positions} />
@@ -220,6 +226,17 @@
     }));
     const flat = clsRows.reduce((a, c) => a.concat(c.kids), []);
     const SCALE = 45;                                   // one shared axis for every bar
+    const [proj, setProj] = useState(false);
+
+    /* blended expected return of a weight map, and the curve it traces */
+    const blended = (w) => D.classes.reduce((a, c) => a + (w[c.key] / 100) * D.expectedReturn[c.key], 0);
+    const curW = {}; cls.forEach((c) => { curW[c.key] = c.wt; });
+    const curR = blended(curW), modR = blended(model.classes);
+    const grow = (r, y) => Math.pow(1 + r / 100, y);
+    const curEnd = t * grow(curR, 10), modEnd = t * grow(modR, 10);
+    const top = Math.max(grow(curR, 10), grow(modR, 10));
+    const line = (r) => Array.from({ length: 11 }, (_, y) =>
+      ((y / 10) * 600).toFixed(1) + "," + (150 - ((grow(r, y) - 1) / (top - 1)) * 140).toFixed(1)).join(" ");
 
     const Bar = ({ held, target, color }) => (
       <div className="wbar" title={"held " + u.pct(held) + " · model " + u.pct(target)}>
@@ -347,6 +364,41 @@
             </tbody>
           </table>
 
+          {/* what the two mixes would compound to, if the assumptions hold */}
+          <div className="panel-hd clickable" style={{ cursor: "pointer", borderTop: "1px solid var(--g3)", borderBottom: 0 }}
+            onClick={() => setProj(!proj)}>
+            <div>
+              <h3><span style={{ fontSize: 11, color: "var(--g1)", marginRight: 7 }}>{proj ? "▾" : "▸"}</span>Projected growth</h3>
+              <div className="tri" style={{ fontSize: 11.5, marginTop: 2, paddingLeft: 18 }}>
+                Today's mix against the model over ten years — {u.pct(curR)} vs {u.pct(modR)} a year on these assumptions
+              </div>
+            </div>
+            <span className="tri num" style={{ fontSize: 12 }}>{u.usdC(curEnd)} → {u.usdC(modEnd)}</span>
+          </div>
+          {proj && (
+            <div className="panel-bd">
+              <svg viewBox="0 0 600 150" preserveAspectRatio="none" style={{ width: "100%", height: 150, display: "block", border: "1px solid var(--g3)" }}>
+                {[0.25, 0.5, 0.75].map((g) => (
+                  <line key={g} x1="0" y1={150 * g} x2="600" y2={150 * g} stroke="var(--g4)" strokeWidth="1" />
+                ))}
+                <polyline points={line(curR)} fill="none" stroke="var(--g2)" strokeWidth="2" />
+                <polyline points={line(modR)} fill="none" stroke="var(--navy)" strokeWidth="2" />
+              </svg>
+              <div className="between mt8">
+                <div className="legend" style={{ marginTop: 0 }}>
+                  <span className="it"><i className="sw" style={{ background: "var(--g2)" }} />Today's mix · {u.pct(curR)} a year · {u.usdC(curEnd)}</span>
+                  <span className="it"><i className="sw" style={{ background: "var(--navy)" }} />Model · {u.pct(modR)} a year · {u.usdC(modEnd)}</span>
+                  <span className="it tri">Difference after 10 years · {u.usdC(modEnd - curEnd)}</span>
+                </div>
+                <span className="tri" style={{ fontSize: 10.5 }}>Year 0 → 10</span>
+              </div>
+              <div className="note mt12">
+                A projection, not a backtest and not a forecast: each class compounds at a fixed assumption —
+                {" " + D.classes.map((c) => c.label.split(" ")[0] + " " + u.pct(D.expectedReturn[c.key])).join(" · ")} —
+                before fees, tax and any capital calls. It shows the shape of the difference between the two mixes, nothing more.
+              </div>
+            </div>
+          )}
           <div style={{ padding: "8px 14px", borderTop: "1px solid var(--g3)", fontSize: 11, color: "var(--g2)" }}>
             Class and subcategory only — never individual securities.
           </div>
@@ -357,7 +409,14 @@
   }
 
   function PathModal({ rows, t, model, onClose }) {
+    const st = S.useStore();
+    const [act, setAct] = useState(null);
     const ordered = rows.filter((r) => Math.abs(r.delta) > 0.2).sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
+    const ctx = u.marketContext(st.positions, st.mandate);
+    /* the highest-scoring thing on the marketplace that would fill each line */
+    const pick = (key) => D.market.filter((m) => m.fills === key)
+      .map((m) => ({ ...m, s: u.scoreFor(m, ctx) }))
+      .sort((a, b) => b.s.score - a.s.score)[0];
     return (
       <Modal title="Rebalancing path" sub={"Toward the " + model.label + " model · ordered by size"} onClose={onClose} wide
         footer={<>
@@ -368,26 +427,52 @@
           </div>
         </>}>
         <table className="t dense">
-          <thead><tr><th style={{ width: 28 }}>#</th><th>Action</th><th>Subcategory</th><th className="n">Amount</th><th>Execution</th></tr></thead>
+          <thead><tr><th style={{ width: 28 }}>#</th><th>Action</th><th>Subcategory</th><th className="n">Amount</th>
+            <th>What would fill it</th><th></th></tr></thead>
           <tbody>
             {ordered.map((r, i) => {
               const add = r.delta > 0;
               const liquid = ["pubeq", "sov", "ig", "comm", "mmf", "tbill", "dep", "fx"].indexOf(r.key) >= 0;
+              const amount = Math.round(Math.abs((r.delta / 100) * t));
+              const best = add ? pick(r.key) : null;
               return (
                 <tr key={r.key}>
                   <td className="tri num">{i + 1}</td>
-                  <td><b>{r.cls === "cash" ? (add ? "Build" : "Deploy") : add ? (liquid ? "Buy" : "Commit") : (liquid ? "Sell" : "Redeem / list")}</b></td>
+                  {/* the verb follows the instrument that would actually fill the line */}
+                  <td><b>{r.cls === "cash" ? (add ? "Build" : "Deploy")
+                    : add ? (best ? (best.kind === "listed" ? "Buy" : "Commit") : "Buy")
+                    : (liquid ? "Sell" : "Redeem / list")}</b></td>
                   <td>{r.label}<div className="tsub">{u.clsLabel(r.cls)}</div></td>
-                  <td className="n num">{u.usd(Math.abs((r.delta / 100) * t))}</td>
-                  <td className="tri">{r.cls === "cash" ? "Sweep · same-day" : liquid ? "Order ticket · same-day settlement" : add ? "Subscription · next close" : "Secondary board or redemption queue"}</td>
+                  <td className="n num">{u.usd(amount)}</td>
+                  <td>
+                    {best
+                      ? <><div className="tname">{best.name}</div><div className="tsub">{best.ret} · {best.liq} · fit {best.s.score}</div></>
+                      : <span className="tri">{liquid ? "Trim the holdings you have" : "List on the secondary board"}</span>}
+                  </td>
+                  <td className="right">
+                    {best
+                      ? <BB.ui.Lock sleeve={st.account === "successor" ? "alpha" : "core"}>
+                          <button className="btn sm p" onClick={() => setAct({ m: best, amount })}>
+                            {best.kind === "listed" ? "Buy" : "Commit"}
+                          </button>
+                        </BB.ui.Lock>
+                      : <button className="btn sm" onClick={() => { onClose(); S.navigate(liquid ? "/portfolio/" + r.cls + "?sub=" + r.key : "/secondary"); }}>
+                          Review
+                        </button>}
+                  </td>
                 </tr>
               );
             })}
           </tbody>
         </table>
         <div className="note mt12">
-          Executing the liquid legs first funds the illiquid commitments without breaching the liquidity floor.
+          Executing the liquid legs first funds the illiquid commitments without breaching the liquidity floor. Each line
+          shows the highest-scoring offering that would fill it — the button opens the ticket, it does not place anything.
         </div>
+        {act && (act.m.kind === "listed"
+          ? <BB.flows.TradeTicket instrument={{ ...act.m, sub: act.m.fills, sleeve: st.account === "successor" ? "alpha" : "core", pxUsd: act.m.px }}
+              side="buy" onClose={() => setAct(null)} />
+          : <BB.flows.CommitFlow deal={act.m} onClose={() => setAct(null)} />)}
       </Modal>
     );
   }
@@ -395,6 +480,7 @@
   /* ------------------------------------------------------ provenance */
   function ProvenancePanel({ positions }) {
     const [edit, setEdit] = useState(null);
+    const [open, setOpen] = useState(false);
     const self = positions.filter((p) => p.prov === "self");
     const stale = self.filter((p) => u.staleness(p).d > 90);
     const counts = {
@@ -405,16 +491,17 @@
     return (
       <>
         <div className="panel mt16">
-          <div className="panel-hd">
+          <div className="panel-hd clickable" onClick={() => setOpen(!open)} style={{ cursor: "pointer" }}>
             <div>
-              <h3>Data provenance</h3>
-              <div className="tri" style={{ fontSize: 11.5, marginTop: 2 }}>
+              <h3><span style={{ fontSize: 11, color: "var(--g1)", marginRight: 7 }}>{open ? "▾" : "▸"}</span>Data provenance</h3>
+              <div className="tri" style={{ fontSize: 11.5, marginTop: 2, paddingLeft: 18 }}>
                 {counts.live} live · {counts.hanwha} Hanwha-sourced · {counts.self} self-maintained
+                {open ? "" : " · open to review and update the self-maintained marks"}
               </div>
             </div>
             {stale.length > 0 && <span className="bdg self warn"><i className="pt" />{stale.length} positions stale</span>}
           </div>
-          <table className="t dense">
+          {open && <table className="t dense">
             <thead><tr><th>Self-maintained position</th><th>Source</th><th className="n">Carrying value</th><th className="n">Last updated</th><th></th></tr></thead>
             <tbody>
               {self.map((p) => {
@@ -439,7 +526,7 @@
                 );
               })}
             </tbody>
-          </table>
+          </table>}
         </div>
         {edit && <BB.flows.ValuationEditor p={edit} onClose={() => setEdit(null)} />}
       </>
@@ -453,6 +540,7 @@
     const [q, setQ] = useState("");
     const [cls, setCls] = useState("");
     const [sort, setSort] = useState({ k: "value", dir: -1 });
+    const [show, setShow] = useState(false);
     const t = u.total(positions);
 
     const val = (p, k) => {
@@ -484,16 +572,17 @@
 
     return (
       <div className="panel mt16">
-        <div className="panel-hd">
+        <div className="panel-hd clickable" onClick={() => setShow(!show)} style={{ cursor: "pointer" }}>
           <div>
-            <h3>All positions</h3>
-            <div className="tri" style={{ fontSize: 11.5, marginTop: 2 }}>
+            <h3><span style={{ fontSize: 11, color: "var(--g1)", marginRight: 7 }}>{show ? "▾" : "▸"}</span>All positions</h3>
+            <div className="tri" style={{ fontSize: 11.5, marginTop: 2, paddingLeft: 18 }}>
               The entire book at fund and deal level — {positions.length} positions ·{" "}
               {positions.filter((p) => p.liq === "Daily").length} listed ·{" "}
-              {positions.filter((p) => p.liq !== "Daily").length} private. Any column sorts.
+              {positions.filter((p) => p.liq !== "Daily").length} private
+              {show ? ". Any column sorts." : ". Open to search and sort it."}
             </div>
           </div>
-          <div className="btn-row">
+          <div className="btn-row" onClick={(e) => e.stopPropagation()} style={{ display: show ? "flex" : "none" }}>
             <button className={"btn sm" + (cls ? "" : " p")} onClick={() => setCls("")}>All</button>
             {D.classes.map((c) => (
               <button key={c.key} className={"btn sm" + (cls === c.key ? " p" : "")} onClick={() => setCls(c.key)}>{c.label}</button>
@@ -503,7 +592,7 @@
             </div>
           </div>
         </div>
-        <div className="tscroll">
+        {show && <div className="tscroll">
           <table className="t dense">
             <thead>
               <tr>
@@ -553,7 +642,7 @@
               </tr>
             </tfoot>
           </table>
-        </div>
+        </div>}
       </div>
     );
   }
@@ -858,15 +947,14 @@
               </h1>
               <span className="sub" style={{ fontSize: 13.5 }}>{isSuccessor ? "Alpha sleeve" : "Total assets"}</span>
             </div>
-            <div className="tri" style={{ fontSize: 11.5, marginTop: 3 }}>
-              {u.krwC(isSuccessor ? u.total(alpha) : t)} · {isSuccessor
-                ? u.pct((u.total(alpha) / t) * 100) + " of assets · " + alpha.length + " positions"
-                : ps.length + " positions · " + (ps.length - privCount) + " listed, " + privCount + " private"}
-            </div>
+            {isSuccessor && (
+              <div className="tri" style={{ fontSize: 11.5, marginTop: 3 }}>
+                {u.pct((u.total(alpha) / t) * 100)} of assets
+              </div>
+            )}
           </div>
           <div className="right">
-            <div className="tri" style={{ fontSize: 11.5 }}>Listed positions live · private marks as of 30 Jun 2026</div>
-            <div className="num tri" style={{ fontSize: 11.5, marginTop: 2 }}>Updated {u.fmtTs(D.family.asOf)} KST</div>
+            <div className="num tri" style={{ fontSize: 11.5 }}>Updated {u.fmtTs(D.family.asOf)} KST</div>
             <div style={{ display: "flex", gap: 14, justifyContent: "flex-end", marginTop: 5 }}>
               {calls60.length > 0 && (
                 <button className="link" onClick={() => setTab("liq")}>
@@ -888,8 +976,7 @@
             ? [["Unrealised", <Delta v={u.unrealized(alpha)} usd />, u.sgn((u.unrealized(alpha) / (u.total(alpha) - u.unrealized(alpha))) * 100) + " on cost"],
                ["Remaining capacity", u.usdC(S.alphaCapacity()), "commit direct up to this"],
                ["Total assets", u.usdC(t), "yours to see, not to move"]]
-            : [["Unrealised", <Delta v={u.unrealized(ps)} usd />, u.sgn((u.unrealized(ps) / (t - u.unrealized(ps))) * 100) + " on cost"],
-               ["Liquidity · 90 days", u.usdC(liq.within90), u.usdC(liq.cash) + " cash"]]
+            : [["Unrealised", <Delta v={u.unrealized(ps)} usd />, u.sgn((u.unrealized(ps) / (t - u.unrealized(ps))) * 100) + " on cost"]]
           ).map((m, i) => (
             <span className="item" key={i}>
               <span className="k">{m[0]}</span>
@@ -905,7 +992,7 @@
         {tab === "liq" && <LiquidityTab positions={ps} />}
         {tab === "tax" && <TaxTab positions={ps} />}
 
-        <QueryBar positions={ps} />
+        {tab !== "alloc" && <QueryBar positions={ps} />}
       </div>
     );
   }

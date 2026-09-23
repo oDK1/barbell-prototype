@@ -90,6 +90,16 @@
       if (e) { e.value = value; e.resolved = true; }
       emit();
     },
+    /* Take every suggestion as offered, rather than one click at a time. */
+    resolveAllExceptions() {
+      const open = state.exceptions.filter((e) => !e.resolved);
+      if (!open.length) return;
+      open.forEach((e) => { e.resolved = true; });
+      log("Onboarding", "Applied " + open.length + " suggested " + (open.length === 1 ? "resolution" : "resolutions"),
+        open.map((e) => e.kind).join(" · "));
+      toast(open.length + " exceptions resolved");
+      emit();
+    },
     unresolveException(id) {
       const e = state.exceptions.find((x) => x.id === id);
       if (e) e.resolved = false; emit();

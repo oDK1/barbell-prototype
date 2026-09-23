@@ -157,10 +157,23 @@
         ))}
 
         <div className="btn-row mt16">
-          <button className="btn p lg" disabled={open.length > 0} onClick={() => S.navigate("/onboarding/mandate")}>
-            {open.length ? open.length + " exceptions remaining" : "Set the mandate →"}
+          {open.length > 0 && (
+            <Lock sleeve="core">
+              <button className="btn p lg" onClick={() => S.actions.resolveAllExceptions()}>
+                Apply all {open.length} {open.length === 1 ? "suggestion" : "suggestions"} →
+              </button>
+            </Lock>
+          )}
+          <button className={"btn lg" + (open.length ? "" : " p")} disabled={open.length > 0}
+            onClick={() => S.navigate("/onboarding/mandate")}>
+            {open.length ? open.length + " to clear first" : "Set the mandate →"}
           </button>
           <button className="btn lg" onClick={() => S.navigate("/onboarding/upload")}>Back</button>
+          {open.length > 0 && (
+            <span className="tri" style={{ fontSize: 11.5 }}>
+              Each row carries the agent's suggestion — apply them together, or change any of them above first.
+            </span>
+          )}
         </div>
       </div>
     );

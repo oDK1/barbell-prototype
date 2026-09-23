@@ -62,11 +62,11 @@
   }
 
   /* --------------------------------------------------------- order ticket */
-  function TradeTicket({ instrument, side: side0, onClose }) {
+  function TradeTicket({ instrument, side: side0, amount0, onClose }) {
     const st = S.useStore();
     const [side, setSide] = useState(side0 || "buy");
     const [mode, setMode] = useState("notional");
-    const [amount, setAmount] = useState("");
+    const [amount, setAmount] = useState(amount0 || "");
     const [qty, setQty] = useState("");
     const [orderType, setOrderType] = useState("market");
     const [limit, setLimit] = useState(instrument.px || "");
@@ -157,9 +157,9 @@
   }
 
   /* ------------------------------------------------------- subscription */
-  function CommitFlow({ deal, onClose }) {
+  function CommitFlow({ deal, amount0, onClose }) {
     const st = S.useStore();
-    const [amount, setAmount] = useState(deal.min);
+    const [amount, setAmount] = useState(amount0 || deal.min);
     const [ack, setAck] = useState(false);
     const [sleeve, setSleeve] = useState(st.account === "successor" ? "alpha" : "core");
     const [rationale, setRationale] = useState("");

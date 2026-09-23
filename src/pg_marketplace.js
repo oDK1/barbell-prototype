@@ -7,7 +7,7 @@
   const { Money, Delta, Panel, Fit, Lock } = BB.ui;
   const { Agent, askMarket } = BB.agent;
 
-  function Row({ m, onOpen, onAct }) {
+  function Row({ m, sug, onOpen, onAct }) {
     const st = S.get();
     const isListed = m.kind === "listed";
     return (
@@ -26,13 +26,19 @@
           {m.term && m.term !== "—" && <div className="tsub">{m.term}</div>}
         </td>
         <td className="n num">{u.usd(m.min)}</td>
+        <td className="n">
+          {sug
+            ? <><span className="num" style={{ fontWeight: 600, opacity: sug.unfunded ? .5 : 1 }}>{u.usdC(sug.amount)}</span>
+              <div className="tsub">{sug.basis}</div></>
+            : <span className="tri">—</span>}
+        </td>
         <td className="tri hide-narrow" style={{ fontSize: 11.5, maxWidth: 150 }}>{m.avail}</td>
         <td className="n"><Fit score={m.s ? m.s.score : m.fit} /></td>
         <td style={{ maxWidth: 260 }}><div className="tsub" style={{ fontSize: 11.5, color: "var(--g1)" }}>{m.why}</div></td>
         <td className="right">
           <div className="rowbtns">
             <Lock sleeve={st.account === "successor" ? "alpha" : "core"}>
-              <button className="btn sm p" onClick={(e) => { e.stopPropagation(); onAct(m); }}>
+              <button className="btn sm p" onClick={(e) => { e.stopPropagation(); onAct(m, sug && sug.amount); }}>
                 {isListed ? "Buy" : "Commit"}
               </button>
             </Lock>
@@ -47,7 +53,8 @@
       <thead>
         <tr>
           <th>Opportunity</th><th>Fills</th><th className="n">Return</th><th>Liquidity</th>
-          <th className="n">Minimum</th><th className="hide-narrow">Availability</th><th className="n">Fit</th>
+          <th className="n">Minimum</th><th className="n">Suggested</th>
+          <th className="hide-narrow">Availability</th><th className="n">Fit</th>
           <th style={{ minWidth: 190 }}>Why</th><th></th>
         </tr>
       </thead>
@@ -96,11 +103,18 @@
       .filter((m) => m.kind === "private" && m.min <= capacity)
       .sort((a, b) => b.s.score - a.s.score);
     const top3 = all.slice(0, 3);
+    /* one offering per under-model subcategory, and what they would absorb together */
+    /* what could actually fund a purchase today */
+    const funds = st.account === "principal"
+      ? u.total(st.positions.filter((x) => x.cls === "cash"))
+      : S.alphaCapacity();
+    const toModel = Object.keys(ctx.under).filter((k) => ctx.under[k] > 0.2)
+      .reduce((sum, k) => sum + (ctx.under[k] / 100) * ctx.t, 0);
     const sectors = Array.from(new Set(D.market.map((m) => m.sector))).sort();
     const geos = Array.from(new Set(D.market.map((m) => m.geo))).sort();
 
     const open = (m) => S.navigate("/marketplace/" + m.id);
-    const onAct = (m) => setAct(m);
+    const onAct = (m, amount) => setAct({ m, amount });
 
 
     return (
@@ -145,6 +159,9 @@
               instruments that pay taxable income now.
               {isSuccessor && <> {readyNow.length} private-market {readyNow.length === 1 ? "offering fits" : "offerings fit"} inside
                 your {u.usd(capacity)} of remaining capacity and can be committed without approval.</>}
+              {" "}Each row carries a <b>suggested amount</b>: what it would take to bring its subcategory to the model,
+              held back to the {u.usdC(funds)} of cash that could fund it today. Closing every under-model subcategory
+              would take <b>{u.usdC(toModel)}</b> — more than is liquid, so this is a sequence, not a single afternoon.
               <div className="row tight mt12" style={{ alignItems: "center" }}>
                 <div className="search" style={{ flex: 1 }}>
                   <input type="text" value={ask} placeholder="Ask: what closes the rebalancing? · Hanwha-sourced credit · private, under $500K"
@@ -226,7 +243,7 @@
                   </span>
                 </div>
                 <table className="t dense"><Head />
-                  <tbody>{readyNow.map((m) => <Row key={m.id} m={m} onOpen={open} onAct={onAct} />)}</tbody>
+                  <tbody>{readyNow.map((m) => <Row key={m.id} m={m} sug={u.suggestAmount(m, ctx, funds)} onOpen={open} onAct={onAct} />)}</tbody>
                 </table>
               </div>
             )}
@@ -250,7 +267,7 @@
                 </div>
               ) : (
                 <table className="t dense"><Head />
-                  <tbody>{all.map((m) => <Row key={m.id} m={m} onOpen={open} onAct={onAct} />)}</tbody>
+                  <tbody>{all.map((m) => <Row key={m.id} m={m} sug={u.suggestAmount(m, ctx, funds)} onOpen={open} onAct={onAct} />)}</tbody>
                 </table>
               )}
             </div>
@@ -350,9 +367,10 @@
           </div>
         </div>
 
-        {act && (act.kind === "listed"
-          ? <BB.flows.TradeTicket instrument={{ ...act, sub: act.fills, sleeve: st.account === "successor" ? "alpha" : "core", pxUsd: act.px }} side="buy" onClose={() => setAct(null)} />
-          : <BB.flows.CommitFlow deal={act} onClose={() => setAct(null)} />)}
+        {act && (act.m.kind === "listed"
+          ? <BB.flows.TradeTicket instrument={{ ...act.m, sub: act.m.fills, sleeve: st.account === "successor" ? "alpha" : "core", pxUsd: act.m.px }}
+              side="buy" amount0={act.amount} onClose={() => setAct(null)} />
+          : <BB.flows.CommitFlow deal={act.m} amount0={act.amount} onClose={() => setAct(null)} />)}
       </div>
     );
   }

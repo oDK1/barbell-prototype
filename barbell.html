@@ -3297,6 +3297,8 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     const [sel, setSel] = useState(st.mandate);
     const answered = D.survey.filter((q) => st.survey[q.id] !== undefined).length;
     const m = D.mandates.find((x) => x.key === sel);
+    const t = u.total(st.positions);
+    const listed = st.positions.filter((x) => x.liq === "Daily").length;
 
     return (
       <div className="wrap page" style={{ maxWidth: 1180 }}>
@@ -3310,7 +3312,24 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
           but choosing between them is theirs.</>}
         </div>
 
-        <div className="grid mt16" style={{ gridTemplateColumns: "repeat(" + D.mandates.length + ", 1fr)" }}>
+        {/* what the three files turned into, stated beside the choice it governs */}
+        <div className="grid mt16" style={{ gridTemplateColumns: "0.85fr repeat(" + D.mandates.length + ", 1fr)" }}>
+          <div className="panel" style={{ background: "var(--g4)", display: "flex", flexDirection: "column", justifyContent: "center", padding: "14px 16px" }}>
+            <div className="lbl">Reconciled book</div>
+            <div className="num" style={{ fontSize: 27, fontWeight: 600, letterSpacing: "-.025em", marginTop: 4, lineHeight: 1.1 }}>
+              {u.usdC(t)}
+            </div>
+            <div className="tri" style={{ fontSize: 11.5, marginTop: 4 }}>
+              {st.positions.length} positions from {st.uploads.length} files
+            </div>
+            <div className="tri" style={{ fontSize: 11.5 }}>
+              {listed} listed · {st.positions.length - listed} private
+            </div>
+            <hr className="hr" style={{ margin: "10px 0" }} />
+            <div className="tri" style={{ fontSize: 11, lineHeight: 1.5 }}>
+              The posture applies to this, and the model is drawn for a book this size.
+            </div>
+          </div>
           {D.mandates.map((x) => (
             <button key={x.key} className="panel" onClick={() => setSel(x.key)}
               style={{ textAlign: "left", cursor: "pointer", padding: 14, borderColor: sel === x.key ? "var(--navy)" : "var(--g3)", background: sel === x.key ? "var(--navy-wash)" : "var(--paper)" }}>

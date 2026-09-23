@@ -375,7 +375,7 @@ label.f>span{display:block;font-size:10.5px;letter-spacing:.08em;text-transform:
 .tscroll{overflow-x:auto}
 @media (max-width:1240px){
   table.t td,table.t th{padding:6px 7px;font-size:12px}
-  .hide-narrow{display:none}
+  .hide-narrow{display:none !important}
   .band{flex-wrap:wrap}
   .band .cell{min-width:180px}
   .wrap{padding:0 16px}

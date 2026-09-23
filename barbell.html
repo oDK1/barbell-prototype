@@ -386,7 +386,7 @@ label.f>span{display:block;font-size:10.5px;letter-spacing:.08em;text-transform:
 .tscroll{overflow-x:auto}
 @media (max-width:1240px){
   table.t td,table.t th{padding:6px 7px;font-size:12px}
-  .hide-narrow{display:none}
+  .hide-narrow{display:none !important}
   .band{flex-wrap:wrap}
   .band .cell{min-width:180px}
   .wrap{padding:0 16px}
@@ -4839,11 +4839,11 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
             {m.hanwha && <span className="bdg hanwha"><i className="pt" />Hanwha-sourced</span>}
           </div>
         </td>
-        <td>{u.subLabel(m.fills)}<div className="tsub">{u.clsLabel(m.cls)}</div></td>
+        <td>{u.subLabel(m.fills)}<div className="tsub hide-narrow">{u.clsLabel(m.cls)}</div></td>
         <td className="n num">{m.ret}</td>
         <td>
           <span className="bdg plain">{m.liq}</span>
-          {m.term && m.term !== "—" && <div className="tsub">{m.term}</div>}
+          {m.term && m.term !== "—" && <div className="tsub hide-narrow">{m.term}</div>}
         </td>
         <td className="n num">{u.usd(m.min)}</td>
         <td className="n">
@@ -4852,9 +4852,9 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
               <div className="tsub">{sug.basis}</div></>
             : <span className="tri">—</span>}
         </td>
-        <td className="tri hide-narrow" style={{ fontSize: 11.5, maxWidth: 150 }}>{m.avail}</td>
+
         <td className="n"><Fit score={m.s ? m.s.score : m.fit} /></td>
-        <td style={{ maxWidth: 260 }}><div className="tsub" style={{ fontSize: 11.5, color: "var(--g1)" }}>{m.why}</div></td>
+        <td className="hide-narrow" style={{ maxWidth: 260 }}><div className="tsub" style={{ fontSize: 11.5, color: "var(--g1)" }}>{m.why}</div></td>
         <td className="right">
           <div className="rowbtns">
             <Lock sleeve={st.account === "successor" ? "alpha" : "core"}>
@@ -4873,9 +4873,8 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       <thead>
         <tr>
           <th>Opportunity</th><th>Fills</th><th className="n">Return</th><th>Liquidity</th>
-          <th className="n">Minimum</th><th className="n">Suggested</th>
-          <th className="hide-narrow">Availability</th><th className="n">Fit</th>
-          <th style={{ minWidth: 190 }}>Why</th><th></th>
+          <th className="n">Minimum</th><th className="n">Suggested</th><th className="n">Fit</th>
+          <th className="hide-narrow" style={{ minWidth: 170 }}>Why</th><th></th>
         </tr>
       </thead>
     );
@@ -5062,9 +5061,11 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                     offerings fit the capacity · the rest need the Principal
                   </span>
                 </div>
-                <table className="t dense"><Head />
-                  <tbody>{readyNow.map((m) => <Row key={m.id} m={m} sug={u.suggestAmount(m, ctx, funds)} onOpen={open} onAct={onAct} />)}</tbody>
-                </table>
+                <div className="tscroll">
+                  <table className="t dense"><Head />
+                    <tbody>{readyNow.map((m) => <Row key={m.id} m={m} sug={u.suggestAmount(m, ctx, funds)} onOpen={open} onAct={onAct} />)}</tbody>
+                  </table>
+                </div>
               </div>
             )}
 
@@ -5086,9 +5087,11 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                   <button className="btn mt12" onClick={() => S.navigate("/secondary")}>Look at the secondary board</button>
                 </div>
               ) : (
-                <table className="t dense"><Head />
-                  <tbody>{all.map((m) => <Row key={m.id} m={m} sug={u.suggestAmount(m, ctx, funds)} onOpen={open} onAct={onAct} />)}</tbody>
-                </table>
+                <div className="tscroll">
+                  <table className="t dense"><Head />
+                    <tbody>{all.map((m) => <Row key={m.id} m={m} sug={u.suggestAmount(m, ctx, funds)} onOpen={open} onAct={onAct} />)}</tbody>
+                  </table>
+                </div>
               )}
             </div>
           </div>

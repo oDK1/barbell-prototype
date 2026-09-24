@@ -95,6 +95,9 @@ h3{font-size:13px;line-height:1.35}
 .spacer{flex:1}
 
 .page{padding:24px 0 72px}
+/* room to scroll clear of the floating agent bar */
+.page.hasagent{padding-bottom:150px}
+body:has(.page.hasagent) .foot{padding-bottom:96px}
 .foot{border-top:1px solid var(--g3);padding:14px 0;color:var(--g2);font-size:11px;display:flex;gap:18px;align-items:center}
 .foot a{color:var(--g2)}
 
@@ -358,14 +361,18 @@ label.f>span{display:block;font-size:10.5px;letter-spacing:.08em;text-transform:
 .tl-axis .m{flex:1;text-align:center;font-size:9px;color:var(--g2);white-space:nowrap;overflow:hidden}
 .sparkgrid{position:relative}
 
-/* "Ask the book" — floats at the foot of the portfolio, follows the scroll. */
-.askwrap{min-height:46px}
+/* The agent rides at the foot of the window on portfolio and marketplace,
+   so it is reachable from any scroll position rather than parked at the top. */
 .askbar{
   position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:70;
   width:min(920px,calc(100vw - 48px));background:var(--paper);border:1px solid var(--g2);
+  box-shadow:0 1px 0 var(--g3),0 10px 28px -18px rgba(17,18,20,.45);
 }
-/* in the flow until it scrolls out of sight */
-.askbar.inline{position:static;transform:none;width:auto;border-color:var(--g3)}
+.askbar.agentbar{border-left:2px solid var(--navy)}
+.askbar .askfoot{
+  font-size:11px;line-height:1.5;color:var(--g2);padding:0 12px 9px;
+  border-top:1px solid var(--g3);padding-top:8px;margin:0 -1px;
+}
 .askbar .askrow{display:flex;align-items:center;gap:10px;padding:8px 10px}
 .askbar .askhint{font-size:11px;color:var(--g2);padding:8px 12px 0;line-height:1.5}
 .askbar .res{max-height:44vh;overflow:auto;border-bottom:1px solid var(--g3)}
@@ -3579,23 +3586,8 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     const [q, setQ] = useState("");
     const [res, setRes] = useState(null);
     const [focus, setFocus] = useState(false);
-    const [afloat, setAfloat] = useState(false);
-    const wrap = React.useRef(null);
     const run = () => setRes(runQuery(q, positions));
     const t = u.total(positions);
-
-    /* Inline where it sits in the page; once it scrolls under the top bar it
-       detaches to the foot of the window so the agent is always reachable. */
-    React.useEffect(() => {
-      const onScroll = () => {
-        if (!wrap.current) return;
-        setAfloat(wrap.current.getBoundingClientRect().top < 64);
-      };
-      onScroll();
-      window.addEventListener("scroll", onScroll, { passive: true });
-      window.addEventListener("resize", onScroll);
-      return () => { window.removeEventListener("scroll", onScroll); window.removeEventListener("resize", onScroll); };
-    }, []);
 
     const results = res && (
           <div className="res">
@@ -3629,9 +3621,8 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     );
 
     return (
-      <div ref={wrap} className="askwrap mt16">
-        <div className={afloat ? "askbar" : "askbar inline"}>
-        {afloat && results}
+      <div className="askbar">
+        {results}
         {!res && (focus || q) && (
           <div className="askhint">
             Read-only. Returns a filtered view of positions, never prose. Try “stale valuations”, “locked private
@@ -3647,8 +3638,6 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
           </div>
           <button className="btn sm" onClick={run}>Filter</button>
           {res && <button className="btn sm q" onClick={() => { setRes(null); setQ(""); }}>Clear</button>}
-        </div>
-        {!afloat && results}
         </div>
       </div>
     );
@@ -4556,7 +4545,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       .concat([{ k: "alloc", label: "Allocation" }, { k: "liq", label: "Liquidity" }, { k: "tax", label: "Tax" }]);
 
     return (
-      <div className="wrap page" style={{ paddingBottom: 110 }}>
+      <div className="wrap page hasagent">
         <div className="between" style={{ alignItems: "flex-start" }}>
           <div>
             <div className="eyebrow">{D.family.name} · {isSuccessor ? "Successor Mode" : "Sovereign Mode"}</div>
@@ -4954,7 +4943,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   const { useState } = React;
   const D = BB.data, u = BB.u, S = BB.store;
   const { Money, Delta, Panel, Fit, Lock } = BB.ui;
-  const { Agent, askMarket } = BB.agent;
+  const { askMarket } = BB.agent;
 
   function Row({ m, sug, onOpen, onAct }) {
     const st = S.get();
@@ -5060,7 +5049,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
 
     return (
-      <div className="wrap page">
+      <div className="wrap page hasagent">
         <div className="between">
           <div>
             <h1>Marketplace</h1>
@@ -5069,30 +5058,8 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
         <div className="row mt16" style={{ alignItems: "flex-start", gap: 16 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <Agent where="Deal fit">
-              Ranked on <b>allocation</b>, <b>liquidity</b> and <b>tax</b> together — each row's suggested amount is what
-              would bring its subcategory to the model, held back to the {u.usdC(funds)} of cash that could fund it today.
-              <div className="row tight mt12" style={{ alignItems: "center" }}>
-                <div className="search" style={{ flex: 1 }}>
-                  <input type="text" value={ask} placeholder="Ask: what closes the rebalancing? · Hanwha-sourced credit · private, under $500K"
-                    onChange={(e) => setAsk(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && setAsked(askMarket(ask, scored, ctx))} />
-                </div>
-                <button className="btn sm" onClick={() => setAsked(askMarket(ask, scored, ctx))}>Ask</button>
-                {asked && <button className="btn sm q" onClick={() => { setAsked(null); setAsk(""); }}>Clear</button>}
-              </div>
-              {asked && (
-                <div className="note mt8" style={{ background: "var(--paper)" }}>
-                  {asked.rows.length
-                    ? <><b>{asked.label}</b> — {asked.rows.length} shown below. {asked.note}</>
-                    : <>Nothing on the marketplace matches that. Members sometimes sell what they already hold on the{" "}
-                      <button className="link" onClick={() => S.navigate("/secondary")}>secondary board</button>.</>}
-                </div>
-              )}
-            </Agent>
-
             {/* filters */}
-            <div className="panel mt16">
+            <div className="panel">
               <div className="panel-bd">
                 <div className="filters">
                   <div className="f-item search" style={{ minWidth: 220 }}>
@@ -5268,6 +5235,32 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 </div>
               </Panel>
             </div>
+          </div>
+        </div>
+
+        {/* agent — fixed to the foot of the window, reachable from any scroll position */}
+        <div className="askbar agentbar">
+          {asked && (
+            <div className="askhint" style={{ paddingBottom: 8 }}>
+              {asked.rows.length
+                ? <><b>{asked.label}</b> — {asked.rows.length} shown below. {asked.note}</>
+                : <>Nothing on the marketplace matches that. Members sometimes sell what they already hold on the{" "}
+                  <button className="link" onClick={() => S.navigate("/secondary")}>secondary board</button>.</>}
+            </div>
+          )}
+          <div className="askrow">
+            <span className="lbl" style={{ whiteSpace: "nowrap" }}>Agent · Deal fit</span>
+            <div className="search" style={{ flex: 1 }}>
+              <input type="text" value={ask} placeholder="Ask: what closes the rebalancing? · Hanwha-sourced credit · private, under $500K"
+                onChange={(e) => setAsk(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && setAsked(askMarket(ask, scored, ctx))} />
+            </div>
+            <button className="btn sm" onClick={() => setAsked(askMarket(ask, scored, ctx))}>Ask</button>
+            {asked && <button className="btn sm q" onClick={() => { setAsked(null); setAsk(""); }}>Clear</button>}
+          </div>
+          <div className="askfoot">
+            Ranked on <b>allocation</b>, <b>liquidity</b> and <b>tax</b> together — each row's suggested amount is what
+            would bring its subcategory to the model, held back to the {u.usdC(funds)} of cash that could fund it today.
           </div>
         </div>
 

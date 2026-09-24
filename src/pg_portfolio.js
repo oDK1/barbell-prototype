@@ -18,23 +18,8 @@
     const [q, setQ] = useState("");
     const [res, setRes] = useState(null);
     const [focus, setFocus] = useState(false);
-    const [afloat, setAfloat] = useState(false);
-    const wrap = React.useRef(null);
     const run = () => setRes(runQuery(q, positions));
     const t = u.total(positions);
-
-    /* Inline where it sits in the page; once it scrolls under the top bar it
-       detaches to the foot of the window so the agent is always reachable. */
-    React.useEffect(() => {
-      const onScroll = () => {
-        if (!wrap.current) return;
-        setAfloat(wrap.current.getBoundingClientRect().top < 64);
-      };
-      onScroll();
-      window.addEventListener("scroll", onScroll, { passive: true });
-      window.addEventListener("resize", onScroll);
-      return () => { window.removeEventListener("scroll", onScroll); window.removeEventListener("resize", onScroll); };
-    }, []);
 
     const results = res && (
           <div className="res">
@@ -68,9 +53,8 @@
     );
 
     return (
-      <div ref={wrap} className="askwrap mt16">
-        <div className={afloat ? "askbar" : "askbar inline"}>
-        {afloat && results}
+      <div className="askbar">
+        {results}
         {!res && (focus || q) && (
           <div className="askhint">
             Read-only. Returns a filtered view of positions, never prose. Try “stale valuations”, “locked private
@@ -86,8 +70,6 @@
           </div>
           <button className="btn sm" onClick={run}>Filter</button>
           {res && <button className="btn sm q" onClick={() => { setRes(null); setQ(""); }}>Clear</button>}
-        </div>
-        {!afloat && results}
         </div>
       </div>
     );
@@ -995,7 +977,7 @@
       .concat([{ k: "alloc", label: "Allocation" }, { k: "liq", label: "Liquidity" }, { k: "tax", label: "Tax" }]);
 
     return (
-      <div className="wrap page" style={{ paddingBottom: 110 }}>
+      <div className="wrap page hasagent">
         <div className="between" style={{ alignItems: "flex-start" }}>
           <div>
             <div className="eyebrow">{D.family.name} · {isSuccessor ? "Successor Mode" : "Sovereign Mode"}</div>

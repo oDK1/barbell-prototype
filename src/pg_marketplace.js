@@ -5,7 +5,7 @@
   const { useState } = React;
   const D = BB.data, u = BB.u, S = BB.store;
   const { Money, Delta, Panel, Fit, Lock } = BB.ui;
-  const { Agent, askMarket } = BB.agent;
+  const { askMarket } = BB.agent;
 
   function Row({ m, sug, onOpen, onAct }) {
     const st = S.get();
@@ -111,7 +111,7 @@
 
 
     return (
-      <div className="wrap page">
+      <div className="wrap page hasagent">
         <div className="between">
           <div>
             <h1>Marketplace</h1>
@@ -120,30 +120,8 @@
 
         <div className="row mt16" style={{ alignItems: "flex-start", gap: 16 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <Agent where="Deal fit">
-              Ranked on <b>allocation</b>, <b>liquidity</b> and <b>tax</b> together — each row's suggested amount is what
-              would bring its subcategory to the model, held back to the {u.usdC(funds)} of cash that could fund it today.
-              <div className="row tight mt12" style={{ alignItems: "center" }}>
-                <div className="search" style={{ flex: 1 }}>
-                  <input type="text" value={ask} placeholder="Ask: what closes the rebalancing? · Hanwha-sourced credit · private, under $500K"
-                    onChange={(e) => setAsk(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && setAsked(askMarket(ask, scored, ctx))} />
-                </div>
-                <button className="btn sm" onClick={() => setAsked(askMarket(ask, scored, ctx))}>Ask</button>
-                {asked && <button className="btn sm q" onClick={() => { setAsked(null); setAsk(""); }}>Clear</button>}
-              </div>
-              {asked && (
-                <div className="note mt8" style={{ background: "var(--paper)" }}>
-                  {asked.rows.length
-                    ? <><b>{asked.label}</b> — {asked.rows.length} shown below. {asked.note}</>
-                    : <>Nothing on the marketplace matches that. Members sometimes sell what they already hold on the{" "}
-                      <button className="link" onClick={() => S.navigate("/secondary")}>secondary board</button>.</>}
-                </div>
-              )}
-            </Agent>
-
             {/* filters */}
-            <div className="panel mt16">
+            <div className="panel">
               <div className="panel-bd">
                 <div className="filters">
                   <div className="f-item search" style={{ minWidth: 220 }}>
@@ -319,6 +297,32 @@
                 </div>
               </Panel>
             </div>
+          </div>
+        </div>
+
+        {/* agent — fixed to the foot of the window, reachable from any scroll position */}
+        <div className="askbar agentbar">
+          {asked && (
+            <div className="askhint" style={{ paddingBottom: 8 }}>
+              {asked.rows.length
+                ? <><b>{asked.label}</b> — {asked.rows.length} shown below. {asked.note}</>
+                : <>Nothing on the marketplace matches that. Members sometimes sell what they already hold on the{" "}
+                  <button className="link" onClick={() => S.navigate("/secondary")}>secondary board</button>.</>}
+            </div>
+          )}
+          <div className="askrow">
+            <span className="lbl" style={{ whiteSpace: "nowrap" }}>Agent · Deal fit</span>
+            <div className="search" style={{ flex: 1 }}>
+              <input type="text" value={ask} placeholder="Ask: what closes the rebalancing? · Hanwha-sourced credit · private, under $500K"
+                onChange={(e) => setAsk(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && setAsked(askMarket(ask, scored, ctx))} />
+            </div>
+            <button className="btn sm" onClick={() => setAsked(askMarket(ask, scored, ctx))}>Ask</button>
+            {asked && <button className="btn sm q" onClick={() => { setAsked(null); setAsk(""); }}>Clear</button>}
+          </div>
+          <div className="askfoot">
+            Ranked on <b>allocation</b>, <b>liquidity</b> and <b>tax</b> together — each row's suggested amount is what
+            would bring its subcategory to the model, held back to the {u.usdC(funds)} of cash that could fund it today.
           </div>
         </div>
 

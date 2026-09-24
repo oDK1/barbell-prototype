@@ -62,7 +62,7 @@
 
   function Marketplace({ route }) {
     const st = S.useStore();
-    const [f, setF] = useState({ cls: "", liq: "", min: "", sector: "", geo: "", ccy: "", ret: "" });
+    const [f, setF] = useState({ cls: "", liq: "", min: "", sector: "", geo: "", ret: "" });
     const [q, setQ] = useState("");
     const [act, setAct] = useState(null);
     const [ask, setAsk] = useState("");
@@ -89,7 +89,6 @@
       if (f.min && m.min > +f.min) return false;
       if (f.sector && m.sector !== f.sector) return false;
       if (f.geo && m.geo !== f.geo) return false;
-      if (f.ccy && m.ccy !== f.ccy) return false;
       if (f.ret && m.retNum < +f.ret) return false;
       if (q && !(m.name + " " + (m.ticker || "") + " " + m.sector).toLowerCase().includes(q.toLowerCase())) return false;
       return true;
@@ -102,13 +101,10 @@
       .filter((m) => m.kind === "private" && m.min <= capacity)
       .sort((a, b) => b.s.score - a.s.score);
     const top3 = all.slice(0, 3);
-    /* one offering per under-model subcategory, and what they would absorb together */
     /* what could actually fund a purchase today */
     const funds = st.account === "principal"
       ? u.total(st.positions.filter((x) => x.cls === "cash"))
       : S.alphaCapacity();
-    const toModel = Object.keys(ctx.under).filter((k) => ctx.under[k] > 0.2)
-      .reduce((sum, k) => sum + (ctx.under[k] / 100) * ctx.t, 0);
     const sectors = Array.from(new Set(D.market.map((m) => m.sector))).sort();
     const geos = Array.from(new Set(D.market.map((m) => m.geo))).sort();
 
@@ -120,17 +116,7 @@
       <div className="wrap page">
         <div className="between">
           <div>
-            <div className="eyebrow">Marketplace</div>
-            <h1 className="mt8">What to buy next</h1>
-            <div className="sub mt8" style={{ maxWidth: "76ch" }}>
-              {isSuccessor
-                ? <>One ranked list, scored against where the book sits versus the model, what the next two years of
-                  capital calls demand, and what has already been realised for tax. This account holds the Alpha sleeve,
-                  so the list is the private-market side of the book.</>
-                : <>One ranked list, scored against three things: where the book sits versus the model, what the next two
-                  years of capital calls demand, and what has already been realised for tax. A treasury ETF and a senior
-                  secured credit facility compete on the same grounds; only the button differs.</>}
-            </div>
+            <h1>Marketplace</h1>
           </div>
         </div>
 
@@ -146,21 +132,8 @@
                       " lots inside 65 days of long-term",
                     "Instrument merit: terms, manager record, security package, overlap with what is already held",
                     "Weighting: merit 35% · allocation 30% · liquidity 20% · tax 15%"]}>
-              Ranked on three situations rather than one. <b>Allocation</b> —{" "}
-              {ctx.worst.under > 0
-                ? <>the book is {u.num(ctx.worst.under, 1)}pp under the model in {ctx.worst.label}</>
-                : <>the book sits at or above the model in every subcategory</>}. <b>Liquidity</b> —{" "}
-              {ctx.short
-                ? <>{u.usdC(ctx.calls24)} of calls over 24 months break projected cash in {ctx.short.month}, so a ten-year
-                  lock-up is scored against that</>
-                : <>{u.usdC(ctx.calls24)} of calls are covered, so illiquidity can be paid for</>}.{" "}
-              <b>Tax</b> — {u.usd(ctx.tax.realized)} of gains are already realised this year, which favours deferral over
-              instruments that pay taxable income now.
-              {isSuccessor && <> {readyNow.length} private-market {readyNow.length === 1 ? "offering fits" : "offerings fit"} inside
-                your {u.usd(capacity)} of remaining capacity and can be committed without approval.</>}
-              {" "}Each row carries a <b>suggested amount</b>: what it would take to bring its subcategory to the model,
-              held back to the {u.usdC(funds)} of cash that could fund it today. Closing every under-model subcategory
-              would take <b>{u.usdC(toModel)}</b> — more than is liquid, so this is a sequence, not a single afternoon.
+              Ranked on <b>allocation</b>, <b>liquidity</b> and <b>tax</b> together — each row's suggested amount is what
+              would bring its subcategory to the model, held back to the {u.usdC(funds)} of cash that could fund it today.
               <div className="row tight mt12" style={{ alignItems: "center" }}>
                 <div className="search" style={{ flex: 1 }}>
                   <input type="text" value={ask} placeholder="Ask: what closes the rebalancing? · Hanwha-sourced credit · private, under $500K"
@@ -208,24 +181,19 @@
                     <select value={f.geo} onChange={(e) => setF({ ...f, geo: e.target.value })}>
                       <option value="">Any</option>{geos.map((s) => <option key={s}>{s}</option>)}
                     </select></label></div>
-                  <div className="f-item"><label className="f"><span>Currency</span>
-                    <select value={f.ccy} onChange={(e) => setF({ ...f, ccy: e.target.value })}>
-                      <option value="">Any</option><option>USD</option><option>KRW</option>
-                    </select></label></div>
                   <div className="f-item"><label className="f"><span>Target return</span>
                     <select value={f.ret} onChange={(e) => setF({ ...f, ret: e.target.value })}>
                       <option value="">Any</option><option value="4">4%+</option><option value="6">6%+</option>
                       <option value="8">8%+</option><option value="12">12%+</option>
                     </select></label></div>
-                  <button className="btn" onClick={() => { setF({ cls: "", liq: "", min: "", sector: "", geo: "", ccy: "", ret: "" }); setQ(""); }}>Reset</button>
+                  <button className="btn" onClick={() => { setF({ cls: "", liq: "", min: "", sector: "", geo: "", ret: "" }); setQ(""); }}>Reset</button>
                 </div>
-                <div className="tri mt8" style={{ fontSize: 11, maxWidth: "78ch" }}>
-                  {lens
-                    ? <>This account sees private-market offerings — funds, co-investments, secondaries and direct
-                      credit. Listed instruments settle in the Core sleeve, which is the Principal's remit.</>
-                    : <>There is no public / private filter. A member who wants liquid instruments filters on liquidity,
-                      which is what they actually mean.</>}
-                </div>
+                {lens && (
+                  <div className="tri mt8" style={{ fontSize: 11, maxWidth: "78ch" }}>
+                    This account sees private-market offerings — funds, co-investments, secondaries and direct
+                    credit. Listed instruments settle in the Core sleeve, which is the Principal's remit.
+                  </div>
+                )}
               </div>
             </div>
 
@@ -298,6 +266,24 @@
             </Panel>
 
             <div className="mt16">
+              <Panel title="Invitations" sub={st.referrals.sent + " sent · " + st.referrals.joined + " joined"}>
+                <table className="t dense">
+                  <tbody>
+                    {st.referrals.invites.slice(0, 5).map((i) => (
+                      <tr key={i.id}>
+                        <td><div className="tname" style={{ fontSize: 12 }}>{i.to}</div><div className="tsub">{i.deal}</div></td>
+                        <td className="n"><span className="bdg plain">{i.state}</span></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <div className="tri mt8" style={{ fontSize: 11 }}>
+                  Members invite members. Recipients see the thesis; terms and allocation stay gated behind a membership request.
+                </div>
+              </Panel>
+            </div>
+
+            <div className="mt16">
               <Panel title="Liquidity context" sub="What the next two years demand">
                 <div className="kv">
                   <span className="k">Calls · next 90 days</span><span className="v">{u.usdC(ctx.calls90)}</span>
@@ -331,24 +317,6 @@
                     : "Little realised so far, so income and deferral are scored alike."}
                 </div>
                 <button className="btn sm block mt8" onClick={() => S.navigate("/portfolio?tab=tax")}>Open the tax view</button>
-              </Panel>
-            </div>
-
-            <div className="mt16">
-              <Panel title="Invitations" sub={st.referrals.sent + " sent · " + st.referrals.joined + " joined"}>
-                <table className="t dense">
-                  <tbody>
-                    {st.referrals.invites.slice(0, 5).map((i) => (
-                      <tr key={i.id}>
-                        <td><div className="tname" style={{ fontSize: 12 }}>{i.to}</div><div className="tsub">{i.deal}</div></td>
-                        <td className="n"><span className="bdg plain">{i.state}</span></td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                <div className="tri mt8" style={{ fontSize: 11 }}>
-                  Members invite members. Recipients see the thesis; terms and allocation stay gated behind a membership request.
-                </div>
               </Panel>
             </div>
 

@@ -1530,7 +1530,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     invites: [
       { id: "r1", to: "Member of Daesan family office", deal: "Northgate Data Center Credit Facility II", ts: "2026-09-10", state: "Viewed" },
       { id: "r2", to: "S.H. Chung", deal: "Meridian Venture Partners XII", ts: "2026-08-22", state: "Joined" },
-      { id: "r3", to: "Kwon family office", deal: "Songdo Hyperscale DC Platform II", ts: "2026-07-30", state: "Sent" },
+      { id: "r3", to: "Kwon family office", deal: "Songdo Hyperscale DC Platform II", ts: "2026-07-30", state: "Committed" },
     ] };
 
   const liquidityAssumptions = { monthlyIncome: 95000, monthlySpend: 120000, reserveFloor: 1500000 };
@@ -3157,7 +3157,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 /* / — demo entry. Two accounts, one family office. */
 (function () {
   const D = BB.data, u = BB.u, S = BB.store;
-  const { Dropzone, FileRow, AccountCards, Steps } = BB.ui;
+  const { Dropzone, FileRow, Steps } = BB.ui;
 
   function Switcher() {
     const st = S.useStore();
@@ -3168,18 +3168,11 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
         <h1 className="mt8">{D.family.name}</h1>
         <div className="sub mt8" style={{ maxWidth: "70ch" }}>
           One balance sheet — public and private, liquid and illiquid — held by two accounts with different authority.
-          Choose an account to begin, or switch at any time from the top right.
+          Switch between them at any time from the top right.
         </div>
-
-        {/* picking an account signs in as them and opens their book */}
-        <div className="between mt24 mb12">
-          <h2>Choose an account</h2>
-          <span className="tri" style={{ fontSize: 11.5 }}>Opens the reconciled book as that account</span>
-        </div>
-        <AccountCards onPick={(k) => { S.actions.setAccount(k); S.navigate("/portfolio"); }} />
 
         {/* the way in: three steps, stated before the first one is asked for */}
-        <div className="between mt32 mb12">
+        <div className="between mt24 mb12">
           <h2>Set the book up</h2>
           <span className="tri" style={{ fontSize: 11.5 }}>Three steps · about two minutes</span>
         </div>
@@ -3230,7 +3223,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 (function () {
   const { useState, useEffect, useRef } = React;
   const D = BB.data, u = BB.u, S = BB.store;
-  const { Money, Panel, Amount, Dropzone, FileRow, ModeStrip, AccountCards, Steps, Lock } = BB.ui;
+  const { Money, Panel, Amount, Dropzone, FileRow, Steps, Lock } = BB.ui;
   const { Agent } = BB.agent;
 
   const STEP_MS = 750;
@@ -3257,8 +3250,6 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
     return (
       <div className="wrap page" style={{ maxWidth: 1080 }}>
-        <AccountCards />
-        <div className="mt24" />
         <Steps at="upload" />
         <h1>Bring the spreadsheets in</h1>
         <div className="sub mt8" style={{ maxWidth: "72ch" }}>
@@ -3355,7 +3346,6 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
     return (
       <div className="wrap page">
-        <ModeStrip />
         <Steps at="reconcile" />
         <div className="between">
           <div>
@@ -3418,7 +3408,6 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
     return (
       <div className="wrap page" style={{ maxWidth: 1180 }}>
-        <ModeStrip />
         <Steps at="mandate" />
         <h1>Set the posture</h1>
         <div className="sub mt8" style={{ maxWidth: "74ch" }}>

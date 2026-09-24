@@ -2,7 +2,7 @@
 (function () {
   const { useState, useEffect, useRef } = React;
   const D = BB.data, u = BB.u, S = BB.store;
-  const { Money, Panel, Amount, Dropzone, FileRow, ModeStrip, AccountCards, Steps, Lock } = BB.ui;
+  const { Money, Panel, Amount, Dropzone, FileRow, Steps, Lock } = BB.ui;
   const { Agent } = BB.agent;
 
   const STEP_MS = 750;
@@ -29,8 +29,6 @@
 
     return (
       <div className="wrap page" style={{ maxWidth: 1080 }}>
-        <AccountCards />
-        <div className="mt24" />
         <Steps at="upload" />
         <h1>Bring the spreadsheets in</h1>
         <div className="sub mt8" style={{ maxWidth: "72ch" }}>
@@ -127,7 +125,6 @@
 
     return (
       <div className="wrap page">
-        <ModeStrip />
         <Steps at="reconcile" />
         <div className="between">
           <div>
@@ -190,7 +187,6 @@
 
     return (
       <div className="wrap page" style={{ maxWidth: 1180 }}>
-        <ModeStrip />
         <Steps at="mandate" />
         <h1>Set the posture</h1>
         <div className="sub mt8" style={{ maxWidth: "74ch" }}>

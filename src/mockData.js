@@ -812,7 +812,7 @@
     invites: [
       { id: "r1", to: "Member of Daesan family office", deal: "Northgate Data Center Credit Facility II", ts: "2026-09-10", state: "Viewed" },
       { id: "r2", to: "S.H. Chung", deal: "Meridian Venture Partners XII", ts: "2026-08-22", state: "Joined" },
-      { id: "r3", to: "Kwon family office", deal: "Songdo Hyperscale DC Platform II", ts: "2026-07-30", state: "Sent" },
+      { id: "r3", to: "Kwon family office", deal: "Songdo Hyperscale DC Platform II", ts: "2026-07-30", state: "Committed" },
     ] };
 
   const liquidityAssumptions = { monthlyIncome: 95000, monthlySpend: 120000, reserveFloor: 1500000 };

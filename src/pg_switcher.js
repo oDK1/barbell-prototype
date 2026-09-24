@@ -1,7 +1,7 @@
 /* / — demo entry. Two accounts, one family office. */
 (function () {
   const D = BB.data, u = BB.u, S = BB.store;
-  const { Dropzone, FileRow, AccountCards, Steps } = BB.ui;
+  const { Dropzone, FileRow, Steps } = BB.ui;
 
   function Switcher() {
     const st = S.useStore();
@@ -12,18 +12,11 @@
         <h1 className="mt8">{D.family.name}</h1>
         <div className="sub mt8" style={{ maxWidth: "70ch" }}>
           One balance sheet — public and private, liquid and illiquid — held by two accounts with different authority.
-          Choose an account to begin, or switch at any time from the top right.
+          Switch between them at any time from the top right.
         </div>
-
-        {/* picking an account signs in as them and opens their book */}
-        <div className="between mt24 mb12">
-          <h2>Choose an account</h2>
-          <span className="tri" style={{ fontSize: 11.5 }}>Opens the reconciled book as that account</span>
-        </div>
-        <AccountCards onPick={(k) => { S.actions.setAccount(k); S.navigate("/portfolio"); }} />
 
         {/* the way in: three steps, stated before the first one is asked for */}
-        <div className="between mt32 mb12">
+        <div className="between mt24 mb12">
           <h2>Set the book up</h2>
           <span className="tri" style={{ fontSize: 11.5 }}>Three steps · about two minutes</span>
         </div>

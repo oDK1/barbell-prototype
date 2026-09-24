@@ -42,8 +42,9 @@
               ))}
             </div>
             <div className="btn-row mt12">
+              {/* The read is assumed done — go straight to what needs a decision. */}
               <button className="btn p lg" disabled={!st.uploads.length}
-                onClick={() => S.navigate("/onboarding/upload")}>
+                onClick={() => { S.actions.setIngestDone(true); S.navigate("/onboarding/reconcile"); }}>
                 Read {st.uploads.length} files and extract positions →
               </button>
               <span className="tri" style={{ fontSize: 11.5 }}>

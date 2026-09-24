@@ -62,7 +62,7 @@
 
   function Marketplace({ route }) {
     const st = S.useStore();
-    const [f, setF] = useState({ cls: "", liq: "", min: "", sector: "", geo: "", ret: "" });
+    const [f, setF] = useState({ cls: "", liq: "", sector: "", geo: "", ret: "" });
     const [q, setQ] = useState("");
     const [act, setAct] = useState(null);
     const [ask, setAsk] = useState("");
@@ -78,7 +78,6 @@
 
     const t = u.total(st.positions);
     const capacity = S.alphaCapacity();
-    const mandateLabel = (D.mandates.find((m) => m.key === st.mandate) || D.mandates[1]).label;
     const model = u.modelWeights(t, st.mandate);
 
     const pass = (m) => {
@@ -86,7 +85,6 @@
       if (gapFocus && m.fills !== gapFocus) return false;
       if (f.cls && m.cls !== f.cls) return false;
       if (f.liq && m.liq !== f.liq) return false;
-      if (f.min && m.min > +f.min) return false;
       if (f.sector && m.sector !== f.sector) return false;
       if (f.geo && m.geo !== f.geo) return false;
       if (f.ret && m.retNum < +f.ret) return false;
@@ -122,16 +120,7 @@
 
         <div className="row mt16" style={{ alignItems: "flex-start", gap: 16 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <Agent where="Deal fit"
-              why={["Allocation: current subcategory weights against the model for " + u.usdC(t) + " · " + mandateLabel,
-                    "Liquidity: " + u.usdC(ctx.calls24) + " of capital calls over 24 months against " +
-                      u.usdC(ctx.liq.within90) + " redeemable inside 90 days" +
-                      (ctx.short ? " · projected cash breaks in " + ctx.short.month : ""),
-                    "Tax: " + u.usd(ctx.tax.realized) + " realised year to date, " + u.usd(ctx.tax.harvestable) +
-                      " of harvestable loss in " + ctx.tax.harvestCount + " positions, " + ctx.tax.nearLT +
-                      " lots inside 65 days of long-term",
-                    "Instrument merit: terms, manager record, security package, overlap with what is already held",
-                    "Weighting: merit 35% · allocation 30% · liquidity 20% · tax 15%"]}>
+            <Agent where="Deal fit">
               Ranked on <b>allocation</b>, <b>liquidity</b> and <b>tax</b> together — each row's suggested amount is what
               would bring its subcategory to the model, held back to the {u.usdC(funds)} of cash that could fund it today.
               <div className="row tight mt12" style={{ alignItems: "center" }}>
@@ -168,11 +157,6 @@
                     <select value={f.liq} onChange={(e) => setF({ ...f, liq: e.target.value })}>
                       <option value="">Any</option><option>Daily</option><option>Quarterly</option><option>Locked</option>
                     </select></label></div>
-                  <div className="f-item"><label className="f"><span>Minimum up to</span>
-                    <select value={f.min} onChange={(e) => setF({ ...f, min: e.target.value })}>
-                      <option value="">Any</option><option value="10000">$10,000</option><option value="100000">$100,000</option>
-                      <option value="250000">$250,000</option><option value="500000">$500,000</option><option value="1000000">$1,000,000</option>
-                    </select></label></div>
                   <div className="f-item"><label className="f"><span>Sector</span>
                     <select value={f.sector} onChange={(e) => setF({ ...f, sector: e.target.value })}>
                       <option value="">Any</option>{sectors.map((s) => <option key={s}>{s}</option>)}
@@ -186,7 +170,7 @@
                       <option value="">Any</option><option value="4">4%+</option><option value="6">6%+</option>
                       <option value="8">8%+</option><option value="12">12%+</option>
                     </select></label></div>
-                  <button className="btn" onClick={() => { setF({ cls: "", liq: "", min: "", sector: "", geo: "", ret: "" }); setQ(""); }}>Reset</button>
+                  <button className="btn" onClick={() => { setF({ cls: "", liq: "", sector: "", geo: "", ret: "" }); setQ(""); }}>Reset</button>
                 </div>
                 {lens && (
                   <div className="tri mt8" style={{ fontSize: 11, maxWidth: "78ch" }}>

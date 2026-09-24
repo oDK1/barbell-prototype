@@ -13,11 +13,13 @@
           <span className="k" style={tone === "warn" ? { color: "var(--amber)" } : null}>Agent · {where}</span>
         </div>
         <div className="ab">{children}</div>
-        <div className="aa">
-          {actions}
-          <button className="link g" onClick={() => setOpen(!open)}>{open ? "Hide inputs" : "Why this?"}</button>
-        </div>
-        {open && (
+        {(actions || why) && (
+          <div className="aa">
+            {actions}
+            {why && <button className="link g" onClick={() => setOpen(!open)}>{open ? "Hide inputs" : "Why this?"}</button>}
+          </div>
+        )}
+        {open && why && (
           <div className="why">
             <div className="lbl" style={{ marginBottom: 2 }}>Inputs used</div>
             <ul>{why.map((w, i) => <li key={i}>{w}</li>)}</ul>

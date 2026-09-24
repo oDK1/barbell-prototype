@@ -997,11 +997,6 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
   /* 7 deliberate exceptions. Everything else lands high-confidence. */
   const exceptions = [
-    { id: "e1", kind: "Unmatched ticker", file: "Holdings_Master_2026Q3.xlsx", cell: "Sheet1!B14",
-      raw: "HNMI CHEM (구) 보통주", qty: "29,865", conf: 0.41,
-      issue: "Ticker string matches two listed securities. Cost basis suggests a 2009 acquisition.",
-      type: "select", options: ["Hanmi Chemical Holdings Co., Ltd. · 004370.KS", "Hanmi Pharm Co., Ltd. · 128940.KS", "Create as unlisted holding"],
-      answer: "Hanmi Chemical Holdings Co., Ltd. · 004370.KS" },
     { id: "e3", kind: "Duplicate across files", file: "PE_Capital_Calls_v7_FINAL.xlsx + 부동산_임대현황.xlsx", cell: "Fund List!A18 ↔ Sheet1!B22",
       raw: "Songdo Hyperscale DC Platform / 송도 데이터센터 지분", qty: "—", conf: 0.63,
       issue: "The same position appears in two files with values $2,340,000 and ₩3.24B ($2,342,733). Booking both would overstate assets by 3.8%.",
@@ -1514,7 +1509,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     { id: "l8", ts: "2026-08-29T08:15:00+09:00", who: "principal", kind: "Approval", text: "Approved proposal — Commit $250,000 to Helios AI Infrastructure SPV II", detail: "Comment: keep single-company exposure under 5% of the sleeve." },
     { id: "l9", ts: "2026-08-15T10:02:00+09:00", who: "principal", kind: "Approval", text: "Returned proposal — Sell $600,000 Apple 3.85% 2043", detail: "Returned with comment for resubmission." },
     { id: "l10", ts: "2026-08-04T11:40:00+09:00", who: "successor", kind: "Commitment", text: "Committed $250,000 to Meridian Venture Partners XII", detail: "Within Alpha sleeve capacity. Executed directly." },
-    { id: "l11", ts: "2026-07-22T15:05:00+09:00", who: "principal", kind: "Onboarding", text: "Portfolio ingestion completed — 42 positions mapped", detail: "3 source files. 3 exceptions resolved by the Principal." },
+    { id: "l11", ts: "2026-07-22T15:05:00+09:00", who: "principal", kind: "Onboarding", text: "Portfolio ingestion completed — 42 positions mapped", detail: "3 source files. 2 exceptions resolved by the Principal." },
   ];
 
   /* ------------------------------------------------ operations (internal) */
@@ -3278,8 +3273,8 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                   "Duplicate detection across files on name, value and date"]}>
             {done
               ? <>Extraction complete. <b>45 rows read · 42 positions mapped · {D.exceptions.length} need review.</b>{" "}
-                Three rows could not be resolved without a decision from you: an unmatched ticker, a position counted
-                twice across two files, and an amount with no currency on it.</>
+                Two rows could not be resolved without a decision from you: a position counted twice across two
+                files, and an amount with no currency on it.</>
               : <>Reading the files. Positions are matched against the security master, then reconciled against the capital
                 call schedule.</>}
           </Agent>
@@ -3412,13 +3407,13 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     return (
       <div className="wrap page" style={{ maxWidth: 1180 }}>
         <Steps at="mandate" />
-        <h1>Set the posture</h1>
-        <div className="sub mt8" style={{ maxWidth: "74ch" }}>
-          This sets the Core/Alpha split and the target allocation the model is drawn against. It is the reference the rest
-          of the product reads from — not a trading trigger.
-          {st.account === "successor" && <> <b>The Principal settles this one</b> — you can look at the three postures,
-          but choosing between them is theirs.</>}
-        </div>
+        <h1>Mandate</h1>
+        {/* the authority note stays — it explains why the cards are locked for this account */}
+        {st.account === "successor" && (
+          <div className="sub mt8" style={{ maxWidth: "74ch" }}>
+            <b>The Principal settles this one</b> — you can look at the three postures, but choosing between them is theirs.
+          </div>
+        )}
 
         {/* what the three files turned into, stated beside the choice it governs */}
         <div className="grid mt16" style={{ gridTemplateColumns: "0.85fr repeat(" + D.mandates.length + ", 1fr)" }}>

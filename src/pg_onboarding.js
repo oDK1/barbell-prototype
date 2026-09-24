@@ -56,8 +56,8 @@
                   "Duplicate detection across files on name, value and date"]}>
             {done
               ? <>Extraction complete. <b>45 rows read · 42 positions mapped · {D.exceptions.length} need review.</b>{" "}
-                Three rows could not be resolved without a decision from you: an unmatched ticker, a position counted
-                twice across two files, and an amount with no currency on it.</>
+                Two rows could not be resolved without a decision from you: a position counted twice across two
+                files, and an amount with no currency on it.</>
               : <>Reading the files. Positions are matched against the security master, then reconciled against the capital
                 call schedule.</>}
           </Agent>
@@ -190,13 +190,13 @@
     return (
       <div className="wrap page" style={{ maxWidth: 1180 }}>
         <Steps at="mandate" />
-        <h1>Set the posture</h1>
-        <div className="sub mt8" style={{ maxWidth: "74ch" }}>
-          This sets the Core/Alpha split and the target allocation the model is drawn against. It is the reference the rest
-          of the product reads from — not a trading trigger.
-          {st.account === "successor" && <> <b>The Principal settles this one</b> — you can look at the three postures,
-          but choosing between them is theirs.</>}
-        </div>
+        <h1>Mandate</h1>
+        {/* the authority note stays — it explains why the cards are locked for this account */}
+        {st.account === "successor" && (
+          <div className="sub mt8" style={{ maxWidth: "74ch" }}>
+            <b>The Principal settles this one</b> — you can look at the three postures, but choosing between them is theirs.
+          </div>
+        )}
 
         {/* what the three files turned into, stated beside the choice it governs */}
         <div className="grid mt16" style={{ gridTemplateColumns: "0.85fr repeat(" + D.mandates.length + ", 1fr)" }}>

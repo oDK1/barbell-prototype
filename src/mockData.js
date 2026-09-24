@@ -279,11 +279,6 @@
 
   /* 7 deliberate exceptions. Everything else lands high-confidence. */
   const exceptions = [
-    { id: "e1", kind: "Unmatched ticker", file: "Holdings_Master_2026Q3.xlsx", cell: "Sheet1!B14",
-      raw: "HNMI CHEM (구) 보통주", qty: "29,865", conf: 0.41,
-      issue: "Ticker string matches two listed securities. Cost basis suggests a 2009 acquisition.",
-      type: "select", options: ["Hanmi Chemical Holdings Co., Ltd. · 004370.KS", "Hanmi Pharm Co., Ltd. · 128940.KS", "Create as unlisted holding"],
-      answer: "Hanmi Chemical Holdings Co., Ltd. · 004370.KS" },
     { id: "e3", kind: "Duplicate across files", file: "PE_Capital_Calls_v7_FINAL.xlsx + 부동산_임대현황.xlsx", cell: "Fund List!A18 ↔ Sheet1!B22",
       raw: "Songdo Hyperscale DC Platform / 송도 데이터센터 지분", qty: "—", conf: 0.63,
       issue: "The same position appears in two files with values $2,340,000 and ₩3.24B ($2,342,733). Booking both would overstate assets by 3.8%.",
@@ -796,7 +791,7 @@
     { id: "l8", ts: "2026-08-29T08:15:00+09:00", who: "principal", kind: "Approval", text: "Approved proposal — Commit $250,000 to Helios AI Infrastructure SPV II", detail: "Comment: keep single-company exposure under 5% of the sleeve." },
     { id: "l9", ts: "2026-08-15T10:02:00+09:00", who: "principal", kind: "Approval", text: "Returned proposal — Sell $600,000 Apple 3.85% 2043", detail: "Returned with comment for resubmission." },
     { id: "l10", ts: "2026-08-04T11:40:00+09:00", who: "successor", kind: "Commitment", text: "Committed $250,000 to Meridian Venture Partners XII", detail: "Within Alpha sleeve capacity. Executed directly." },
-    { id: "l11", ts: "2026-07-22T15:05:00+09:00", who: "principal", kind: "Onboarding", text: "Portfolio ingestion completed — 42 positions mapped", detail: "3 source files. 3 exceptions resolved by the Principal." },
+    { id: "l11", ts: "2026-07-22T15:05:00+09:00", who: "principal", kind: "Onboarding", text: "Portfolio ingestion completed — 42 positions mapped", detail: "3 source files. 2 exceptions resolved by the Principal." },
   ];
 
   /* ------------------------------------------------ operations (internal) */

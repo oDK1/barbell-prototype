@@ -1461,6 +1461,15 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       account: [["2021-07-01", "Funded", 1100000], ["2024-06-30", "NAV mark", 960000], ["2026-06-30", "NAV mark", 890000]] },
   ];
 
+  /* The two listings that open "Under negotiation" have the bids that put them
+     there, so the seller's queue matches the badge. */
+  const bidsSeed = [
+    { id: "b1", listingId: "s04", price: 85.0, size: 300000, ts: "2026-09-15T10:20:00+09:00",
+      bidder: "Member #0233", status: "Submitted" },
+    { id: "b2", listingId: "s07", price: 96.0, size: 400000, ts: "2026-09-11T14:05:00+09:00",
+      bidder: "Member #0512", status: "Submitted" },
+  ];
+
   /* ------------------------------------------------------------ approvals */
   const approvalsSeed = [
     { id: "a1", ts: "2026-09-17T11:22:00+09:00", from: "successor", type: "Commitment",
@@ -1524,7 +1533,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     KRW, TODAY, family, accounts, classes, subs, positions,
     uploadFiles, ingestSteps, exceptions, mandates, survey, modelPortfolios,
     capitalCalls, distributions, benchmark, performance, attribution, modelGoals, ALT_SUBS, expectedReturn, expectedVol, classCorr, idiosyncraticVol,
-    market, secondary, approvalsSeed, activitySeed, opsLedger, referrals, liquidityAssumptions,
+    market, secondary, bidsSeed, approvalsSeed, activitySeed, opsLedger, referrals, liquidityAssumptions,
   };
 })();
 
@@ -1933,7 +1942,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     approvals: clone(D.approvalsSeed),
     activity: clone(D.activitySeed),
     listings: clone(D.secondary),
-    bids: [],
+    bids: clone(D.bidsSeed),
     ops: clone(D.opsLedger),
     referrals: clone(D.referrals),
     mandate: "balanced",
@@ -5595,9 +5604,14 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   const D = BB.data, u = BB.u, S = BB.store;
   const { Money, Delta, Panel, Crumb, Lock } = BB.ui;
 
+  const STATUS_MEANS = {
+    "Open": "No bids yet. Take the ask, or bid below it.",
+    "Under negotiation": "A bid below the ask is with the seller. Taking the ask still settles immediately.",
+    "Settled": "Sold. Ownership record updated.",
+  };
   function StatusBadge({ s }) {
     const cls = s === "Settled" ? "live" : s === "Under negotiation" ? "self warn" : "plain";
-    return <span className={"bdg " + cls}>{cls !== "plain" && <i className="pt" />}{s}</span>;
+    return <span className={"bdg " + cls} title={STATUS_MEANS[s] || ""}>{cls !== "plain" && <i className="pt" />}{s}</span>;
   }
 
   function Board() {
@@ -5642,7 +5656,9 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
         <div className="panel mt16">
           <div className="panel-hd">
             <h3>Listings</h3>
-            <span className="tri" style={{ fontSize: 11 }}>Sellers are blind identifiers. Indicative pricing is the platform's estimated fair range.</span>
+            <span className="tri" style={{ fontSize: 11 }}>
+              Sellers are blind identifiers · “Under negotiation” means a bid is with the seller; the ask is still open
+            </span>
           </div>
           <table className="t">
             <thead>
@@ -5667,7 +5683,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                   <td className="n num">{l.days}</td>
                   <td><StatusBadge s={l.status} /></td>
                   <td className="right">
-                    {l.status === "Open" && !l.mine
+                    {l.status !== "Settled" && !l.mine
                       ? <Lock sleeve={st.account === "successor" ? "alpha" : "core"}>
                           <button className="btn sm" onClick={(e) => { e.stopPropagation(); setBuy(l); }}>
                             Buy at {u.pct(l.askPct)}
@@ -5760,6 +5776,12 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
           </div>
         </div>
 
+        {l.status !== "Open" && (
+          <div className={"note mt12 " + (l.status === "Settled" ? "" : "warn")}>
+            <b>{l.status}.</b> {STATUS_MEANS[l.status]}
+          </div>
+        )}
+
         <div className="band mt16">
           <div className="cell"><div className="stat-l">Last NAV</div><div className="stat-v"><Money v={l.nav} compact /></div>
             <div className="stat-s">as of 30 Jun 2026</div></div>
@@ -5811,7 +5833,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
               <tbody>
                 {bids.map((b) => (
                   <tr key={b.id}>
-                    <td className="mono">{b.from === "principal" ? "Member #0147" : "Member #0148"}</td>
+                    <td className="mono">{b.bidder || (b.from === "principal" ? "Member #0147" : "Member #0148")}</td>
                     <td className="num">{u.fmtTs(b.ts)}</td>
                     <td className="n num">{u.pct(b.price)}</td>
                     <td className="n num">{u.usd(b.size)}</td>

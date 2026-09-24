@@ -750,6 +750,15 @@
       account: [["2021-07-01", "Funded", 1100000], ["2024-06-30", "NAV mark", 960000], ["2026-06-30", "NAV mark", 890000]] },
   ];
 
+  /* The two listings that open "Under negotiation" have the bids that put them
+     there, so the seller's queue matches the badge. */
+  const bidsSeed = [
+    { id: "b1", listingId: "s04", price: 85.0, size: 300000, ts: "2026-09-15T10:20:00+09:00",
+      bidder: "Member #0233", status: "Submitted" },
+    { id: "b2", listingId: "s07", price: 96.0, size: 400000, ts: "2026-09-11T14:05:00+09:00",
+      bidder: "Member #0512", status: "Submitted" },
+  ];
+
   /* ------------------------------------------------------------ approvals */
   const approvalsSeed = [
     { id: "a1", ts: "2026-09-17T11:22:00+09:00", from: "successor", type: "Commitment",
@@ -813,6 +822,6 @@
     KRW, TODAY, family, accounts, classes, subs, positions,
     uploadFiles, ingestSteps, exceptions, mandates, survey, modelPortfolios,
     capitalCalls, distributions, benchmark, performance, attribution, modelGoals, ALT_SUBS, expectedReturn, expectedVol, classCorr, idiosyncraticVol,
-    market, secondary, approvalsSeed, activitySeed, opsLedger, referrals, liquidityAssumptions,
+    market, secondary, bidsSeed, approvalsSeed, activitySeed, opsLedger, referrals, liquidityAssumptions,
   };
 })();

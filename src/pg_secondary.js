@@ -4,9 +4,14 @@
   const D = BB.data, u = BB.u, S = BB.store;
   const { Money, Delta, Panel, Crumb, Lock } = BB.ui;
 
+  const STATUS_MEANS = {
+    "Open": "No bids yet. Take the ask, or bid below it.",
+    "Under negotiation": "A bid below the ask is with the seller. Taking the ask still settles immediately.",
+    "Settled": "Sold. Ownership record updated.",
+  };
   function StatusBadge({ s }) {
     const cls = s === "Settled" ? "live" : s === "Under negotiation" ? "self warn" : "plain";
-    return <span className={"bdg " + cls}>{cls !== "plain" && <i className="pt" />}{s}</span>;
+    return <span className={"bdg " + cls} title={STATUS_MEANS[s] || ""}>{cls !== "plain" && <i className="pt" />}{s}</span>;
   }
 
   function Board() {
@@ -51,7 +56,9 @@
         <div className="panel mt16">
           <div className="panel-hd">
             <h3>Listings</h3>
-            <span className="tri" style={{ fontSize: 11 }}>Sellers are blind identifiers. Indicative pricing is the platform's estimated fair range.</span>
+            <span className="tri" style={{ fontSize: 11 }}>
+              Sellers are blind identifiers · “Under negotiation” means a bid is with the seller; the ask is still open
+            </span>
           </div>
           <table className="t">
             <thead>
@@ -76,7 +83,7 @@
                   <td className="n num">{l.days}</td>
                   <td><StatusBadge s={l.status} /></td>
                   <td className="right">
-                    {l.status === "Open" && !l.mine
+                    {l.status !== "Settled" && !l.mine
                       ? <Lock sleeve={st.account === "successor" ? "alpha" : "core"}>
                           <button className="btn sm" onClick={(e) => { e.stopPropagation(); setBuy(l); }}>
                             Buy at {u.pct(l.askPct)}
@@ -169,6 +176,12 @@
           </div>
         </div>
 
+        {l.status !== "Open" && (
+          <div className={"note mt12 " + (l.status === "Settled" ? "" : "warn")}>
+            <b>{l.status}.</b> {STATUS_MEANS[l.status]}
+          </div>
+        )}
+
         <div className="band mt16">
           <div className="cell"><div className="stat-l">Last NAV</div><div className="stat-v"><Money v={l.nav} compact /></div>
             <div className="stat-s">as of 30 Jun 2026</div></div>
@@ -220,7 +233,7 @@
               <tbody>
                 {bids.map((b) => (
                   <tr key={b.id}>
-                    <td className="mono">{b.from === "principal" ? "Member #0147" : "Member #0148"}</td>
+                    <td className="mono">{b.bidder || (b.from === "principal" ? "Member #0147" : "Member #0148")}</td>
                     <td className="num">{u.fmtTs(b.ts)}</td>
                     <td className="n num">{u.pct(b.price)}</td>
                     <td className="n num">{u.usd(b.size)}</td>

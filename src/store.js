@@ -24,7 +24,7 @@
     approvals: clone(D.approvalsSeed),
     activity: clone(D.activitySeed),
     listings: clone(D.secondary),
-    bids: [],
+    bids: clone(D.bidsSeed),
     ops: clone(D.opsLedger),
     referrals: clone(D.referrals),
     mandate: "balanced",

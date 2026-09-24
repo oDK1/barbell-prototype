@@ -124,7 +124,7 @@
             <div className="panel">
               <div className="panel-bd">
                 <div className="filters">
-                  <div className="f-item search" style={{ minWidth: 220 }}>
+                  <div className="f-item search">
                     <input type="text" placeholder="Search opportunities" value={q} onChange={(e) => setQ(e.target.value)} />
                   </div>
                   <div className="f-item"><label className="f"><span>Asset class</span>

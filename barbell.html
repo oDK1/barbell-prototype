@@ -217,8 +217,12 @@ label.f>span{display:block;font-size:10.5px;letter-spacing:.08em;text-transform:
 .seg button{border:0;background:none;padding:5px 11px;font-size:11.5px;cursor:pointer;color:var(--g1);border-right:1px solid var(--g3);font-weight:500}
 .seg button:last-child{border-right:0}
 .seg button.on{background:var(--ink);color:#fff;font-weight:600}
+/* Controls stretch so the row fills the panel edge to edge rather than
+   trailing off with dead space. Still wraps when the panel gets narrow. */
 .filters{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end}
-.filters .f-item{min-width:132px}
+.filters .f-item{flex:1 1 110px;min-width:108px}
+.filters .f-item.search{flex:1.8 1 200px;min-width:186px}
+.filters>.btn{flex:0 0 auto}
 .search{position:relative}
 .search input{padding-left:26px}
 .search:before{content:"⌕";position:absolute;left:8px;top:5px;color:var(--g2);font-size:14px}
@@ -5058,7 +5062,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
             <div className="panel">
               <div className="panel-bd">
                 <div className="filters">
-                  <div className="f-item search" style={{ minWidth: 220 }}>
+                  <div className="f-item search">
                     <input type="text" placeholder="Search opportunities" value={q} onChange={(e) => setQ(e.target.value)} />
                   </div>
                   <div className="f-item"><label className="f"><span>Asset class</span>

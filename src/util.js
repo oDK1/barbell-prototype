@@ -308,7 +308,7 @@
      is weighed against the three situations above rather than standing alone. */
   function scoreFor(m, ctx) {
     const merit = m.fit;
-    const allocation = Math.max(0, Math.min(100, 50 + (ctx.under[m.fills] || 0) * 6));
+    const allocation = Math.round(Math.max(0, Math.min(100, 50 + (ctx.under[m.fills] || 0) * 6)));
 
     const locked = m.liq === "Locked", quarterly = m.liq === "Quarterly";
     const tight = ctx.stress > 0.6;

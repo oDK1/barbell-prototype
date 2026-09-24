@@ -320,10 +320,6 @@
             <button className="btn sm" onClick={() => setAsked(askMarket(ask, scored, ctx))}>Ask</button>
             {asked && <button className="btn sm q" onClick={() => { setAsked(null); setAsk(""); }}>Clear</button>}
           </div>
-          <div className="askfoot">
-            Ranked on <b>allocation</b>, <b>liquidity</b> and <b>tax</b> together — each row's suggested amount is what
-            would bring its subcategory to the model, held back to the {u.usdC(funds)} of cash that could fund it today.
-          </div>
         </div>
 
         {act && (act.m.kind === "listed"

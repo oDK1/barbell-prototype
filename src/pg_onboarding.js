@@ -2,7 +2,7 @@
 (function () {
   const { useState, useEffect, useRef } = React;
   const D = BB.data, u = BB.u, S = BB.store;
-  const { Money, Panel, Amount, Dropzone, FileRow, Steps, Lock } = BB.ui;
+  const { Money, Panel, Amount, Dropzone, FileRow, Steps, Lock, GrowthFan } = BB.ui;
   const { Agent } = BB.agent;
 
   const STEP_MS = 750;
@@ -304,6 +304,11 @@
                 : "Scroll for all " + D.survey.length + " · none of them are required"}
             </div>
           </div>
+        </div>
+
+        {/* what the chosen posture would compound to, against the book as it stands */}
+        <div className="panel mt16">
+          <GrowthFan positions={st.positions} modelClasses={m.targets} modelLabel={m.label} collapsible />
         </div>
 
         <div className="btn-row mt16">

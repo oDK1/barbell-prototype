@@ -346,5 +346,126 @@
     );
   }
 
-  BB.ui = { Money, Delta, ProvBadge, SleeveBadge, LiqBadge, Lock, Stat, Band, Panel, Tabs, Seg, Modal, MiniBar, Fit, Crumb, Toast, Amount, Dropzone, FileRow, ModeStrip, AccountCard, AccountCards, Steps };
+  /* Ten years of simulated outcomes: today's actual mix against a model stated
+     in classes. Used by the portfolio's model panel and by the mandate step of
+     onboarding, so both argue from the same maths. */
+  function GrowthFan({ positions, modelClasses, modelLabel, collapsible, defaultOpen }) {
+    const [open, setOpen] = useState(defaultOpen !== false);
+    const t = u.total(positions);
+    const YEARS = 10, CW = 720, CH = 230;
+
+    const curW = {};
+    u.byClass(positions).forEach((c) => { curW[c.key] = c.wt; });
+    const cur = u.projectMix(curW, t, YEARS, positions);
+    const mod = u.projectMix(modelClasses, t, YEARS);
+    const curR = cur.mu, modR = mod.mu;
+
+    const hi = Math.max(...cur.path.map((q) => q.p90), ...mod.path.map((q) => q.p90));
+    const lo = Math.min(...cur.path.map((q) => q.p10), ...mod.path.map((q) => q.p10), t) * 0.97;
+    const X = (y) => (y / YEARS) * CW;
+    const Y = (v) => CH - ((v - lo) / (hi - lo)) * CH;
+    const pts = (path, k) => path.map((q) => X(q.y).toFixed(1) + "," + Y(q[k]).toFixed(1)).join(" ");
+    const band = (path) => pts(path, "p90") + " " + path.slice().reverse().map((q) => X(q.y).toFixed(1) + "," + Y(q.p10).toFixed(1)).join(" ");
+    const ticks = [0, 0.25, 0.5, 0.75, 1].map((f) => lo + (hi - lo) * f);
+    const curEnd = cur.path[YEARS].mean, modEnd = mod.path[YEARS].mean;
+
+    return (
+      <>
+        <div className={"panel-hd" + (collapsible ? " clickable" : "")}
+          style={collapsible ? { cursor: "pointer", borderTop: "1px solid var(--g3)", borderBottom: 0 } : null}
+          onClick={collapsible ? () => setOpen(!open) : null}>
+          <div>
+            <h3>
+              {collapsible && <span style={{ fontSize: 11, color: "var(--g1)", marginRight: 7 }}>{open ? "▾" : "▸"}</span>}
+              Projected growth
+            </h3>
+            <div className="tri" style={{ fontSize: 11.5, marginTop: 2, paddingLeft: collapsible ? 18 : 0 }}>
+              Ten years of simulated outcomes — today's mix at {u.pct(curR)} ± {u.pct(cur.sigma)} against the model at{" "}
+              {u.pct(modR)} ± {u.pct(mod.sigma)}
+            </div>
+          </div>
+          <span className="tri num" style={{ fontSize: 12 }}>
+            {u.usdC(cur.path[YEARS].p10)}–{u.usdC(cur.path[YEARS].p90)} vs {u.usdC(mod.path[YEARS].p10)}–{u.usdC(mod.path[YEARS].p90)}
+          </span>
+        </div>
+        {open && (
+          <div className="panel-bd">
+            <div className="row" style={{ gap: 0, alignItems: "stretch" }}>
+              <div style={{ width: 58, position: "relative", flexShrink: 0 }}>
+                {ticks.map((v, i) => (
+                  <span key={i} className="tri num" style={{
+                    position: "absolute", right: 8, top: (CH - (i / (ticks.length - 1)) * CH) - 6,
+                    fontSize: 10, whiteSpace: "nowrap",
+                  }}>{u.usdC(v)}</span>
+                ))}
+              </div>
+              <svg viewBox={"0 0 " + CW + " " + CH} preserveAspectRatio="none"
+                style={{ flex: 1, height: CH, display: "block", border: "1px solid var(--g3)" }}>
+                {ticks.slice(1, -1).map((v, i) => (
+                  <line key={i} x1="0" y1={Y(v)} x2={CW} y2={Y(v)} stroke="var(--g4)" strokeWidth="1"
+                    vectorEffect="non-scaling-stroke" />
+                ))}
+                {/* ranges first, so the mean paths read on top of them */}
+                <polygon points={band(cur.path)} fill="#9A7B2E" opacity=".18" />
+                <polygon points={band(mod.path)} fill="var(--navy)" opacity=".16" />
+                <polyline points={pts(cur.path, "p10")} fill="none" stroke="#9A7B2E" strokeWidth="1"
+                  strokeDasharray="4 3" vectorEffect="non-scaling-stroke" />
+                <polyline points={pts(mod.path, "p10")} fill="none" stroke="var(--navy)" strokeWidth="1"
+                  strokeDasharray="4 3" vectorEffect="non-scaling-stroke" />
+                <polyline points={pts(cur.path, "mean")} fill="none" stroke="#9A7B2E" strokeWidth="2"
+                  vectorEffect="non-scaling-stroke" />
+                <polyline points={pts(mod.path, "mean")} fill="none" stroke="var(--navy)" strokeWidth="2"
+                  vectorEffect="non-scaling-stroke" />
+              </svg>
+            </div>
+            <div style={{ display: "flex", paddingLeft: 58 }}>
+              <div style={{ flex: 1, display: "flex", justifyContent: "space-between", fontSize: 10, color: "var(--g2)", paddingTop: 4 }}>
+                {Array.from({ length: 6 }, (_, i) => <span key={i}>{i * 2 === 0 ? "now" : "yr " + i * 2}</span>)}
+              </div>
+            </div>
+
+            <table className="t dense mt12">
+              <thead><tr><th></th><th className="n">Expected a year</th><th className="n">Volatility</th>
+                <th className="n">After 10 years</th><th className="n">Poor decade (10th)</th><th className="n">Good decade (90th)</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td><span className="sw" style={{ display: "inline-block", width: 9, height: 9, background: "#9A7B2E", marginRight: 8 }} />
+                    Today's mix</td>
+                  <td className="n num">{u.pct(curR)}</td>
+                  <td className="n"><span className="num">{u.pct(cur.sigma)}</span>
+                    <div className="tsub">{u.pct(cur.marketSigma)} market + {u.pct(cur.specificSigma)} single names</div></td>
+                  <td className="n num">{u.usdC(curEnd)}</td>
+                  <td className="n num tri">{u.usdC(cur.path[YEARS].p10)}</td>
+                  <td className="n num tri">{u.usdC(cur.path[YEARS].p90)}</td>
+                </tr>
+                <tr>
+                  <td><span className="sw" style={{ display: "inline-block", width: 9, height: 9, background: "var(--navy)", marginRight: 8 }} />
+                    Model · {modelLabel}</td>
+                  <td className="n num">{u.pct(modR)}</td>
+                  <td className="n"><span className="num">{u.pct(mod.sigma)}</span>
+                    <div className="tsub">diversified by construction</div></td>
+                  <td className="n num">{u.usdC(modEnd)}</td>
+                  <td className="n num tri">{u.usdC(mod.path[YEARS].p10)}</td>
+                  <td className="n num tri">{u.usdC(mod.path[YEARS].p90)}</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div className="note mt12">
+              Shaded bands are the 10th to 90th percentile, dashed lines the 10th — the poor decade, which is the
+              number worth looking at. Lognormal outcomes from fixed assumptions:
+              {" " + D.classes.map((c) => c.label.split(" ")[0] + " " + u.pct(D.expectedReturn[c.key]) + " ± " + u.pct(D.expectedVol[c.key])).join(" · ")},
+              correlated as listed markets normally are, before fees, tax and capital calls.
+              {" "}Today's mix carries {u.pct(cur.specificSigma)} on top of that for specific risk — the book holds
+              nine single names including {u.pct(u.affiliateExposure(positions).wt)} in the family's own operating
+              company, and a class average assumes an index. The model is stated in classes, so it carries none, which
+              is most of the gap. Not a backtest and not a forecast — the range these assumptions imply.
+            </div>
+          </div>
+        )}
+      </>
+    );
+  }
+
+  BB.ui = { Money, Delta, ProvBadge, SleeveBadge, LiqBadge, Lock, Stat, Band, Panel, Tabs, Seg, Modal, MiniBar, Fit, Crumb, Toast, Amount, Dropzone, FileRow, ModeStrip, AccountCard, AccountCards, Steps, GrowthFan };
 })();

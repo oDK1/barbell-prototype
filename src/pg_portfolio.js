@@ -68,7 +68,7 @@
               onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => e.key === "Enter" && run()}
               onFocus={() => setFocus(true)} onBlur={() => setFocus(false)} />
           </div>
-          <button className="btn sm" onClick={run}>Filter</button>
+          <button className="btn sm" onClick={run}>Ask</button>
           {res && <button className="btn sm q" onClick={() => { setRes(null); setQ(""); }}>Clear</button>}
         </div>
       </div>

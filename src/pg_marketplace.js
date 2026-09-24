@@ -70,18 +70,15 @@
     const gapFocus = route.query.gap;
     const isSuccessor = st.account === "successor";
 
-    /* The account decides what the marketplace contains. The Principal holds the
-       whole balance sheet and sees one unsegmented list of everything. The
-       Successor holds the Alpha sleeve, whose mandate is private growth, so the
-       same surface carries private-market offerings only. */
-    const lens = isSuccessor;
+    /* The marketplace carries private-market offerings only. Listed instruments
+       are held in the Core sleeve and are not transacted on this surface. */
+    const offered = D.market.filter((m) => m.kind === "private");
 
     const t = u.total(st.positions);
     const capacity = S.alphaCapacity();
     const model = u.modelWeights(t, st.mandate);
 
     const pass = (m) => {
-      if (lens && m.kind !== "private") return false;
       if (gapFocus && m.fills !== gapFocus) return false;
       if (f.cls && m.cls !== f.cls) return false;
       if (f.liq && m.liq !== f.liq) return false;
@@ -92,19 +89,19 @@
       return true;
     };
     const ctx = u.marketContext(st.positions, st.mandate);
-    const scored = D.market.map((m) => ({ ...m, s: u.scoreFor(m, ctx) }));
+    const scored = offered.map((m) => ({ ...m, s: u.scoreFor(m, ctx) }));
     const all = (asked && asked.rows.length ? asked.rows : scored.filter(pass)).sort((a, b) => b.s.score - a.s.score);
     /* Private, inside the sleeve's remaining cash — committable without asking. */
     const readyNow = scored
-      .filter((m) => m.kind === "private" && m.min <= capacity)
+      .filter((m) => m.min <= capacity)
       .sort((a, b) => b.s.score - a.s.score);
     const top3 = all.slice(0, 3);
     /* what could actually fund a purchase today */
     const funds = st.account === "principal"
       ? u.total(st.positions.filter((x) => x.cls === "cash"))
       : S.alphaCapacity();
-    const sectors = Array.from(new Set(D.market.map((m) => m.sector))).sort();
-    const geos = Array.from(new Set(D.market.map((m) => m.geo))).sort();
+    const sectors = Array.from(new Set(offered.map((m) => m.sector))).sort();
+    const geos = Array.from(new Set(offered.map((m) => m.geo))).sort();
 
     const open = (m) => S.navigate("/marketplace/" + m.id);
     const onAct = (m, amount) => setAct({ m, amount });
@@ -150,12 +147,6 @@
                     </select></label></div>
                   <button className="btn" onClick={() => { setF({ cls: "", liq: "", sector: "", geo: "", ret: "" }); setQ(""); }}>Reset</button>
                 </div>
-                {lens && (
-                  <div className="tri mt8" style={{ fontSize: 11, maxWidth: "78ch" }}>
-                    This account sees private-market offerings — funds, co-investments, secondaries and direct
-                    credit. Listed instruments settle in the Core sleeve, which is the Principal's remit.
-                  </div>
-                )}
               </div>
             </div>
 
@@ -167,7 +158,7 @@
                   <span className="g-d">{u.usd(capacity)} of Alpha sleeve capacity remaining</span>
                   <span className="spacer" style={{ flex: 1 }} />
                   <span className="tri" style={{ fontSize: 11.5 }}>
-                    {readyNow.length} of {D.market.filter((m) => m.kind === "private").length} private-market
+                    {readyNow.length} of {offered.length} private-market
                     offerings fit the capacity · the rest need the Principal
                   </span>
                 </div>
@@ -183,7 +174,7 @@
               <h2>{asked && asked.rows.length ? asked.label : gapFocus ? u.subLabel(gapFocus) : "Ranked for this family"}</h2>
               <div className="btn-row">
                 {gapFocus && <button className="btn sm" onClick={() => S.navigate("/marketplace")}>Show everything</button>}
-                <span className="tri" style={{ fontSize: 11.5 }}>{all.length} of {D.market.length} shown</span>
+                <span className="tri" style={{ fontSize: 11.5 }}>{all.length} of {offered.length} shown</span>
               </div>
             </div>
             <div className="panel">

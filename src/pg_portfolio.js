@@ -888,7 +888,8 @@
     const av = u.total(alpha);
     const capacity = S.alphaCapacity();
     const active = alpha.filter((p) => p.liq !== "Daily");
-    const fits = [...D.market].sort((a, b) => b.fit - a.fit).slice(0, 4);
+    /* the marketplace carries private offerings only, so discovery matches it */
+    const fits = D.market.filter((m) => m.kind === "private").sort((a, b) => b.fit - a.fit).slice(0, 4);
     return (
       <>
         <div className="panel mt16">

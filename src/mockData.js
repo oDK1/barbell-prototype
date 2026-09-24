@@ -712,7 +712,7 @@
       manager: "Direct block",
       account: [["2023-05-19", "Purchase", 900000], ["2025-11-30", "Series F mark-up", 1400000], ["2026-08-31", "NAV mark", 1560000]] },
     { id: "s04", instrument: "Sunrise Growth Partners IV, L.P. — LP interest", sub: "pe", cls: "equity", vintage: "2023",
-      nav: 980000, size: 490000, askPct: 88.5, indicative: [85, 93], seller: "Member #0401", days: 31, status: "Under negotiation",
+      nav: 980000, size: 490000, askPct: 88.5, indicative: [85, 93], seller: "Member #0401", days: 31, status: "Open",
       rationale: "Consolidating manager relationships.", unfunded: 310000, manager: "Sunrise Growth Partners",
       account: [["2023-09-01", "Commitment", 1500000], ["2023-10-15", "Capital call #1", 600000], ["2024-09-30", "Capital call #2", 450000], ["2026-06-30", "NAV mark", 980000]] },
     { id: "s05", instrument: "Pacific Core Real Estate Fund IV — units", sub: "re", cls: "real", vintage: "2022",
@@ -725,7 +725,7 @@
       rationale: "Balance sheet rotation; no view on the asset.", manager: "Hanwha Asset Management",
       account: [["2025-02-27", "Funded", 2100000], ["2026-06-30", "NAV mark", 2340000]] },
     { id: "s07", instrument: "Meridian Direct Lending Fund II — units", sub: "pcred", cls: "debt", vintage: "2023",
-      nav: 1320000, size: 660000, askPct: 97.5, indicative: [96, 99], seller: "Member #0315", days: 41, status: "Under negotiation",
+      nav: 1320000, size: 660000, askPct: 97.5, indicative: [96, 99], seller: "Member #0315", days: 41, status: "Open",
       rationale: "Funding a capital call elsewhere.", manager: "Meridian Credit",
       account: [["2023-11-30", "Subscription", 1250000], ["2025-12-31", "Income reinvested", 70000], ["2026-06-30", "NAV mark", 1320000]] },
     { id: "s08", instrument: "Woori Industrial Buyout Co-Invest II — participation", sub: "pe", cls: "equity", vintage: "2022",
@@ -750,8 +750,8 @@
       account: [["2021-07-01", "Funded", 1100000], ["2024-06-30", "NAV mark", 960000], ["2026-06-30", "NAV mark", 890000]] },
   ];
 
-  /* The two listings that open "Under negotiation" have the bids that put them
-     there, so the seller's queue matches the badge. */
+  /* Two listings open with a bid already sitting with the seller. A bid does
+     not change the listing's state — it stays open to anyone taking the ask. */
   const bidsSeed = [
     { id: "b1", listingId: "s04", price: 85.0, size: 300000, ts: "2026-09-15T10:20:00+09:00",
       bidder: "Member #0233", status: "Submitted" },

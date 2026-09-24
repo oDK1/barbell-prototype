@@ -5,13 +5,13 @@
   const { Money, Delta, Panel, Crumb, Lock } = BB.ui;
 
   const STATUS_MEANS = {
-    "Open": "No bids yet. Take the ask, or bid below it.",
-    "Under negotiation": "A bid below the ask is with the seller. Taking the ask still settles immediately.",
+    "Open": "Available. Take the ask, or bid below it.",
     "Settled": "Sold. Ownership record updated.",
   };
   function StatusBadge({ s }) {
-    const cls = s === "Settled" ? "live" : s === "Under negotiation" ? "self warn" : "plain";
-    return <span className={"bdg " + cls} title={STATUS_MEANS[s] || ""}>{cls !== "plain" && <i className="pt" />}{s}</span>;
+    return <span className={"bdg " + (s === "Settled" ? "live" : "plain")} title={STATUS_MEANS[s] || ""}>
+      {s === "Settled" && <i className="pt" />}{s}
+    </span>;
   }
 
   function Board() {
@@ -19,8 +19,15 @@
     const [f, setF] = useState("");
     const [list, setList] = useState(null);
     const [buy, setBuy] = useState(null);
+    const [allRows, setAllRows] = useState(false);
+    const [allMine, setAllMine] = useState(false);
     const rows = st.listings.filter((l) => !f || l.status === f);
-    const mine = st.positions.filter((p) => p.liq !== "Daily");
+    /* eligible first: the rows that can actually be acted on */
+    const mine = st.positions.filter((p) => p.liq !== "Daily")
+      .sort((a, b) => (u.eligibility(b).ok ? 1 : 0) - (u.eligibility(a).ok ? 1 : 0) || b.value - a.value);
+    const SHOW = 5, SHOW_MINE = 4;
+    const shownRows = allRows ? rows : rows.slice(0, SHOW);
+    const shownMine = allMine ? mine : mine.slice(0, SHOW_MINE);
 
     return (
       <div className="wrap page">
@@ -34,7 +41,7 @@
             </div>
           </div>
           <div className="btn-row">
-            <BB.ui.Seg options={[{ v: "", label: "All" }, { v: "Open", label: "Open" }, { v: "Under negotiation", label: "Negotiating" }, { v: "Settled", label: "Settled" }]}
+            <BB.ui.Seg options={[{ v: "", label: "All" }, { v: "Open", label: "Open" }, { v: "Settled", label: "Settled" }]}
               value={f} onChange={setF} />
           </div>
         </div>
@@ -55,9 +62,9 @@
 
         <div className="panel mt16">
           <div className="panel-hd">
-            <h3>Listings</h3>
+            <h3>Listings <span className="tri" style={{ fontWeight: 400 }}>{shownRows.length} of {rows.length}</span></h3>
             <span className="tri" style={{ fontSize: 11 }}>
-              Sellers are blind identifiers · “Under negotiation” means a bid is with the seller; the ask is still open
+              Sellers are blind identifiers · a listing stays open until someone takes the ask or the seller accepts a bid
             </span>
           </div>
           <table className="t">
@@ -68,7 +75,7 @@
               </tr>
             </thead>
             <tbody>
-              {rows.map((l) => (
+              {shownRows.map((l) => (
                 <tr key={l.id} className="clickable" onClick={() => S.navigate("/secondary/" + l.id)}>
                   <td>
                     <div className="tname">{l.instrument}</div>
@@ -95,18 +102,25 @@
               ))}
             </tbody>
           </table>
+          {rows.length > SHOW && (
+            <button className="btn block" style={{ border: 0, borderTop: "1px solid var(--g3)", borderRadius: 0 }}
+              onClick={() => setAllRows(!allRows)}>
+              {allRows ? "Show fewer" : "Show all " + rows.length + " listings"}
+              <span className="tri" style={{ marginLeft: 6 }}>{allRows ? "▴" : "▾"}</span>
+            </button>
+          )}
         </div>
 
         <h2 className="mt24 mb12">Your positions</h2>
         <div className="panel">
           <div className="panel-hd">
-            <h3>Eligibility</h3>
+            <h3>Eligibility <span className="tri" style={{ fontWeight: 400 }}>{shownMine.length} of {mine.length}</span></h3>
             <span className="tri" style={{ fontSize: 11 }}>Only illiquid positions originated on Barbell, held 12 months, are listable.</span>
           </div>
           <table className="t dense">
             <thead><tr><th>Position</th><th>Subcategory</th><th>Origin</th><th className="n">Held</th><th className="n">Value</th><th>Eligibility</th><th></th></tr></thead>
             <tbody>
-              {mine.map((p) => {
+              {shownMine.map((p) => {
                 const e = u.eligibility(p);
                 return (
                   <tr key={p.id} style={e.ok ? null : { opacity: .55 }}>
@@ -126,6 +140,13 @@
               })}
             </tbody>
           </table>
+          {mine.length > SHOW_MINE && (
+            <button className="btn block" style={{ border: 0, borderTop: "1px solid var(--g3)", borderRadius: 0 }}
+              onClick={() => setAllMine(!allMine)}>
+              {allMine ? "Show fewer" : "Show all " + mine.length + " positions"}
+              <span className="tri" style={{ marginLeft: 6 }}>{allMine ? "▴" : "▾"}</span>
+            </button>
+          )}
         </div>
 
         <div className="note mt16">
@@ -254,8 +275,8 @@
             </table>
           )}
           <div className="note" style={{ borderTop: "1px solid var(--g3)", borderLeft: 0, borderRight: 0, borderBottom: 0 }}>
-Two ways in: take the ask and it settles immediately, or bid below it and the listing moves to
-            “Under negotiation” for the seller to accept from the queue above. Both are walkable here.
+Two ways in: take the ask and it settles immediately, or bid below it and wait for the seller to accept
+            from the queue above. A bid does not reserve anything — the listing stays open meanwhile.
           </div>
         </div>
 

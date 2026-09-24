@@ -262,9 +262,8 @@
       if (!l) return;
       const b = { id: nextId("b"), listingId, price, size, ts: nowTs(), from: state.account, status: "Submitted" };
       state.bids.unshift(b);
-      l.status = "Under negotiation";
       log("Secondary", "Bid submitted — " + u.usd(size) + " of " + l.instrument + " at " + price.toFixed(1) + "% of NAV",
-        "Listing moved to Under negotiation.");
+        "With the seller to accept, counter or decline. The listing stays open.");
       toast("Bid submitted");
       emit();
       return b;
@@ -294,7 +293,7 @@
       if (!b) return;
       b.status = status;
       const l = state.listings.find((x) => x.id === b.listingId);
-      if (l) l.status = status === "Accepted" ? "Settled" : "Open";
+      if (l && status === "Accepted") l.status = "Settled";
       log("Secondary", status + " bid — " + u.usd(b.size) + " of " + (l ? l.instrument : ""),
         status === "Accepted" ? "Ownership record updated. Settles same day." : "");
       toast(status + " — bid " + b.id);

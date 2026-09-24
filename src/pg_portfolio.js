@@ -62,7 +62,7 @@
           </div>
         )}
         <div className="askrow">
-          <span className="lbl" style={{ whiteSpace: "nowrap" }}>Ask the book</span>
+          <span className="lbl" style={{ whiteSpace: "nowrap" }}>Portfolio Agent</span>
           <div className="search" style={{ flex: 1 }}>
             <input type="text" value={q} placeholder="What's my exposure to US data centers?"
               onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => e.key === "Enter" && run()}

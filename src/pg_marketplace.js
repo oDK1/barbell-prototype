@@ -311,7 +311,7 @@
             </div>
           )}
           <div className="askrow">
-            <span className="lbl" style={{ whiteSpace: "nowrap" }}>Agent · Deal fit</span>
+            <span className="lbl" style={{ whiteSpace: "nowrap" }}>Marketplace Agent</span>
             <div className="search" style={{ flex: 1 }}>
               <input type="text" value={ask} placeholder="Ask: what closes the rebalancing? · Hanwha-sourced credit · private, under $500K"
                 onChange={(e) => setAsk(e.target.value)}

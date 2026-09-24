@@ -156,7 +156,9 @@
         <div className="btn-row mt16">
           {open.length > 0 && (
             <Lock sleeve="core">
-              <button className="btn p lg" onClick={() => S.actions.resolveAllExceptions()}>
+              {/* Clearing every exception leaves nothing to look at here, so carry on to the posture. */}
+              <button className="btn p lg"
+                onClick={() => { S.actions.resolveAllExceptions(); S.navigate("/onboarding/mandate"); }}>
                 Apply all {open.length} {open.length === 1 ? "suggestion" : "suggestions"} →
               </button>
             </Lock>

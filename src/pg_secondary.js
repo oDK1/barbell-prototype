@@ -34,30 +34,12 @@
         <div className="between">
           <div>
             <div className="eyebrow">Secondary · members only</div>
-            <h1 className="mt8">Liquidity for the illiquid half</h1>
-            <div className="sub mt8" style={{ maxWidth: "76ch" }}>
-              A bulletin board, not a continuous order book. The inventory is deliberately narrow: private offerings bought
-              on Barbell and held at least twelve months. Listed securities are absent because they already have a market.
-            </div>
+            <h1 className="mt8">Secondary board</h1>
           </div>
           <div className="btn-row">
             <BB.ui.Seg options={[{ v: "", label: "All" }, { v: "Open", label: "Open" }, { v: "Settled", label: "Settled" }]}
               value={f} onChange={setF} />
           </div>
-        </div>
-
-        <div className="band mt16">
-          <div className="cell"><div className="stat-l">Listings</div><div className="stat-v">{st.listings.length}</div>
-            <div className="stat-s">{st.listings.filter((l) => l.status === "Open").length} open</div></div>
-          <div className="cell"><div className="stat-l">Offered size</div><div className="stat-v"><Money v={u.sum(st.listings, (l) => l.size)} compact /></div></div>
-          <div className="cell"><div className="stat-l">Median ask</div>
-            <div className="stat-v">{u.pct(st.listings.map((l) => l.askPct).sort((a, b) => a - b)[Math.floor(st.listings.length / 2)])}</div>
-            <div className="stat-s">of last NAV</div></div>
-          <div className="cell"><div className="stat-l">Your eligible positions</div>
-            <div className="stat-v">{mine.filter((p) => u.eligibility(p).ok).length}</div>
-            <div className="stat-s">{mine.filter((p) => !u.eligibility(p).ok).length} not yet eligible</div></div>
-          <div className="cell"><div className="stat-l">Settlement</div><div className="stat-v sm">Same day</div>
-            <div className="stat-s">ownership record updated on acceptance</div></div>
         </div>
 
         <div className="panel mt16">

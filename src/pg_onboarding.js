@@ -30,12 +30,6 @@
     return (
       <div className="wrap page" style={{ maxWidth: 1080 }}>
         <Steps at="upload" />
-        <h1>Bring the spreadsheets in</h1>
-        <div className="sub mt8" style={{ maxWidth: "72ch" }}>
-          {files.length} {files.length === 1 ? "file is" : "files are"} staged. Drop more if you have them — format
-          and language do not matter.
-        </div>
-
         <Dropzone onFiles={(f) => S.actions.addUploads(f)}
           title="Drop your portfolio spreadsheets. Any format."
           hint=".xlsx · .xls · .csv · .numbers · PDF statements · 한글 파일명 지원" />
@@ -127,10 +121,7 @@
       <div className="wrap page">
         <Steps at="reconcile" />
         <div className="between">
-          <div>
-            <h1>Review the extraction</h1>
-            <div className="sub mt8">Every row carries its source file and cell. Nothing is booked until the exceptions are cleared.</div>
-          </div>
+          <div />
           <div className="right">
             <div className="stat-l">Status</div>
             <div className="stat-v sm">
@@ -190,7 +181,6 @@
     return (
       <div className="wrap page" style={{ maxWidth: 1180 }}>
         <Steps at="mandate" />
-        <h1>Mandate</h1>
         {/* the authority note stays — it explains why the cards are locked for this account */}
         {st.account === "successor" && (
           <div className="sub mt8" style={{ maxWidth: "74ch" }}>

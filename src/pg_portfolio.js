@@ -233,10 +233,10 @@
             style={{ fontSize: 10, letterSpacing: ".1em" }}>MODELLED</text>
         </svg>
 
-        <div className="donutlegend">
+        <div className="donutlegend" onMouseLeave={() => onHover(null)}>
           {rows.map((r) => (
             <button key={r.key} className={"dl" + (hover === r.key ? " on" : "")}
-              onMouseEnter={() => onHover(r.key)} onMouseLeave={() => onHover(null)}
+              onMouseEnter={() => onHover(r.key)}
               onClick={() => { const m = u.pickForClass(r.key); if (m) S.navigate("/marketplace/" + m.id); }}>
               <i style={{ background: r.color }} />
               <span>{r.label}</span>
@@ -245,28 +245,6 @@
           ))}
         </div>
 
-        {/* hovering a class offers something concrete to do about it */}
-        <div className="dealhint">
-          {lead && deal ? (
-            <button className="dh" onClick={() => S.navigate("/marketplace/" + deal.id)}>
-              <div className="dh-l">{lead.label} · suggested</div>
-              <div className="dh-n">{deal.name}</div>
-              <div className="dh-s">
-                {deal.ret} · {deal.liq} · minimum {u.usd(deal.min)}
-                {deal.hanwha ? " · Hanwha-sourced" : ""}
-              </div>
-              <div className="dh-go">Open in the marketplace →</div>
-            </button>
-          ) : lead ? (
-            <div className="tri" style={{ fontSize: 11, alignSelf: "center", textAlign: "center" }}>
-              <b>{lead.label}</b> — {lead.note}. Held directly; nothing to buy on the platform.
-            </div>
-          ) : (
-            <div className="tri" style={{ fontSize: 11, alignSelf: "center", textAlign: "center" }}>
-              Hover a class for the instrument that would fill it.
-            </div>
-          )}
-        </div>
       </div>
     );
   }
@@ -400,26 +378,53 @@
                   <th style={{ width: "30%" }}>Weight against model</th>
                   <th className="n">Difference</th><th className="n">Dollars</th>
                 </tr></thead>
-                <tbody>
-                  {inPlay.map((c) => (
-                    <tr key={c.key} className="clickable"
-                      onMouseEnter={() => setHover(c.key)} onMouseLeave={() => setHover(null)}
-                      onClick={() => { const m = u.pickForClass(c.key); if (m) S.navigate("/marketplace/" + m.id); }}
-                      style={{ background: hover === c.key ? "#F3F2EE" : undefined }}>
-                      <td>
-                        <span style={{ display: "inline-flex", gap: 8, alignItems: "center", fontWeight: 600 }}>
-                          <i className="sw" style={{ width: 9, height: 9, display: "inline-block", background: c.color }} />
-                          {c.label}
-                        </span>
-                        <div className="tsub">{c.note}</div>
-                      </td>
-                      <td className="n num">{u.pct(c.held)}</td>
-                      <td className="n num tri">{u.pct(c.model)}</td>
-                      <td><Bar held={c.held} target={c.model} color={c.color} /></td>
-                      <td className="n"><VsTarget v={c.delta} /></td>
-                      <td className="n num tri">{u.usd((c.delta / 100) * t)}</td>
-                    </tr>
-                  ))}
+                {/* leaving the whole body clears; entering any row sets. That way
+                    moving down onto the suggestion does not dismiss it. */}
+                <tbody onMouseLeave={() => setHover(null)}>
+                  {inPlay.map((c) => {
+                    const on = hover === c.key;
+                    const deal = on ? u.pickForClass(c.key) : null;
+                    return (
+                      <React.Fragment key={c.key}>
+                        <tr onMouseEnter={() => setHover(c.key)}
+                          style={{ background: on ? "#F3F2EE" : undefined }}>
+                          <td>
+                            <span style={{ display: "inline-flex", gap: 8, alignItems: "center", fontWeight: 600 }}>
+                              <i className="sw" style={{ width: 9, height: 9, display: "inline-block", background: c.color }} />
+                              {c.label}
+                            </span>
+                            <div className="tsub">{c.note}</div>
+                          </td>
+                          <td className="n num">{u.pct(c.held)}</td>
+                          <td className="n num tri">{u.pct(c.model)}</td>
+                          <td><Bar held={c.held} target={c.model} color={c.color} /></td>
+                          <td className="n"><VsTarget v={c.delta} /></td>
+                          <td className="n num tri">{u.usd((c.delta / 100) * t)}</td>
+                        </tr>
+                        {on && (
+                          <tr className="sugrow" onMouseEnter={() => setHover(c.key)}>
+                            <td colSpan={6} style={{ borderLeft: "2px solid " + c.color }}>
+                              {deal ? (
+                                <button className="sug" onClick={() => S.navigate("/marketplace/" + deal.id)}>
+                                  <span className="sug-l">Suggested for {c.label.toLowerCase()}</span>
+                                  <span className="sug-n">{deal.name}</span>
+                                  <span className="sug-s">
+                                    {deal.ret && deal.ret !== "—" ? deal.ret + " · " : ""}{deal.liq} · minimum {u.usd(deal.min)}
+                                    {deal.hanwha ? " · Hanwha-sourced" : ""} · {deal.why}
+                                  </span>
+                                  <span className="sug-go">Open in the marketplace →</span>
+                                </button>
+                              ) : (
+                                <div className="sug-none">
+                                  <b>{c.label}</b> — {c.note}. Held directly; nothing to buy on the platform.
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
+                    );
+                  })}
                 </tbody>
               </table>
 

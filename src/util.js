@@ -241,17 +241,20 @@
     const w = {};
     D.modelClasses.forEach((c) => { w[c.key] = A[c.key] * (1 - f) + B[c.key] * f; });
 
-    const sibling = { priveq: "pubeq", privdebt: "pubdebt" };
+    /* Where a class's weight goes when it cannot be owned. Real assets and
+       equity share one risk budget, so real falls back to public equity. */
+    const sibling = { priveq: "pubeq", privdebt: "pubdebt", real: "pubeq" };
     const blocked = {};
     Object.keys(sibling).forEach((k) => {
       const c = D.modelClasses.find((x2) => x2.key === k);
+      const min = c.minBy && c.minBy[g] !== undefined ? c.minBy[g] : c.min;
       const dollars = (w[k] / 100) * aum;
       /* the objective can rule it out outright; otherwise the cheque decides */
       const byGoal = A[k] === 0 && B[k] === 0;
-      if (w[k] <= 0 || byGoal || dollars < c.min) {
+      if (w[k] <= 0 || byGoal || dollars < min) {
         blocked[k] = {
           why: byGoal || w[k] <= 0 ? (g === "preservation" ? "goal" : "size") : "size",
-          pct: w[k], dollars, min: c.min, to: sibling[k],
+          pct: w[k], dollars, min, to: sibling[k],
         };
         w[sibling[k]] += w[k];
         w[k] = 0;

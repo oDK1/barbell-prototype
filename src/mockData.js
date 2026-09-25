@@ -306,7 +306,12 @@
       note: "Sovereign, investment grade, structured" },
     { key: "privdebt", label: "Private debt",     color: "#85AEBC", subs: ["pcred"],                     min: 500000,
       note: "Direct lending, senior secured" },
-    { key: "real",     label: "Real assets",      color: "#9A7B2E", subs: ["re", "infra", "comm"],       min: 0,
+    { key: "real",     label: "Real assets",      color: "#9A7B2E", subs: ["re", "infra", "comm"],       min: 500000,
+      /* A preservation book takes its real assets listed — REITs and
+         infrastructure funds priced daily, held for inflation-linked income —
+         so no fund minimum applies. Under the other objectives the slot means
+         direct property and closed-end infrastructure, which does. */
+      minBy: { preservation: 0 },
       note: "Property, infrastructure, commodities" },
     { key: "cash",     label: "Cash equivalents", color: "#A9A396", subs: ["mmf", "tbill", "dep", "fx"], min: 0,
       note: "MMF, T-bills, deposits, FX" },
@@ -335,6 +340,10 @@
 
   /* Why a class is not recommended, by whichever rule excluded it. */
   const modelExcuses = {
+    real: {
+      size: "Property and infrastructure enter through funds that start at $500,000. Below that cheque the allocation buys one building at one address — a concentration, not a diversifier. Under this objective the weight does more work in public equity until the book can carry a diversified real-asset position.",
+      goal: "Not held under this objective at this size.",
+    },
     priveq: {
       size: "A ten-year lock-up behind a $250,000 minimum. At this size that cheque is a concentrated bet on one fund in one vintage — the opposite of what the sleeve is for. Listed equity carries the same market exposure, daily.",
       goal: "Capital that has to be spendable cannot sit in a ten-year lock-up. The objective rules this out before size does.",

@@ -179,6 +179,93 @@
      class showing what is held against what the model suggests, then a single
      line on alternatives. The bar is the graphic — filled is held today, the
      tick is the model. */
+  /* Two concentric rings of the model: asset classes inside, their
+     subcategories outside, each a tint of its class. Both rings are read
+     straight off modelWeights, so the shape moves with the objective and the
+     size lever above it. */
+  function ModelDonut({ model, aum, label }) {
+    const R = { hole: 54, midIn: 54, midOut: 96, outIn: 100, outOut: 136 };
+    const C = 150;
+    const pt = (r, a) => [(C + r * Math.sin(a)).toFixed(2), (C - r * Math.cos(a)).toFixed(2)];
+    const arc = (r0, r1, a0, a1) => {
+      const big = a1 - a0 > Math.PI ? 1 : 0;
+      const [x0, y0] = pt(r1, a0), [x1, y1] = pt(r1, a1);
+      const [x2, y2] = pt(r0, a1), [x3, y3] = pt(r0, a0);
+      return `M${x0} ${y0}A${r1} ${r1} 0 ${big} 1 ${x1} ${y1}L${x2} ${y2}A${r0} ${r0} 0 ${big} 0 ${x3} ${y3}Z`;
+    };
+    /* lighten toward the paper so a class reads as one family of tones */
+    const tint = (hex, f) => {
+      const n = parseInt(hex.slice(1), 16);
+      const mix = (c, p) => Math.round(c + (p - c) * f);
+      return "#" + [[(n >> 16) & 255, 250], [(n >> 8) & 255, 250], [n & 255, 248]]
+        .map(([c, p]) => mix(c, p).toString(16).padStart(2, "0")).join("");
+    };
+
+    let a = 0;
+    const rings = [];
+    D.classes.forEach((c) => {
+      const w = model.classes[c.key] || 0;
+      if (w <= 0) return;
+      const span = (w / 100) * Math.PI * 2;
+      const a0 = a, a1 = a + span;
+      rings.push({ ring: "cls", key: c.key, label: c.label, wt: w, fill: c.color, a0, a1 });
+      /* subcategories fill their parent's sweep, in the data's own order */
+      let sa = a0;
+      const kids = D.subs.filter((s) => s.cls === c.key);
+      kids.forEach((s, i) => {
+        const sw = model.subs[s.key] || 0;
+        if (sw <= 0) return;
+        const ss = (sw / 100) * Math.PI * 2;
+        rings.push({
+          ring: "sub", key: s.key, label: s.label, wt: sw, a0: sa, a1: sa + ss,
+          fill: tint(c.color, 0.30 + (i / Math.max(1, kids.length - 1 || 1)) * 0.42),
+        });
+        sa += ss;
+      });
+      a = a1;
+    });
+
+    const clsSegs = rings.filter((r) => r.ring === "cls");
+    return (
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+        <svg viewBox="0 0 300 300" style={{ width: 300, height: 300, display: "block" }}
+          role="img" aria-label={"Model allocation at " + label}>
+          {rings.map((r) => (
+            <path key={r.ring + r.key} d={arc(r.ring === "cls" ? R.midIn : R.outIn,
+              r.ring === "cls" ? R.midOut : R.outOut, r.a0, r.a1)}
+              fill={r.fill} stroke="var(--paper)" strokeWidth="1.5">
+              <title>{r.label + " · " + u.pct(r.wt)}</title>
+            </path>
+          ))}
+          {/* a class is labelled in its own band when the slice can hold the text */}
+          {clsSegs.filter((r) => r.a1 - r.a0 > 0.52).map((r) => {
+            const [lx, ly] = pt((R.midIn + R.midOut) / 2, (r.a0 + r.a1) / 2);
+            return (
+              <text key={"t" + r.key} x={lx} y={ly} textAnchor="middle" fill="#FAFAF8"
+                style={{ fontSize: 12, fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>
+                <tspan x={lx} dy="-1">{u.pct(r.wt)}</tspan>
+              </text>
+            );
+          })}
+          <text x={C} y={C - 4} textAnchor="middle" fill="var(--ink)"
+            style={{ fontSize: 17, fontWeight: 600, fontVariantNumeric: "tabular-nums", letterSpacing: "-.02em" }}>{label}</text>
+          <text x={C} y={C + 14} textAnchor="middle" fill="var(--g2)" style={{ fontSize: 9.5, letterSpacing: ".08em" }}>MODELLED</text>
+        </svg>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "4px 12px", justifyContent: "center", maxWidth: 320 }}>
+          {clsSegs.map((r) => (
+            <span key={"l" + r.key} style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 11, color: "var(--g1)" }}>
+              <i style={{ width: 9, height: 9, background: r.fill, display: "inline-block", flexShrink: 0 }} />
+              {r.label}
+            </span>
+          ))}
+        </div>
+        <div className="tri" style={{ fontSize: 10.5, textAlign: "center", maxWidth: 320 }}>
+          Inner ring: asset class. Outer ring: its subcategories.
+        </div>
+      </div>
+    );
+  }
+
   function ModelPanel({ positions }) {
     const st = S.useStore();
     const t = u.total(positions);
@@ -291,6 +378,12 @@
             </div>
           </div>
 
+          {/* the shape, then the numbers behind it */}
+          <div className="modelsplit">
+            <div className="modelchart">
+              <ModelDonut model={model} aum={aum} label={short(aum)} />
+            </div>
+            <div className="modeltable">
           {/* held against model, one row per class */}
           <table className="t">
             <thead><tr>
@@ -334,6 +427,8 @@
               })}
             </tbody>
           </table>
+            </div>
+          </div>
 
           {/* what the two mixes would compound to, if the assumptions hold */}
           <GrowthFan positions={positions} modelClasses={model.classes} modelLabel={selected.label}

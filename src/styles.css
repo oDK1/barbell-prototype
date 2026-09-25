@@ -387,3 +387,14 @@ label.f>span{display:block;font-size:10.5px;letter-spacing:.08em;text-transform:
   .band .cell{min-width:180px}
   .wrap{padding:0 16px}
 }
+
+/* Model portfolio: the donut beside the held-against-model table. */
+.modelsplit{display:flex;align-items:flex-start;gap:0;border-top:1px solid var(--g3)}
+.modelchart{width:344px;flex-shrink:0;padding:16px 12px;border-right:1px solid var(--g3);
+  display:flex;justify-content:center;align-self:stretch}
+.modeltable{flex:1;min-width:0;overflow-x:auto}
+.modeltable>table.t{margin:0}
+@media (max-width:1180px){
+  .modelsplit{flex-direction:column}
+  .modelchart{width:auto;border-right:0;border-bottom:1px solid var(--g3);align-self:auto}
+}

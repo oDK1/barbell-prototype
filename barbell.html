@@ -259,13 +259,19 @@ label.f>span{display:block;font-size:10.5px;letter-spacing:.08em;text-transform:
 
 /* The published tiers, sitting at their place on the scale but styled as the
    buttons they are — bare labels read as axis ticks and nobody clicks them. */
-.ticks{position:relative;height:26px;margin-top:4px}
-.ticks button{position:absolute;top:0;border:1px solid var(--g3);background:var(--paper);
+/* Size lever: the tier chips index the rail directly beneath them, so the
+   slider and the chips share one width and one origin. */
+.sizehd{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.sizehd .aumval{font-size:19px;font-weight:600;letter-spacing:-.02em}
+/* a little room each side so the end chips, centred on the thumb, stay inside */
+.track{padding:0 8px}
+.track input[type=range]{display:block;width:100%;margin:0;padding:0;accent-color:var(--navy)}
+.ticks{position:relative;height:24px;margin-bottom:2px}
+.ticks button{position:absolute;top:0;transform:translateX(-50%);border:1px solid var(--g3);background:var(--paper);
   padding:2px 8px;font:inherit;font-size:10.5px;font-weight:500;color:var(--g1);
   cursor:pointer;line-height:1.5;border-radius:var(--r);white-space:nowrap}
 .ticks button:hover{border-color:var(--ink);color:var(--ink)}
 .ticks button.on{background:var(--ink);border-color:var(--ink);color:#fff;font-weight:600}
-.ticks:before{content:"";position:absolute;top:-4px;left:0;right:0;height:1px;background:var(--g4)}
 
 /* Class weight against the model: filled bar is held today, tick is the model. */
 .wbar{position:relative;height:10px;background:var(--g4);width:100%}
@@ -4128,7 +4134,8 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     const [path, setPath] = useState(false);
     const whatIf = goal !== st.mandate;
 
-    const MAXX = 150;
+    const MAXX = 100;                                   // $1M … $100M end to end
+    const THUMB = 16;                                   // native range thumb, for chip alignment
     const pos = (a) => Math.log(Math.max(a, 1e6) / 1e6) / Math.log(MAXX);
     const fromPos = (v) => 1e6 * Math.pow(MAXX, v);
     const short = (a) => a % 1e6 === 0 ? "$" + (a / 1e6) + "M" : u.usdC(a);
@@ -4204,24 +4211,29 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
             </div>
 
             <div className="lever">
-              <div className="lbl">2 · Size</div>
-              <div className="row mt8" style={{ alignItems: "center", gap: 12 }}>
-                <span className="num" style={{ fontSize: 19, fontWeight: 600, letterSpacing: "-.02em", minWidth: 76 }}>{short(aum)}</span>
-                <input type="range" min="0" max="1000" step="1" value={Math.round(pos(aum) * 1000)}
-                  onChange={(e) => setAum(Math.round(fromPos(+e.target.value / 1000) / 1e5) * 1e5)}
-                  style={{ flex: 1, accentColor: "var(--navy)" }} />
+              <div className="sizehd">
+                <div className="lbl">2 · Size</div>
+                <span className="aumval num">{short(aum)}</span>
               </div>
-              {/* click a tier, or drag the slider to anything between them */}
-              <div className="ticks">
-                {[1e6, 10e6, 100e6].map((a, i) => (
-                  <button key={a} onClick={() => setAum(a)}
-                    className={Math.abs(aum - a) < 1e5 ? "on" : ""}
-                    title={"Model the " + short(a) + " tier"}
-                    style={{
-                      left: (pos(a) * 100) + "%",
-                      transform: i === 0 ? "none" : i === 2 ? "translateX(-100%)" : "translateX(-50%)",
-                    }}>{short(a)}</button>
-                ))}
+              {/* The chips sit above the rail and on the thumb's own centres.
+                  A range thumb travels from T/2 to width − T/2, so each chip is
+                  offset by (0.5 − p)·T to follow it rather than the raw track. */}
+              <div className="track mt8">
+                <div className="ticks">
+                  {[1e6, 10e6, 100e6].map((a) => {
+                    const f = pos(a);
+                    return (
+                      <button key={a} onClick={() => setAum(a)}
+                        className={Math.abs(aum - a) < 1e5 ? "on" : ""}
+                        title={"Model the " + short(a) + " tier"}
+                        style={{ left: "calc(" + (f * 100) + "% + " + ((0.5 - f) * THUMB).toFixed(1) + "px)" }}>
+                        {short(a)}
+                      </button>
+                    );
+                  })}
+                </div>
+                <input type="range" min="0" max="1000" step="1" value={Math.round(pos(aum) * 1000)}
+                  onChange={(e) => setAum(Math.round(fromPos(+e.target.value / 1000) / 1e5) * 1e5)} />
               </div>
               <div className="lever-note">
                 <span style={{ flex: 1 }}>

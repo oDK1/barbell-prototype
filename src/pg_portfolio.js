@@ -259,7 +259,8 @@
     const [path, setPath] = useState(false);
     const whatIf = goal !== st.mandate;
 
-    const MAXX = 150;
+    const MAXX = 100;                                   // $1M … $100M end to end
+    const THUMB = 16;                                   // native range thumb, for chip alignment
     const pos = (a) => Math.log(Math.max(a, 1e6) / 1e6) / Math.log(MAXX);
     const fromPos = (v) => 1e6 * Math.pow(MAXX, v);
     const short = (a) => a % 1e6 === 0 ? "$" + (a / 1e6) + "M" : u.usdC(a);
@@ -335,24 +336,29 @@
             </div>
 
             <div className="lever">
-              <div className="lbl">2 · Size</div>
-              <div className="row mt8" style={{ alignItems: "center", gap: 12 }}>
-                <span className="num" style={{ fontSize: 19, fontWeight: 600, letterSpacing: "-.02em", minWidth: 76 }}>{short(aum)}</span>
-                <input type="range" min="0" max="1000" step="1" value={Math.round(pos(aum) * 1000)}
-                  onChange={(e) => setAum(Math.round(fromPos(+e.target.value / 1000) / 1e5) * 1e5)}
-                  style={{ flex: 1, accentColor: "var(--navy)" }} />
+              <div className="sizehd">
+                <div className="lbl">2 · Size</div>
+                <span className="aumval num">{short(aum)}</span>
               </div>
-              {/* click a tier, or drag the slider to anything between them */}
-              <div className="ticks">
-                {[1e6, 10e6, 100e6].map((a, i) => (
-                  <button key={a} onClick={() => setAum(a)}
-                    className={Math.abs(aum - a) < 1e5 ? "on" : ""}
-                    title={"Model the " + short(a) + " tier"}
-                    style={{
-                      left: (pos(a) * 100) + "%",
-                      transform: i === 0 ? "none" : i === 2 ? "translateX(-100%)" : "translateX(-50%)",
-                    }}>{short(a)}</button>
-                ))}
+              {/* The chips sit above the rail and on the thumb's own centres.
+                  A range thumb travels from T/2 to width − T/2, so each chip is
+                  offset by (0.5 − p)·T to follow it rather than the raw track. */}
+              <div className="track mt8">
+                <div className="ticks">
+                  {[1e6, 10e6, 100e6].map((a) => {
+                    const f = pos(a);
+                    return (
+                      <button key={a} onClick={() => setAum(a)}
+                        className={Math.abs(aum - a) < 1e5 ? "on" : ""}
+                        title={"Model the " + short(a) + " tier"}
+                        style={{ left: "calc(" + (f * 100) + "% + " + ((0.5 - f) * THUMB).toFixed(1) + "px)" }}>
+                        {short(a)}
+                      </button>
+                    );
+                  })}
+                </div>
+                <input type="range" min="0" max="1000" step="1" value={Math.round(pos(aum) * 1000)}
+                  onChange={(e) => setAum(Math.round(fromPos(+e.target.value / 1000) / 1e5) * 1e5)} />
               </div>
               <div className="lever-note">
                 <span style={{ flex: 1 }}>

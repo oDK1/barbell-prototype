@@ -248,13 +248,19 @@ label.f>span{display:block;font-size:10.5px;letter-spacing:.08em;text-transform:
 
 /* The published tiers, sitting at their place on the scale but styled as the
    buttons they are — bare labels read as axis ticks and nobody clicks them. */
-.ticks{position:relative;height:26px;margin-top:4px}
-.ticks button{position:absolute;top:0;border:1px solid var(--g3);background:var(--paper);
+/* Size lever: the tier chips index the rail directly beneath them, so the
+   slider and the chips share one width and one origin. */
+.sizehd{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.sizehd .aumval{font-size:19px;font-weight:600;letter-spacing:-.02em}
+/* a little room each side so the end chips, centred on the thumb, stay inside */
+.track{padding:0 8px}
+.track input[type=range]{display:block;width:100%;margin:0;padding:0;accent-color:var(--navy)}
+.ticks{position:relative;height:24px;margin-bottom:2px}
+.ticks button{position:absolute;top:0;transform:translateX(-50%);border:1px solid var(--g3);background:var(--paper);
   padding:2px 8px;font:inherit;font-size:10.5px;font-weight:500;color:var(--g1);
   cursor:pointer;line-height:1.5;border-radius:var(--r);white-space:nowrap}
 .ticks button:hover{border-color:var(--ink);color:var(--ink)}
 .ticks button.on{background:var(--ink);border-color:var(--ink);color:#fff;font-weight:600}
-.ticks:before{content:"";position:absolute;top:-4px;left:0;right:0;height:1px;background:var(--g4)}
 
 /* Class weight against the model: filled bar is held today, tick is the model. */
 .wbar{position:relative;height:10px;background:var(--g4);width:100%}

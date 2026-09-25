@@ -291,6 +291,60 @@
       answer: "KRW — ₩1.08B ≈ $780,000" },
   ];
 
+  /* ------------------------------------------------- six-class model framework */
+  /* The model is stated in six classes, equity and debt each split public /
+     private, so the implementation question ("through what vehicle?") sits
+     beside the risk question ("how much?"). Every subcategory rolls up to
+     exactly one of these, so nothing is counted twice. `min` is the smallest
+     cheque the class can be entered with on this platform. */
+  const modelClasses = [
+    { key: "pubeq",    label: "Public equity",    color: "#1B2A4A", subs: ["pubeq"],                     min: 0,
+      note: "Listed shares and equity ETFs" },
+    { key: "priveq",   label: "Private equity",   color: "#5A74A0", subs: ["pe", "vc", "preipo"],        min: 250000,
+      note: "Buyout, venture and pre-IPO" },
+    { key: "pubdebt",  label: "Public debt",      color: "#3F7183", subs: ["sov", "ig", "struct"],       min: 0,
+      note: "Sovereign, investment grade, structured" },
+    { key: "privdebt", label: "Private debt",     color: "#85AEBC", subs: ["pcred"],                     min: 500000,
+      note: "Direct lending, senior secured" },
+    { key: "real",     label: "Real assets",      color: "#9A7B2E", subs: ["re", "infra", "comm"],       min: 0,
+      note: "Property, infrastructure, commodities" },
+    { key: "cash",     label: "Cash equivalents", color: "#A9A396", subs: ["mmf", "tbill", "dep", "fx"], min: 0,
+      note: "MMF, T-bills, deposits, FX" },
+  ];
+
+  /* Nine published portfolios. The objective sets the risk budget; the tier
+     decides how that budget is implemented. Read down a column to watch a
+     tier substitute private exposure for public as minimums become clearable. */
+  const modelMatrix = {
+    preservation: {
+      1:   { pubeq: 20, priveq: 0,  pubdebt: 60, privdebt: 0,  real: 5,  cash: 15 },
+      10:  { pubeq: 20, priveq: 0,  pubdebt: 52, privdebt: 8,  real: 5,  cash: 15 },
+      100: { pubeq: 17, priveq: 3,  pubdebt: 42, privdebt: 18, real: 5,  cash: 15 },
+    },
+    balanced: {
+      1:   { pubeq: 55, priveq: 0,  pubdebt: 35, privdebt: 0,  real: 5,  cash: 5 },
+      10:  { pubeq: 45, priveq: 10, pubdebt: 30, privdebt: 5,  real: 5,  cash: 5 },
+      100: { pubeq: 35, priveq: 15, pubdebt: 25, privdebt: 10, real: 10, cash: 5 },
+    },
+    growth: {
+      1:   { pubeq: 75, priveq: 0,  pubdebt: 15, privdebt: 0,  real: 5,  cash: 5 },
+      10:  { pubeq: 60, priveq: 15, pubdebt: 10, privdebt: 5,  real: 5,  cash: 5 },
+      100: { pubeq: 45, priveq: 25, pubdebt: 10, privdebt: 5,  real: 10, cash: 5 },
+    },
+  };
+
+  /* Why a class is not recommended, by whichever rule excluded it. */
+  const modelExcuses = {
+    priveq: {
+      size: "A ten-year lock-up behind a $250,000 minimum. At this size that cheque is a concentrated bet on one fund in one vintage — the opposite of what the sleeve is for. Listed equity carries the same market exposure, daily.",
+      goal: "Capital that has to be spendable cannot sit in a ten-year lock-up. The objective rules this out before size does.",
+    },
+    privdebt: {
+      size: "Direct lending funds start at $500,000 and gate redemptions quarterly. Below that cheque a public credit ETF buys the same spread with daily liquidity and no gate.",
+      goal: "Quarterly gates sit badly with a mandate built on being able to spend.",
+    },
+  };
+
   /* ----------------------------------------------------------------- mandate */
   const mandates = [
     { key: "preservation", label: "Protect capital", core: 95, alpha: 5,
@@ -821,7 +875,8 @@
   BB.data = {
     KRW, TODAY, family, accounts, classes, subs, positions,
     uploadFiles, ingestSteps, exceptions, mandates, survey, modelPortfolios,
-    capitalCalls, distributions, benchmark, performance, attribution, modelGoals, ALT_SUBS, expectedReturn, expectedVol, classCorr, idiosyncraticVol,
+    capitalCalls, distributions, benchmark, performance, attribution, modelGoals, ALT_SUBS,
+    modelClasses, modelMatrix, modelExcuses, expectedReturn, expectedVol, classCorr, idiosyncraticVol,
     market, secondary, bidsSeed, approvalsSeed, activitySeed, opsLedger, referrals, liquidityAssumptions,
   };
 })();

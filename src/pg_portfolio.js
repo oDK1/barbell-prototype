@@ -179,13 +179,12 @@
      class showing what is held against what the model suggests, then a single
      line on alternatives. The bar is the graphic — filled is held today, the
      tick is the model. */
-  /* Two concentric rings of the model: asset classes inside, their
-     subcategories outside, each a tint of its class. Both rings are read
-     straight off modelWeights, so the shape moves with the objective and the
-     size lever above it. */
-  function ModelDonut({ model, aum, label }) {
-    const R = { hole: 54, midIn: 54, midOut: 96, outIn: 100, outOut: 136 };
-    const C = 150;
+  /* One ring, six classes. Only what the family's size and objective actually
+     recommend is drawn — everything ruled out is listed beneath the table
+     instead, with the arithmetic that ruled it. Hovering a slice offers the
+     best-scoring instrument on the platform that would fill it. */
+  function ModelDonut({ rows, label, hover, onHover }) {
+    const C = 190, RO = 176, RI = 108;
     const pt = (r, a) => [(C + r * Math.sin(a)).toFixed(2), (C - r * Math.cos(a)).toFixed(2)];
     const arc = (r0, r1, a0, a1) => {
       const big = a1 - a0 > Math.PI ? 1 : 0;
@@ -193,74 +192,80 @@
       const [x2, y2] = pt(r0, a1), [x3, y3] = pt(r0, a0);
       return `M${x0} ${y0}A${r1} ${r1} 0 ${big} 1 ${x1} ${y1}L${x2} ${y2}A${r0} ${r0} 0 ${big} 0 ${x3} ${y3}Z`;
     };
-    /* lighten toward the paper so a class reads as one family of tones */
-    const tint = (hex, f) => {
-      const n = parseInt(hex.slice(1), 16);
-      const mix = (c, p) => Math.round(c + (p - c) * f);
-      return "#" + [[(n >> 16) & 255, 250], [(n >> 8) & 255, 250], [n & 255, 248]]
-        .map(([c, p]) => mix(c, p).toString(16).padStart(2, "0")).join("");
-    };
 
     let a = 0;
-    const rings = [];
-    D.classes.forEach((c) => {
-      const w = model.classes[c.key] || 0;
-      if (w <= 0) return;
-      const span = (w / 100) * Math.PI * 2;
-      const a0 = a, a1 = a + span;
-      rings.push({ ring: "cls", key: c.key, label: c.label, wt: w, fill: c.color, a0, a1 });
-      /* subcategories fill their parent's sweep, in the data's own order */
-      let sa = a0;
-      const kids = D.subs.filter((s) => s.cls === c.key);
-      kids.forEach((s, i) => {
-        const sw = model.subs[s.key] || 0;
-        if (sw <= 0) return;
-        const ss = (sw / 100) * Math.PI * 2;
-        rings.push({
-          ring: "sub", key: s.key, label: s.label, wt: sw, a0: sa, a1: sa + ss,
-          fill: tint(c.color, 0.30 + (i / Math.max(1, kids.length - 1 || 1)) * 0.42),
-        });
-        sa += ss;
-      });
+    const segs = rows.filter((r) => r.model > 0).map((r) => {
+      const a0 = a, a1 = a + (r.model / 100) * Math.PI * 2;
       a = a1;
+      return { ...r, a0, a1 };
     });
+    const lead = hover ? rows.find((r) => r.key === hover) : null;
+    const deal = lead ? u.pickForClass(lead.key) : null;
 
-    const clsSegs = rings.filter((r) => r.ring === "cls");
     return (
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
-        <svg viewBox="0 0 300 300" style={{ width: 300, height: 300, display: "block" }}
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10, width: "100%" }}>
+        <svg viewBox="0 0 380 380" style={{ width: "100%", maxWidth: 380, height: "auto", display: "block" }}
           role="img" aria-label={"Model allocation at " + label}>
-          {rings.map((r) => (
-            <path key={r.ring + r.key} d={arc(r.ring === "cls" ? R.midIn : R.outIn,
-              r.ring === "cls" ? R.midOut : R.outOut, r.a0, r.a1)}
-              fill={r.fill} stroke="var(--paper)" strokeWidth="1.5">
-              <title>{r.label + " · " + u.pct(r.wt)}</title>
-            </path>
-          ))}
-          {/* a class is labelled in its own band when the slice can hold the text */}
-          {clsSegs.filter((r) => r.a1 - r.a0 > 0.52).map((r) => {
-            const [lx, ly] = pt((R.midIn + R.midOut) / 2, (r.a0 + r.a1) / 2);
+          {segs.map((r) => {
+            const on = hover === r.key, out = hover && !on;
             return (
-              <text key={"t" + r.key} x={lx} y={ly} textAnchor="middle" fill="#FAFAF8"
-                style={{ fontSize: 12, fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>
-                <tspan x={lx} dy="-1">{u.pct(r.wt)}</tspan>
+              <path key={r.key} d={arc(on ? RI - 5 : RI, on ? RO + 5 : RO, r.a0, r.a1)}
+                fill={r.color} stroke="var(--paper)" strokeWidth="2"
+                opacity={out ? .35 : 1} style={{ cursor: "pointer" }}
+                onMouseEnter={() => onHover(r.key)} onMouseLeave={() => onHover(null)}>
+                <title>{r.label + " · " + u.pct(r.model)}</title>
+              </path>
+            );
+          })}
+          {/* a slice is labelled in its own band once it is wide enough to hold the figure */}
+          {segs.filter((r) => r.a1 - r.a0 > 0.40).map((r) => {
+            const [lx, ly] = pt((RI + RO) / 2, (r.a0 + r.a1) / 2);
+            return (
+              <text key={"t" + r.key} x={lx} y={+ly + 5} textAnchor="middle" fill="#FAFAF8"
+                style={{ fontSize: 17, fontWeight: 600, fontVariantNumeric: "tabular-nums", pointerEvents: "none" }}>
+                {u.pct(r.model, 0)}
               </text>
             );
           })}
-          <text x={C} y={C - 4} textAnchor="middle" fill="var(--ink)"
-            style={{ fontSize: 17, fontWeight: 600, fontVariantNumeric: "tabular-nums", letterSpacing: "-.02em" }}>{label}</text>
-          <text x={C} y={C + 14} textAnchor="middle" fill="var(--g2)" style={{ fontSize: 9.5, letterSpacing: ".08em" }}>MODELLED</text>
+          <text x={C} y={C - 6} textAnchor="middle" fill="var(--ink)"
+            style={{ fontSize: 26, fontWeight: 600, fontVariantNumeric: "tabular-nums", letterSpacing: "-.02em" }}>{label}</text>
+          <text x={C} y={C + 16} textAnchor="middle" fill="var(--g2)"
+            style={{ fontSize: 10, letterSpacing: ".1em" }}>MODELLED</text>
         </svg>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "4px 12px", justifyContent: "center", maxWidth: 320 }}>
-          {clsSegs.map((r) => (
-            <span key={"l" + r.key} style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 11, color: "var(--g1)" }}>
-              <i style={{ width: 9, height: 9, background: r.fill, display: "inline-block", flexShrink: 0 }} />
-              {r.label}
-            </span>
+
+        <div className="donutlegend">
+          {rows.map((r) => (
+            <button key={r.key} className={"dl" + (hover === r.key ? " on" : "")}
+              onMouseEnter={() => onHover(r.key)} onMouseLeave={() => onHover(null)}
+              onClick={() => { const m = u.pickForClass(r.key); if (m) S.navigate("/marketplace/" + m.id); }}>
+              <i style={{ background: r.color }} />
+              <span>{r.label}</span>
+              <b className="num">{u.pct(r.model)}</b>
+            </button>
           ))}
         </div>
-        <div className="tri" style={{ fontSize: 10.5, textAlign: "center", maxWidth: 320 }}>
-          Inner ring: asset class. Outer ring: its subcategories.
+
+        {/* hovering a class offers something concrete to do about it */}
+        <div className="dealhint">
+          {lead && deal ? (
+            <button className="dh" onClick={() => S.navigate("/marketplace/" + deal.id)}>
+              <div className="dh-l">{lead.label} · suggested</div>
+              <div className="dh-n">{deal.name}</div>
+              <div className="dh-s">
+                {deal.ret} · {deal.liq} · minimum {u.usd(deal.min)}
+                {deal.hanwha ? " · Hanwha-sourced" : ""}
+              </div>
+              <div className="dh-go">Open in the marketplace →</div>
+            </button>
+          ) : lead ? (
+            <div className="tri" style={{ fontSize: 11, alignSelf: "center", textAlign: "center" }}>
+              <b>{lead.label}</b> — {lead.note}. Held directly; nothing to buy on the platform.
+            </div>
+          ) : (
+            <div className="tri" style={{ fontSize: 11, alignSelf: "center", textAlign: "center" }}>
+              Hover a class for the instrument that would fill it.
+            </div>
+          )}
         </div>
       </div>
     );
@@ -281,19 +286,23 @@
     const fromPos = (v) => 1e6 * Math.pow(MAXX, v);
     const short = (a) => a % 1e6 === 0 ? "$" + (a / 1e6) + "M" : u.usdC(a);
 
-    const model = u.modelWeights(aum, goal);
+    const six = u.modelSix(aum, goal);
+    const heldSix = u.bySix(positions);
+    const model = { classes: u.sixToFour(six.w), subs: u.sixToSubs(six.w) };
+    const [hover, setHover] = useState(null);
+    const sixRows = D.modelClasses.map((c) => ({
+      ...c, model: six.w[c.key], held: heldSix.pct[c.key],
+      delta: six.w[c.key] - heldSix.pct[c.key], blocked: six.blocked[c.key] || null,
+    }));
+    const inPlay = sixRows.filter((r) => !r.blocked);
+    const ruledOut = sixRows.filter((r) => r.blocked);
     const mandate = D.mandates.find((x) => x.key === st.mandate) || D.mandates[1];
     const selected = D.mandates.find((x) => x.key === goal) || mandate;
     const confirmed = st.activity.find((a) => a.kind === "Mandate");
     const atToday = Math.abs(aum - t) < 1e5;
     const cls = u.byClass(positions);
     const subs = u.bySub(positions);
-    const clsRows = cls.map((c) => ({
-      ...c, model: model.classes[c.key], delta: model.classes[c.key] - c.wt,
-      kids: subs.filter((sb) => sb.cls === c.key)
-        .map((sb) => ({ ...sb, model: model.subs[sb.key], delta: model.subs[sb.key] - sb.wt })),
-    }));
-    const flat = clsRows.reduce((a, c) => a.concat(c.kids), []);
+    const flat = subs.map((sb) => ({ ...sb, model: model.subs[sb.key], delta: model.subs[sb.key] - sb.wt }));
     const SCALE = 45;                                   // one shared axis for every bar
 
     const Bar = ({ held, target, color }) => (
@@ -381,52 +390,65 @@
           {/* the shape, then the numbers behind it */}
           <div className="modelsplit">
             <div className="modelchart">
-              <ModelDonut model={model} aum={aum} label={short(aum)} />
+              <ModelDonut rows={inPlay} label={short(aum)} hover={hover} onHover={setHover} />
             </div>
             <div className="modeltable">
-          {/* held against model, one row per class */}
-          <table className="t">
-            <thead><tr>
-              <th style={{ width: 240 }}>Asset class</th>
-              <th className="n">Held</th><th className="n">Model</th>
-              <th style={{ width: "36%" }}>Weight against model</th>
-              <th className="n">Difference</th><th className="n">Dollars</th>
-            </tr></thead>
-            <tbody>
-              {clsRows.map((c) => {
-                const isOpen = !!open[c.key];
-                return (
-                  <React.Fragment key={c.key}>
-                    <tr className="clickable" onClick={() => setOpen({ ...open, [c.key]: !isOpen })}
-                      style={{ background: isOpen ? "#FCFBF8" : undefined }}>
+              <table className="t">
+                <thead><tr>
+                  <th style={{ width: 210 }}>Asset class</th>
+                  <th className="n">Held</th><th className="n">Model</th>
+                  <th style={{ width: "30%" }}>Weight against model</th>
+                  <th className="n">Difference</th><th className="n">Dollars</th>
+                </tr></thead>
+                <tbody>
+                  {inPlay.map((c) => (
+                    <tr key={c.key} className="clickable"
+                      onMouseEnter={() => setHover(c.key)} onMouseLeave={() => setHover(null)}
+                      onClick={() => { const m = u.pickForClass(c.key); if (m) S.navigate("/marketplace/" + m.id); }}
+                      style={{ background: hover === c.key ? "#F3F2EE" : undefined }}>
                       <td>
                         <span style={{ display: "inline-flex", gap: 8, alignItems: "center", fontWeight: 600 }}>
-                          <span style={{ width: 9, fontSize: 11, color: "var(--g1)" }}>{isOpen ? "▾" : "▸"}</span>
                           <i className="sw" style={{ width: 9, height: 9, display: "inline-block", background: c.color }} />
                           {c.label}
                         </span>
+                        <div className="tsub">{c.note}</div>
                       </td>
-                      <td className="n num">{u.pct(c.wt)}</td>
+                      <td className="n num">{u.pct(c.held)}</td>
                       <td className="n num tri">{u.pct(c.model)}</td>
-                      <td><Bar held={c.wt} target={c.model} color={c.color} /></td>
+                      <td><Bar held={c.held} target={c.model} color={c.color} /></td>
                       <td className="n"><VsTarget v={c.delta} /></td>
                       <td className="n num tri">{u.usd((c.delta / 100) * t)}</td>
                     </tr>
-                    {isOpen && c.kids.map((r) => (
-                      <tr key={r.key}>
-                        <td style={{ paddingLeft: 34 }}><div className="tname">{r.label}</div></td>
-                        <td className="n num">{u.pct(r.wt)}</td>
-                        <td className="n num tri">{u.pct(r.model)}</td>
-                        <td><Bar held={r.wt} target={r.model} color={c.color} /></td>
-                        <td className="n"><VsTarget v={r.delta} /></td>
-                        <td className="n num tri">{u.usd((r.delta / 100) * t)}</td>
-                      </tr>
-                    ))}
-                  </React.Fragment>
-                );
-              })}
-            </tbody>
-          </table>
+                  ))}
+                </tbody>
+              </table>
+
+              {/* what this size and objective rule out, and the arithmetic that ruled it */}
+              {ruledOut.length > 0 && (
+                <div className="ruledout">
+                  <div className="lbl" style={{ marginBottom: 8 }}>
+                    Not recommended at {short(aum)} · {selected.label}
+                  </div>
+                  {ruledOut.map((c) => (
+                    <div key={c.key} className="ro-item">
+                      <div className="ro-hd">
+                        <i className="sw" style={{ width: 9, height: 9, display: "inline-block", background: c.color, opacity: .45 }} />
+                        <span className="ro-name">{c.label}</span>
+                        <span className="tri num" style={{ fontSize: 11.5 }}>
+                          {c.blocked.why === "size" && c.blocked.pct > 0
+                            ? u.pct(c.blocked.pct) + " would be " + u.usdC(c.blocked.dollars) + " · minimum " + u.usdC(c.blocked.min)
+                            : "0% at this size and objective"}
+                        </span>
+                        <span style={{ flex: 1 }} />
+                        <span className="tri" style={{ fontSize: 11 }}>
+                          weight moved to {(D.modelClasses.find((x) => x.key === c.blocked.to) || {}).label}
+                        </span>
+                      </div>
+                      <div className="ro-why">{(D.modelExcuses[c.key] || {})[c.blocked.why]}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 

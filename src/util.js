@@ -225,6 +225,85 @@
     return { subs, classes, alts, goal: g };
   }
 
+
+  /* ------------------------------------------------ six-class model portfolio */
+  /* Interpolates the published tiers on log AUM, then applies the rule that
+     decides what a family this size can actually own: a private sleeve whose
+     dollar allocation cannot clear its minimum cheque is not a recommendation,
+     it is a rounding error. Those are zeroed and their weight returned to the
+     public sibling, with the arithmetic kept so the screen can show its work. */
+  function modelSix(aum, goalKey) {
+    const g = D.modelMatrix[goalKey] ? goalKey : "balanced";
+    const x = Math.max(0, Math.min(2, Math.log10(Math.max(aum, 1e6) / 1e6)));
+    const lo = x < 1 ? 1 : 10, hi = x < 1 ? 10 : 100, f = x < 1 ? x : x - 1;
+    const A = D.modelMatrix[g][lo], B = D.modelMatrix[g][hi];
+
+    const w = {};
+    D.modelClasses.forEach((c) => { w[c.key] = A[c.key] * (1 - f) + B[c.key] * f; });
+
+    const sibling = { priveq: "pubeq", privdebt: "pubdebt" };
+    const blocked = {};
+    Object.keys(sibling).forEach((k) => {
+      const c = D.modelClasses.find((x2) => x2.key === k);
+      const dollars = (w[k] / 100) * aum;
+      /* the objective can rule it out outright; otherwise the cheque decides */
+      const byGoal = A[k] === 0 && B[k] === 0;
+      if (w[k] <= 0 || byGoal || dollars < c.min) {
+        blocked[k] = {
+          why: byGoal || w[k] <= 0 ? (g === "preservation" ? "goal" : "size") : "size",
+          pct: w[k], dollars, min: c.min, to: sibling[k],
+        };
+        w[sibling[k]] += w[k];
+        w[k] = 0;
+      }
+    });
+    return { w, blocked, goal: g, tier: { lo, hi, f } };
+  }
+
+  /* The same six buckets, measured on what the family actually holds. */
+  function bySix(positions) {
+    const t = total(positions);
+    const of = {};
+    D.modelClasses.forEach((c) => c.subs.forEach((k) => { of[k] = c.key; }));
+    const value = {};
+    D.modelClasses.forEach((c) => { value[c.key] = 0; });
+    positions.forEach((p) => { if (of[p.sub] !== undefined) value[of[p.sub]] += p.value; });
+    const pct = {};
+    Object.keys(value).forEach((k) => { pct[k] = t ? (value[k] / t) * 100 : 0; });
+    return { value, pct, total: t };
+  }
+
+  /* Roll six back up to the four classes projectMix reasons in. */
+  function sixToFour(w) {
+    return {
+      equity: w.pubeq + w.priveq,
+      debt: w.pubdebt + w.privdebt,
+      real: w.real,
+      cash: w.cash,
+    };
+  }
+
+  /* Spread a class's model weight across its subcategories in the proportions
+     the published targets already imply, so the rebalancing path still has
+     instrument-level lines to act on. */
+  function sixToSubs(w) {
+    const out = {};
+    D.modelClasses.forEach((c) => {
+      const kids = D.subs.filter((s) => c.subs.indexOf(s.key) >= 0);
+      const base = kids.reduce((a, s) => a + s.target, 0);
+      kids.forEach((s) => { out[s.key] = base ? w[c.key] * (s.target / base) : w[c.key] / kids.length; });
+    });
+    return out;
+  }
+
+  /* The best-scoring thing on the platform that would fill a class. */
+  function pickForClass(key) {
+    const c = D.modelClasses.find((x) => x.key === key);
+    if (!c) return null;
+    return D.market.filter((m) => c.subs.indexOf(m.fills) >= 0)
+      .sort((a, b) => b.fit - a.fit)[0] || null;
+  }
+
   /* ----------------------------------------------------------- projection */
   /* A lognormal fan: the mean path plus the 10th and 90th percentiles, given
      the class weights, their expected returns, their volatilities and how
@@ -368,7 +447,8 @@
   BB.u = {
     usd, usdC, krwC, krwFull, pct, pp, sgn, sgnUsd, num, localPx, days, fmtDate, fmtTs, monthKey, monthLabel,
     staleness, provLabel, sum, total, byClass, bySub, gaps, sleeveTotals, unrealized, realizedYTD,
-    liquidity90, liquidityProjection, shortfall, coverage, projectMix, topHoldings, affiliateExposure, taxLots, eligibility,
+    liquidity90, liquidityProjection, shortfall, coverage, projectMix,
+    modelSix, bySix, sixToFour, sixToSubs, pickForClass, topHoldings, affiliateExposure, taxLots, eligibility,
     fitFor, subLabel, clsLabel, clsOf, impact, modelWeights, marketContext, scoreFor, suggestAmount,
   };
 })();

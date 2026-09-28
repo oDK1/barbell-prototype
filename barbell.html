@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=1440" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="robots" content="noindex, nofollow" />
 <title>Barbell Wealth Operating System</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -450,6 +450,82 @@ label.f>span{display:block;font-size:10.5px;letter-spacing:.08em;text-transform:
 .sug-s{display:block;font-size:11px;color:var(--g2);margin-top:2px;line-height:1.45;max-width:92ch}
 .sug-go{display:block;font-size:11px;color:var(--navy);font-weight:500;margin-top:5px}
 .sug-none{padding:9px 12px;font-size:11.5px;color:var(--g2)}
+
+/* ===========================================================================
+   Mobile. Everything below lives inside a media query, so the desktop
+   interface above 900px is byte-for-byte what it was. The app is built from
+   inline styles in places, so a few rules here must carry !important to beat
+   them — each one is a layout instruction the desktop still owns.
+   =========================================================================== */
+@media (max-width: 900px) {
+  .wrap { padding: 0 14px; }
+
+  /* two rows: brand and account above, the tabs on a full-width row of their
+     own so more than one of them is visible without swiping */
+  .topbar { height: auto; }
+  .topbar .wrap { height: auto; flex-wrap: wrap; gap: 10px; padding-top: 8px; }
+  .brand .tri { display: none; }
+  .topbar > .wrap > .tri { display: none; }
+  .nav { flex: 1 1 100%; order: 3; height: 38px; gap: 0;
+    overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .nav::-webkit-scrollbar { display: none; }
+  .nav a { padding: 0 10px; font-size: 12px; white-space: nowrap; }
+  .nav a:first-child { padding-left: 0; }
+
+  /* any two-column page becomes one column, inline widths included */
+  .page .row:not(.tight) { flex-wrap: wrap; }
+  .page .row:not(.tight) > div { flex: 1 1 100% !important; width: auto !important; min-width: 0 !important; }
+  .page .grid { grid-template-columns: 1fr !important; }
+  .between { flex-wrap: wrap; gap: 10px; }
+
+  /* stat bands stack rather than crushing five cells into 350px */
+  .band { flex-direction: column; }
+  .band .cell { border-right: 0; border-bottom: 1px solid var(--g3); }
+  .band .cell:last-child { border-bottom: 0; }
+
+  /* tables keep their columns and scroll sideways inside their panel */
+  .panel { overflow-x: auto; }
+  .panel > table.t, .modeltable > table.t, .tscroll > table.t { min-width: 620px; }
+  .kv { grid-template-columns: 1fr; }
+
+  /* model portfolio: chart above, table below, both full width */
+  .modelchart { width: auto !important; padding: 12px 0; }
+  .donutlegend { grid-template-columns: 1fr 1fr; max-width: none; }
+  .modeltable { overflow-x: auto; }
+
+  /* the account chip gives its width back to the tabs */
+  .acct-btn { padding: 4px 8px; }
+  .acct-btn .rl { display: none !important; }   /* the span carries inline display:block */
+  .acct-btn .nm { font-size: 11.5px; }
+
+  /* the agent bar spans the screen: label on its own line, then input + Ask */
+  .askbar { width: calc(100vw - 16px); bottom: 8px; }
+  .askbar .askrow { flex-wrap: wrap; gap: 8px; }
+  .askbar .askrow > .lbl { flex: 1 1 100%; }
+  .askbar .askrow .search { flex: 1 1 60% !important; }
+  .page.hasagent { padding-bottom: 150px; }
+  body:has(.page.hasagent) .foot { padding-bottom: 130px; }
+
+  /* modals become sheets rather than 700px boxes off-screen */
+  .modal { width: calc(100vw - 20px) !important; max-width: none !important; max-height: 88vh; }
+
+  h1 { font-size: 27px; }
+  .filters .f-item { flex: 1 1 100%; min-width: 0; }
+  .btn-row { flex-wrap: wrap; }
+  .rowbtns { justify-content: flex-start; }
+  .foot .wrap { flex-wrap: wrap; gap: 10px; }
+}
+
+/* Phones proper: the donut and the tier chips need the last of the width. */
+@media (max-width: 560px) {
+  .wrap { padding: 0 12px; }
+  .levers .lever { padding: 12px 12px; }
+  .ticks button { font-size: 10px; padding: 2px 6px; }
+  .nav a { padding: 0 7px; font-size: 11.5px; }
+  .donutlegend { grid-template-columns: 1fr; }
+  .seg button, .btn { font-size: 11.5px; }
+  h1 { font-size: 24px; }
+}
 
 </style>
 </head>

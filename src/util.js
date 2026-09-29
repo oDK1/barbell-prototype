@@ -341,6 +341,28 @@
   }
   const GEO_BUCKETS = ["United States", "Asia", "ROW"];
 
+
+  /* The document pack behind a secondary transfer. Every transfer carries the
+     same four — the instrument's own agreement, the capital account it is
+     priced off, the assignment, and the GP's consent — plus a schedule
+     wherever the interest still owes money. Page counts are derived from the
+     listing id so a given listing always reads the same. */
+  function listingDocs(l) {
+    const seed = String(l.id).split("").reduce((a, c) => a + c.charCodeAt(0), 0);
+    const pp = (base, spread) => "PDF · " + (base + (seed % spread)) + "pp";
+    const agreement = l.cls === "debt"
+      ? "Facility agreement and participation terms"
+      : l.cls === "real" ? "Fund limited partnership agreement" : "Limited partnership agreement";
+    const docs = [
+      [l.manager + " — " + agreement.toLowerCase().replace(/^./, (c) => c.toUpperCase()), pp(88, 60)],
+      ["Capital account statement — 30 Jun 2026", pp(4, 6)],
+      ["Transfer and assignment agreement", pp(11, 9)],
+      ["GP consent — platform transfer waiver", pp(3, 4)],
+    ];
+    if (l.unfunded) docs.push(["Unfunded commitment schedule — " + usd(l.unfunded) + " outstanding", pp(2, 3)]);
+    return docs;
+  }
+
   /* ----------------------------------------------------------- projection */
   /* A lognormal fan: the mean path plus the 10th and 90th percentiles, given
      the class weights, their expected returns, their volatilities and how
@@ -488,7 +510,7 @@
     usd, usdC, krwC, krwFull, pct, pp, sgn, sgnUsd, num, localPx, days, fmtDate, fmtTs, monthKey, monthLabel,
     staleness, provLabel, sum, total, byClass, bySub, gaps, unrealized, realizedYTD,
     liquidity90, liquidityProjection, shortfall, coverage, projectMix,
-    modelSix, bySix, sixToFour, sixToSubs, pickForClass, holdingsSix, geoBucket, GEO_BUCKETS, topHoldings, affiliateExposure, taxLots, eligibility,
+    modelSix, bySix, sixToFour, sixToSubs, pickForClass, holdingsSix, geoBucket, GEO_BUCKETS, listingDocs, topHoldings, affiliateExposure, taxLots, eligibility,
     fitFor, subLabel, clsLabel, clsOf, impact, modelWeights, marketContext, scoreFor, suggestAmount,
   };
 })();

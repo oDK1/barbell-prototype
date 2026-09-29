@@ -222,6 +222,20 @@
                 <span className="k">GP consent</span><span className="v">Pre-cleared for platform transfers</span>
               </div>
             </Panel>
+
+            <div className="mt16">
+              <Panel title="Documents" sub="The transfer pack for this interest">
+                <table className="t dense">
+                  <tbody>{u.listingDocs(l).map((d) => (
+                    <tr key={d[0]}>
+                      <td><span className="mono tri" style={{ marginRight: 10 }}>DOC</span><span className="tname">{d[0]}</span></td>
+                      <td className="tri">{d[1]}</td>
+                      <td className="right"><button className="btn sm" onClick={() => S.toast("Document opened — " + d[0])}>Open</button></td>
+                    </tr>
+                  ))}</tbody>
+                </table>
+              </Panel>
+            </div>
           </div>
         </div>
 

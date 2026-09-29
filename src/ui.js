@@ -349,7 +349,7 @@
   /* Ten years of simulated outcomes: today's actual mix against a model stated
      in classes. Used by the portfolio's model panel and by the mandate step of
      onboarding, so both argue from the same maths. */
-  function GrowthFan({ positions, modelClasses, modelLabel, collapsible, defaultOpen }) {
+  function GrowthFan({ positions, modelClasses, modelLabel, collapsible, defaultOpen, assumptions }) {
     const [open, setOpen] = useState(defaultOpen !== false);
     const t = u.total(positions);
     const YEARS = 10, CW = 720, CH = 230;
@@ -451,16 +451,18 @@
               </tbody>
             </table>
 
-            <div className="note mt12">
-              Shaded bands are the 10th to 90th percentile, dashed lines the 10th — the poor decade, which is the
-              number worth looking at. Lognormal outcomes from fixed assumptions:
-              {" " + D.classes.map((c) => c.label.split(" ")[0] + " " + u.pct(D.expectedReturn[c.key]) + " ± " + u.pct(D.expectedVol[c.key])).join(" · ")},
-              correlated as listed markets normally are, before fees, tax and capital calls.
-              {" "}Today's mix carries {u.pct(cur.specificSigma)} on top of that for specific risk — the book holds
-              nine single names including {u.pct(u.affiliateExposure(positions).wt)} in the family's own operating
-              company, and a class average assumes an index. The model is stated in classes, so it carries none, which
-              is most of the gap. Not a backtest and not a forecast — the range these assumptions imply.
-            </div>
+            {assumptions !== false && (
+              <div className="note mt12">
+                Shaded bands are the 10th to 90th percentile, dashed lines the 10th — the poor decade, which is the
+                number worth looking at. Lognormal outcomes from fixed assumptions:
+                {" " + D.classes.map((c) => c.label.split(" ")[0] + " " + u.pct(D.expectedReturn[c.key]) + " ± " + u.pct(D.expectedVol[c.key])).join(" · ")},
+                correlated as listed markets normally are, before fees, tax and capital calls.
+                {" "}Today's mix carries {u.pct(cur.specificSigma)} on top of that for specific risk — the book holds
+                nine single names including {u.pct(u.affiliateExposure(positions).wt)} in the family's own operating
+                company, and a class average assumes an index. The model is stated in classes, so it carries none, which
+                is most of the gap. Not a backtest and not a forecast — the range these assumptions imply.
+              </div>
+            )}
           </div>
         )}
       </>

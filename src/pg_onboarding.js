@@ -308,7 +308,7 @@
 
         {/* what the chosen posture would compound to, against the book as it stands */}
         <div className="panel mt16">
-          <GrowthFan positions={st.positions} modelClasses={m.targets} modelLabel={m.label} collapsible />
+          <GrowthFan positions={st.positions} modelClasses={m.targets} modelLabel={m.label} collapsible assumptions={false} />
         </div>
 
         <div className="btn-row mt16">

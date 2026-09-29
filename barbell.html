@@ -3076,7 +3076,22 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     );
   }
 
-  BB.ui = { Money, Delta, ProvBadge, LiqBadge, Lock, Stat, Band, Panel, Tabs, Seg, Modal, MiniBar, Fit, Crumb, Toast, Amount, Dropzone, FileRow, ModeStrip, AccountCard, AccountCards, Steps, GrowthFan };
+  /* The agent bar's chrome — fixed to the foot of the window. Each page that
+     uses it supplies its own input and its own idea of an answer. */
+  function AgentBar({ label, note, children }) {
+    return (
+      <div className="askbar agentbar">
+        {note && <div className="askhint" style={{ paddingBottom: 8 }}>{note}</div>}
+        <div className="askrow">
+          <span className="lbl" style={{ whiteSpace: "nowrap" }}>{label}</span>
+          {children}
+        </div>
+      </div>
+    );
+  }
+
+
+  BB.ui = { Money, Delta, ProvBadge, LiqBadge, Lock, Stat, Band, Panel, Tabs, Seg, Modal, MiniBar, Fit, Crumb, Toast, Amount, Dropzone, FileRow, ModeStrip, AccountCard, AccountCards, Steps, GrowthFan, AgentBar };
 })();
 
 </script>
@@ -5219,7 +5234,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 (function () {
   const { useState } = React;
   const D = BB.data, u = BB.u, S = BB.store;
-  const { Money, Delta, Panel, Fit, Lock } = BB.ui;
+  const { Money, Delta, Panel, Fit, Lock, AgentBar } = BB.ui;
   const { askMarket } = BB.agent;
 
   function Row({ m, sug, onOpen, onAct }) {
@@ -5282,6 +5297,9 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     const [act, setAct] = useState(null);
     const [ask, setAsk] = useState("");
     const [asked, setAsked] = useState(null);
+    /* A question asked on a deal page lands here as ?ask=, so the answer is
+       the ranked list rather than a second result surface. */
+    const wantAsk = route.query.ask;
     const gapFocus = route.query.gap;
     const isSuccessor = st.account === "successor";
 
@@ -5312,6 +5330,12 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     /* what could actually fund a purchase today */
     const funds = u.total(st.positions.filter((x) => x.cls === "cash"));
     const sectors = Array.from(new Set(offered.map((m) => m.sector))).sort();
+
+    React.useEffect(() => {
+      if (!wantAsk) return;
+      setAsk(wantAsk);
+      setAsked(askMarket(wantAsk, scored, ctx));
+    }, [wantAsk]);
 
     const open = (m) => S.navigate("/marketplace/" + m.id);
     const onAct = (m, amount) => setAct({ m, amount });
@@ -5450,26 +5474,18 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
         </div>
 
         {/* agent — fixed to the foot of the window, reachable from any scroll position */}
-        <div className="askbar agentbar">
-          {asked && (
-            <div className="askhint" style={{ paddingBottom: 8 }}>
-              {asked.rows.length
-                ? <><b>{asked.label}</b> — {asked.rows.length} shown below. {asked.note}</>
-                : <>Nothing on the marketplace matches that. Members sometimes sell what they already hold on the{" "}
-                  <button className="link" onClick={() => S.navigate("/secondary")}>secondary board</button>.</>}
-            </div>
-          )}
-          <div className="askrow">
-            <span className="lbl" style={{ whiteSpace: "nowrap" }}>Marketplace Agent</span>
-            <div className="search" style={{ flex: 1 }}>
-              <input type="text" value={ask} placeholder="Ask: what closes the rebalancing? · Hanwha-sourced credit · private, under $500K"
-                onChange={(e) => setAsk(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && setAsked(askMarket(ask, scored, ctx))} />
-            </div>
-            <button className="btn sm" onClick={() => setAsked(askMarket(ask, scored, ctx))}>Ask</button>
-            {asked && <button className="btn sm q" onClick={() => { setAsked(null); setAsk(""); }}>Clear</button>}
+        <AgentBar label="Marketplace Agent" note={asked && (asked.rows.length
+          ? <><b>{asked.label}</b> — {asked.rows.length} shown below. {asked.note}</>
+          : <>Nothing on the marketplace matches that. Members sometimes sell what they already hold on the{" "}
+            <button className="link" onClick={() => S.navigate("/secondary")}>secondary board</button>.</>)}>
+          <div className="search" style={{ flex: 1 }}>
+            <input type="text" value={ask} placeholder="Ask: what closes the rebalancing? · Hanwha-sourced credit · private, under $500K"
+              onChange={(e) => setAsk(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && setAsked(askMarket(ask, scored, ctx))} />
           </div>
-        </div>
+          <button className="btn sm" onClick={() => setAsked(askMarket(ask, scored, ctx))}>Ask</button>
+          {asked && <button className="btn sm q" onClick={() => { setAsked(null); setAsk(""); }}>Clear</button>}
+        </AgentBar>
 
         {act && (act.m.kind === "listed"
           ? <BB.flows.TradeTicket instrument={{ ...act.m, sub: act.m.fills, pxUsd: act.m.px }}
@@ -5489,7 +5505,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 (function () {
   const { useState } = React;
   const D = BB.data, u = BB.u, S = BB.store;
-  const { Money, Delta, Panel, Tabs, Crumb, Fit, Lock } = BB.ui;
+  const { Money, Delta, Panel, Tabs, Crumb, Fit, AgentBar } = BB.ui;
   const { Agent } = BB.agent;
 
   function Deal({ route }) {
@@ -5499,7 +5515,6 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     const [act, setAct] = useState(false);
     const [share, setShare] = useState(false);
     const [ask, setAsk] = useState("");
-    const [asked, setAsked] = useState([]);
 
     if (!m) return <div className="wrap page"><div className="empty">Unknown opportunity.</div></div>;
 
@@ -5512,10 +5527,10 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
     const tabs = [{ k: "thesis", label: isListed ? "Overview" : "Thesis" }, { k: "terms", label: "Terms" }, { k: "docs", label: "Documents", n: m.docs.length }]
       .concat(m.hanwha ? [{ k: "hanwha", label: "Hanwha's position" }] : [])
-      .concat([{ k: "qa", label: "Q&A", n: m.qa.length + asked.length }]);
+;
 
     return (
-      <div className="wrap page">
+      <div className="wrap page hasagent">
         <Crumb items={[{ label: "Marketplace", to: "/marketplace" }, { label: u.subLabel(m.fills), to: "/marketplace?gap=" + m.fills }, { label: m.name }]} />
         <div className="between">
           <div style={{ maxWidth: "70ch" }}>
@@ -5621,32 +5636,6 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                   </table>
                 </div>
               )}
-              {tab === "qa" && (
-                <div>
-                  {m.qa.concat(asked).length === 0 && <div className="empty">No questions yet.</div>}
-                  {m.qa.map((qa, i) => (
-                    <div key={i} style={{ marginBottom: 16 }}>
-                      <div className="tname">{qa[0]}</div>
-                      <div className="prose mt8" style={{ fontSize: 12.5 }}>{qa[1]}</div>
-                      <hr className="hr" />
-                    </div>
-                  ))}
-                  {asked.map((qa, i) => (
-                    <div key={"a" + i} style={{ marginBottom: 16 }}>
-                      <div className="tname">{qa[0]}</div>
-                      <div className="sub mt8" style={{ fontSize: 12.5 }}>{qa[1]}</div>
-                      <hr className="hr" />
-                    </div>
-                  ))}
-                  <div className="row tight">
-                    <input type="text" placeholder="Ask the sponsor a question" value={ask} onChange={(e) => setAsk(e.target.value)} />
-                    <button className="btn" disabled={!ask} onClick={() => {
-                      setAsked(asked.concat([[ask, "Submitted to " + (m.manager || "the issuer") + ". Answers are posted here and visible to all members."]]));
-                      setAsk("");
-                    }}>Submit</button>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
 
@@ -5663,17 +5652,11 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 {m.px !== undefined && <><span className="k">Last price</span><span className="v">{u.localPx(m)}</span></>}
                 {m.chg !== undefined && <><span className="k">Intraday</span><span className="v"><Delta v={m.chg} dp={2} /></span></>}
               </div>
-              
-                <button className="btn p block mt12" onClick={() => setAct(true)}>
-                  {isListed ? "Open order ticket" : needsProposal ? "Submit proposal to Principal" : "Commit"}
-                </button>
-              
               {st.account === "successor" && !isListed && (
                 <div className="note mt12 warn" style={{ fontSize: 11.5 }}>
                   Commitments are settled by the Principal, so the button submits a proposal.
                 </div>
               )}
-              <button className="btn block mt8" onClick={() => setShare(true)}>Share with a member</button>
             </Panel>
 
             <div className="mt16">
@@ -5692,6 +5675,17 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
         {act && (isListed
           ? <BB.flows.TradeTicket instrument={{ ...m, sub: m.fills, pxUsd: m.px }} side="buy" onClose={() => setAct(false)} />
           : <BB.flows.CommitFlow deal={m} onClose={() => setAct(false)} />)}
+        {/* the agent follows you into a deal; the answer is the ranked list */}
+        <AgentBar label="Marketplace Agent">
+          <div className="search" style={{ flex: 1 }}>
+            <input type="text" value={ask} placeholder="Ask: what closes the rebalancing? · Hanwha-sourced credit · private, under $500K"
+              onChange={(e) => setAsk(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && ask && S.navigate("/marketplace?ask=" + encodeURIComponent(ask))} />
+          </div>
+          <button className="btn sm" disabled={!ask}
+            onClick={() => S.navigate("/marketplace?ask=" + encodeURIComponent(ask))}>Ask</button>
+        </AgentBar>
+
         {share && <BB.flows.ShareModal deal={m} onClose={() => setShare(false)} />}
       </div>
     );

@@ -467,5 +467,20 @@
     );
   }
 
-  BB.ui = { Money, Delta, ProvBadge, LiqBadge, Lock, Stat, Band, Panel, Tabs, Seg, Modal, MiniBar, Fit, Crumb, Toast, Amount, Dropzone, FileRow, ModeStrip, AccountCard, AccountCards, Steps, GrowthFan };
+  /* The agent bar's chrome — fixed to the foot of the window. Each page that
+     uses it supplies its own input and its own idea of an answer. */
+  function AgentBar({ label, note, children }) {
+    return (
+      <div className="askbar agentbar">
+        {note && <div className="askhint" style={{ paddingBottom: 8 }}>{note}</div>}
+        <div className="askrow">
+          <span className="lbl" style={{ whiteSpace: "nowrap" }}>{label}</span>
+          {children}
+        </div>
+      </div>
+    );
+  }
+
+
+  BB.ui = { Money, Delta, ProvBadge, LiqBadge, Lock, Stat, Band, Panel, Tabs, Seg, Modal, MiniBar, Fit, Crumb, Toast, Amount, Dropzone, FileRow, ModeStrip, AccountCard, AccountCards, Steps, GrowthFan, AgentBar };
 })();

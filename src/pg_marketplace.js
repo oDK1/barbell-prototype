@@ -4,7 +4,7 @@
 (function () {
   const { useState } = React;
   const D = BB.data, u = BB.u, S = BB.store;
-  const { Money, Delta, Panel, Fit, Lock } = BB.ui;
+  const { Money, Delta, Panel, Fit, Lock, AgentBar } = BB.ui;
   const { askMarket } = BB.agent;
 
   function Row({ m, sug, onOpen, onAct }) {
@@ -67,6 +67,9 @@
     const [act, setAct] = useState(null);
     const [ask, setAsk] = useState("");
     const [asked, setAsked] = useState(null);
+    /* A question asked on a deal page lands here as ?ask=, so the answer is
+       the ranked list rather than a second result surface. */
+    const wantAsk = route.query.ask;
     const gapFocus = route.query.gap;
     const isSuccessor = st.account === "successor";
 
@@ -97,6 +100,12 @@
     /* what could actually fund a purchase today */
     const funds = u.total(st.positions.filter((x) => x.cls === "cash"));
     const sectors = Array.from(new Set(offered.map((m) => m.sector))).sort();
+
+    React.useEffect(() => {
+      if (!wantAsk) return;
+      setAsk(wantAsk);
+      setAsked(askMarket(wantAsk, scored, ctx));
+    }, [wantAsk]);
 
     const open = (m) => S.navigate("/marketplace/" + m.id);
     const onAct = (m, amount) => setAct({ m, amount });
@@ -235,26 +244,18 @@
         </div>
 
         {/* agent — fixed to the foot of the window, reachable from any scroll position */}
-        <div className="askbar agentbar">
-          {asked && (
-            <div className="askhint" style={{ paddingBottom: 8 }}>
-              {asked.rows.length
-                ? <><b>{asked.label}</b> — {asked.rows.length} shown below. {asked.note}</>
-                : <>Nothing on the marketplace matches that. Members sometimes sell what they already hold on the{" "}
-                  <button className="link" onClick={() => S.navigate("/secondary")}>secondary board</button>.</>}
-            </div>
-          )}
-          <div className="askrow">
-            <span className="lbl" style={{ whiteSpace: "nowrap" }}>Marketplace Agent</span>
-            <div className="search" style={{ flex: 1 }}>
-              <input type="text" value={ask} placeholder="Ask: what closes the rebalancing? · Hanwha-sourced credit · private, under $500K"
-                onChange={(e) => setAsk(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && setAsked(askMarket(ask, scored, ctx))} />
-            </div>
-            <button className="btn sm" onClick={() => setAsked(askMarket(ask, scored, ctx))}>Ask</button>
-            {asked && <button className="btn sm q" onClick={() => { setAsked(null); setAsk(""); }}>Clear</button>}
+        <AgentBar label="Marketplace Agent" note={asked && (asked.rows.length
+          ? <><b>{asked.label}</b> — {asked.rows.length} shown below. {asked.note}</>
+          : <>Nothing on the marketplace matches that. Members sometimes sell what they already hold on the{" "}
+            <button className="link" onClick={() => S.navigate("/secondary")}>secondary board</button>.</>)}>
+          <div className="search" style={{ flex: 1 }}>
+            <input type="text" value={ask} placeholder="Ask: what closes the rebalancing? · Hanwha-sourced credit · private, under $500K"
+              onChange={(e) => setAsk(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && setAsked(askMarket(ask, scored, ctx))} />
           </div>
-        </div>
+          <button className="btn sm" onClick={() => setAsked(askMarket(ask, scored, ctx))}>Ask</button>
+          {asked && <button className="btn sm q" onClick={() => { setAsked(null); setAsk(""); }}>Clear</button>}
+        </AgentBar>
 
         {act && (act.m.kind === "listed"
           ? <BB.flows.TradeTicket instrument={{ ...act.m, sub: act.m.fills, pxUsd: act.m.px }}

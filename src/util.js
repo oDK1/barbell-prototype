@@ -117,8 +117,14 @@
   function liquidity90(ps) {
     const cash = total(ps.filter((p) => p.cls === "cash"));
     const quarterly = total(ps.filter((p) => p.liq === "Quarterly"));
-    const listed = total(ps.filter((p) => p.cls !== "cash" && p.liq === "Daily"));
-    return { cash, quarterly, listed, immediate: cash, within90: cash + quarterly };
+    /* What could actually be sold today: daily-dealing, and not the family's
+       own operating company — which is listed and liquid on paper, but the
+       one holding the family will not sell to meet a call. `coverage` applies
+       the same exclusion when it proposes what to sell. */
+    const listedAll = ps.filter((p) => p.cls !== "cash" && p.liq === "Daily");
+    const listed = total(listedAll.filter((p) => !p.affiliate));
+    const affiliateListed = total(listedAll.filter((p) => p.affiliate));
+    return { cash, quarterly, listed, affiliateListed, immediate: cash, within90: cash + quarterly };
   }
 
   /* --------------------------------------------------------- liquidity map */

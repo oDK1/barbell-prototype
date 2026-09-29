@@ -1865,8 +1865,14 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   function liquidity90(ps) {
     const cash = total(ps.filter((p) => p.cls === "cash"));
     const quarterly = total(ps.filter((p) => p.liq === "Quarterly"));
-    const listed = total(ps.filter((p) => p.cls !== "cash" && p.liq === "Daily"));
-    return { cash, quarterly, listed, immediate: cash, within90: cash + quarterly };
+    /* What could actually be sold today: daily-dealing, and not the family's
+       own operating company — which is listed and liquid on paper, but the
+       one holding the family will not sell to meet a call. `coverage` applies
+       the same exclusion when it proposes what to sell. */
+    const listedAll = ps.filter((p) => p.cls !== "cash" && p.liq === "Daily");
+    const listed = total(listedAll.filter((p) => !p.affiliate));
+    const affiliateListed = total(listedAll.filter((p) => p.affiliate));
+    return { cash, quarterly, listed, affiliateListed, immediate: cash, within90: cash + quarterly };
   }
 
   /* --------------------------------------------------------- liquidity map */
@@ -4754,7 +4760,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
         <div className="band mt16">
           <div className="cell"><div className="stat-l">Cash equivalents</div><div className="stat-v"><Money v={liq.cash} compact /></div><div className="stat-s">immediately available</div></div>
           <div className="cell"><div className="stat-l">Redeemable within 90 days</div><div className="stat-v"><Money v={liq.within90} compact /></div><div className="stat-s">incl. quarterly funds</div></div>
-          <div className="cell"><div className="stat-l">Realisable from listed positions</div><div className="stat-v"><Money v={liq.listed} compact /></div><div className="stat-s">daily liquidity, not earmarked</div></div>
+          <div className="cell"><div className="stat-l">Realisable from listed positions</div><div className="stat-v"><Money v={liq.listed} compact /></div><div className="stat-s">sellable today{liq.affiliateListed > 0 ? " · excludes the " + u.usdC(liq.affiliateListed) + " operating company" : ""}</div></div>
           <div className="cell"><div className="stat-l">Capital calls · next 90 days</div><div className="stat-v"><Money v={u.sum(calls90, (c) => c.amount)} compact /></div><div className="stat-s">{calls90.length} calls</div></div>
           <div className="cell"><div className="stat-l">Runway breach</div>
             <div className="stat-v" style={{ color: short ? "var(--neg)" : "var(--pos)" }}>{short ? short.month : "None"}</div>

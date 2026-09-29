@@ -705,7 +705,7 @@
         <div className="band mt16">
           <div className="cell"><div className="stat-l">Cash equivalents</div><div className="stat-v"><Money v={liq.cash} compact /></div><div className="stat-s">immediately available</div></div>
           <div className="cell"><div className="stat-l">Redeemable within 90 days</div><div className="stat-v"><Money v={liq.within90} compact /></div><div className="stat-s">incl. quarterly funds</div></div>
-          <div className="cell"><div className="stat-l">Realisable from listed positions</div><div className="stat-v"><Money v={liq.listed} compact /></div><div className="stat-s">daily liquidity, not earmarked</div></div>
+          <div className="cell"><div className="stat-l">Realisable from listed positions</div><div className="stat-v"><Money v={liq.listed} compact /></div><div className="stat-s">sellable today{liq.affiliateListed > 0 ? " · excludes the " + u.usdC(liq.affiliateListed) + " operating company" : ""}</div></div>
           <div className="cell"><div className="stat-l">Capital calls · next 90 days</div><div className="stat-v"><Money v={u.sum(calls90, (c) => c.amount)} compact /></div><div className="stat-s">{calls90.length} calls</div></div>
           <div className="cell"><div className="stat-l">Runway breach</div>
             <div className="stat-v" style={{ color: short ? "var(--neg)" : "var(--pos)" }}>{short ? short.month : "None"}</div>

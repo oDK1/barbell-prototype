@@ -125,7 +125,7 @@
   }
 
   /* ------------------------------------------------------------ the table */
-  function PositionTable({ rows, total, sleeveTotal, onTrade, onList, onValue }) {
+  function PositionTable({ rows, total, onTrade, onList, onValue }) {
     const st = S.get();
     return (
       <div className="tscroll">
@@ -140,8 +140,6 @@
             <th className="n">Cost basis</th>
             <th className="n">Value</th>
             <th className="n">Unrealised</th>
-            <th className="n hide-narrow">Realised YTD</th>
-            <th className="n hide-narrow">Wt sleeve</th>
             <th className="n">Wt total</th>
             <th className="n hide-narrow">FX</th>
             <th className="hide-narrow">Tags</th>
@@ -171,8 +169,6 @@
                 <td className="n"><Money v={p.value} /></td>
                 <td className="n"><Delta v={p.value - p.cost} usd />
                   <span className="krw">{u.sgn(((p.value - p.cost) / p.cost) * 100)}</span></td>
-                <td className="n num hide-narrow">{p.realizedYTD ? u.usd(p.realizedYTD) : "—"}</td>
-                <td className="n num hide-narrow">{u.pct((p.value / sleeveTotal) * 100)}</td>
                 <td className="n num">{u.pct((p.value / total) * 100)}</td>
                 <td className="n hide-narrow">
                   <span className="bdg plain">{p.ccy}</span>
@@ -315,7 +311,7 @@
                   <button className="btn sm" onClick={() => S.navigate("/marketplace?gap=" + s.key)}>Opportunities</button>
                 </div>
               </div>
-              <PositionTable rows={items} total={t} sleeveTotal={clsTotal}
+              <PositionTable rows={items} total={t}
                 onTrade={(p, side) => setTrade({ p, side })} onList={setList} onValue={setValue} />
             </div>
           );

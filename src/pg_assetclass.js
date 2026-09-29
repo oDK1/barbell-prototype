@@ -3,109 +3,7 @@
 (function () {
   const { useState } = React;
   const D = BB.data, u = BB.u, S = BB.store;
-  const { Money, Delta, Panel, Seg, ProvBadge, SleeveBadge, Lock, Crumb, Fit } = BB.ui;
-  const { Agent } = BB.agent;
-
-  function PerfModule({ positions, clsKey }) {
-    const [win, setWin] = useState("YTD");
-    const p = D.performance[win];
-    const v = p.port;
-    return (
-      <Panel title="Performance vs benchmark" sub={D.benchmark.label}
-        right={<Seg options={[{ v: "MTD", label: "MTD" }, { v: "QTD", label: "QTD" }, { v: "YTD", label: "YTD" }, { v: "ITD", label: "Since inception" }]} value={win} onChange={setWin} />}>
-        <div className="row" style={{ gap: 28 }}>
-          <div>
-            <div className="lbl">Time-weighted return</div>
-            <div className="num" style={{ fontSize: 26, fontWeight: 600, letterSpacing: "-.02em" }}>{u.sgn(v)}</div>
-            <div className="tri" style={{ fontSize: 11 }}>USD base</div>
-          </div>
-          <div>
-            <div className="lbl">Benchmark</div>
-            <div className="num" style={{ fontSize: 26, fontWeight: 600, color: "var(--g1)" }}>{u.sgn(p.bench)}</div>
-            <div className="tri" style={{ fontSize: 11 }}>60 / 40 blend</div>
-          </div>
-          <div>
-            <div className="lbl">Excess</div>
-            <div style={{ fontSize: 26, fontWeight: 600 }}><Delta v={v - p.bench} pp /></div>
-            <div className="tri" style={{ fontSize: 11 }}>after fees</div>
-          </div>
-        </div>
-      </Panel>
-    );
-  }
-
-  function ConcentrationModule({ positions }) {
-    const t = u.total(positions);
-    const top = u.topHoldings(positions, 10);
-    const topShare = (u.total(top) / t) * 100;
-    const aff = u.affiliateExposure(positions);
-    return (
-      <Panel title="Concentration" sub="Top 10 holdings as a share of total assets">
-        <div className="row" style={{ gap: 28, alignItems: "flex-start" }}>
-          <div style={{ minWidth: 150 }}>
-            <div className="lbl">Top 10</div>
-            <div className="num" style={{ fontSize: 26, fontWeight: 600 }}>{u.pct(topShare)}</div>
-            <div className="tri" style={{ fontSize: 11 }}>of {u.usdC(t)} total assets</div>
-          </div>
-          <div style={{ flex: 1 }}>
-            <table className="t dense">
-              <tbody>
-                {top.slice(0, 6).map((p) => (
-                  <tr key={p.id}>
-                    <td style={{ width: 240 }}>
-                      <div className="tname">{p.name}</div>
-                      {p.affiliate && <div className="tsub" style={{ color: "var(--neg)" }}>Family operating company</div>}
-                    </td>
-                    <td><BB.ui.MiniBar cur={p.wt} target={0} max={8} /></td>
-                    <td className="n num" style={{ width: 60 }}>{u.pct(p.wt)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-        {aff.value > 0 && (
-          <div className="note bad mt12">
-            <b>Affiliated exposure flag.</b> {aff.items.map((i) => i.name).join(", ")} represents {u.pct(aff.wt)} of total
-            assets ({u.usd(aff.value)}). The family's wealth and its income are exposed to the same balance sheet; the
-            mandate caps this at 10%.
-          </div>
-        )}
-      </Panel>
-    );
-  }
-
-  function AttributionModule() {
-    const [win, setWin] = useState("YTD");
-    const rows = D.attribution[win];
-    const max = Math.max(...rows.map((r) => Math.abs(r.pp)));
-    return (
-      <Panel title="Attribution" sub="Positions that drove the period's return"
-        right={<Seg options={[{ v: "MTD", label: "MTD" }, { v: "QTD", label: "QTD" }, { v: "YTD", label: "YTD" }, { v: "ITD", label: "ITD" }]} value={win} onChange={setWin} />}>
-        <table className="t dense">
-          <tbody>
-            {rows.map((r) => (
-              <tr key={r.n}>
-                <td style={{ width: 230 }} className="tname">{r.n}</td>
-                <td>
-                  <div style={{ position: "relative", height: 8, background: "var(--g4)" }}>
-                    <div style={{
-                      position: "absolute", top: 0, bottom: 0, left: "50%",
-                      width: (Math.abs(r.pp) / max) * 48 + "%",
-                      transform: r.pp < 0 ? "translateX(-100%)" : "none",
-                      background: r.pp < 0 ? "var(--neg)" : "var(--pos)", opacity: .8,
-                    }} />
-                    <div style={{ position: "absolute", left: "50%", top: -2, bottom: -2, width: 1, background: "var(--g3)" }} />
-                  </div>
-                </td>
-                <td className="n" style={{ width: 70 }}><Delta v={r.pp} pp dp={2} /></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </Panel>
-    );
-  }
+  const { Money, Delta, ProvBadge, Lock, Crumb } = BB.ui;
 
   /* ------------------------------------------------------------ the table */
   function PositionTable({ rows, total, onTrade, onList, onValue }) {
@@ -215,7 +113,6 @@
     const subs = u.bySub(st.positions).filter((s) => s.cls === key && (!group || group.subs.indexOf(s.key) >= 0));
     const info = u.byClass(st.positions).find((c) => c.key === key);
     const gRow = group ? u.holdingsSix(st.positions, st.mandate).find((r) => r.key === group.key) : null;
-    const deep = key === "equity" || key === "debt";
 
     return (
       <div className="wrap page">
@@ -246,16 +143,6 @@
             <div className="stat-v">{u.pct((u.total(all.filter((p) => p.liq === "Daily")) / clsTotal) * 100)}</div>
             <div className="stat-s">{u.usdC(u.total(all.filter((p) => p.liq === "Daily")))} realisable</div></div>
         </div>
-
-        {deep && (
-          <>
-            <div className="grid mt16" style={{ gridTemplateColumns: "1fr" }}><PerfModule positions={all} clsKey={key} /></div>
-            <div className="grid mt16" style={{ gridTemplateColumns: "1.25fr 1fr" }}>
-              <ConcentrationModule positions={st.positions} />
-              <AttributionModule />
-            </div>
-          </>
-        )}
 
         <div className="between mt24 mb12">
           <h2>Positions</h2>

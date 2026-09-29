@@ -2057,13 +2057,13 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       const items = positions.filter((p) => c.subs.indexOf(p.sub) >= 0);
       const v = total(items);
       const wt = t ? (v / t) * 100 : 0;
-      /* every model class sits inside exactly one of the four book classes, so
-         a single-subcategory class can deep-link to it */
+      /* every model class sits inside exactly one of the four book classes;
+         ?group= carries which of them, so the page shows only these subs */
       const parent = (D.subs.find((x) => x.key === c.subs[0]) || {}).cls;
       return {
         ...c, items, value: v, wt, count: items.length, unrealized: unrealized(items),
         model: m.w[c.key], drift: wt - m.w[c.key], blocked: !!m.blocked[c.key],
-        route: "/portfolio/" + parent + (c.subs.length === 1 ? "?sub=" + c.subs[0] : ""),
+        route: "/portfolio/" + parent + "?group=" + c.key,
       };
     });
   }
@@ -5304,33 +5304,45 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     const key = route.parts[1];
     const cls = D.classes.find((c) => c.key === key);
     const [subFilter, setSubFilter] = useState(route.query.sub || "");
+    /* ?group=<model class> narrows to that class's subcategories — public
+       equity and private equity live in the same book class, so opening one
+       must not show the other. */
+    const group = D.modelClasses.find((c) => c.key === route.query.group) || null;
     const [trade, setTrade] = useState(null);
     const [list, setList] = useState(null);
     const [value, setValue] = useState(null);
 
-    React.useEffect(() => { setSubFilter(route.query.sub || ""); }, [route.query.sub, key]);
+    React.useEffect(() => { setSubFilter(route.query.sub || ""); }, [route.query.sub, key, route.query.group]);
 
     if (!cls) return <div className="wrap page"><div className="empty">Unknown asset class.</div></div>;
 
-    const all = st.positions.filter((p) => p.cls === key);
+    const inGroup = (p) => !group || group.subs.indexOf(p.sub) >= 0;
+    const all = st.positions.filter((p) => p.cls === key && inGroup(p));
     const rows = subFilter ? all.filter((p) => p.sub === subFilter) : all;
     const t = u.total(st.positions);
     const clsTotal = u.total(all);
-    const subs = u.bySub(st.positions).filter((s) => s.cls === key);
+    const subs = u.bySub(st.positions).filter((s) => s.cls === key && (!group || group.subs.indexOf(s.key) >= 0));
     const info = u.byClass(st.positions).find((c) => c.key === key);
+    const gRow = group ? u.holdingsSix(st.positions, st.mandate).find((r) => r.key === group.key) : null;
     const deep = key === "equity" || key === "debt";
 
     return (
       <div className="wrap page">
-        <Crumb items={[{ label: "Portfolio", to: "/portfolio" }, { label: cls.label }]} />
+        <Crumb items={group
+          ? [{ label: "Portfolio", to: "/portfolio" }, { label: cls.label, to: "/portfolio/" + key }, { label: group.label }]
+          : [{ label: "Portfolio", to: "/portfolio" }, { label: cls.label }]} />
         <div className="between">
           <div>
-            <h1>{cls.label}</h1>
+            <h1>{group ? group.label : cls.label}</h1>
             <div className="sub mt8">{all.length} positions · {all.filter((p) => p.liq === "Daily").length} listed · {all.filter((p) => p.liq !== "Daily").length} private</div>
           </div>
           <div className="right">
-            <div className="stat-l">Weight vs target</div>
-            <div className="stat-v sm">{u.pct(info.wt)} <span className="tri">/ {u.pct(info.target)} target</span></div>
+            <div className="stat-l">Weight vs model</div>
+            <div className="stat-v sm">
+              {group
+                ? <>{u.pct(gRow.wt)} <span className="tri">/ {u.pct(gRow.model)} model</span></>
+                : <>{u.pct(info.wt)} <span className="tri">/ {u.pct(info.target)} target</span></>}
+            </div>
           </div>
         </div>
 

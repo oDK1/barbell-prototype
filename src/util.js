@@ -317,13 +317,13 @@
       const items = positions.filter((p) => c.subs.indexOf(p.sub) >= 0);
       const v = total(items);
       const wt = t ? (v / t) * 100 : 0;
-      /* every model class sits inside exactly one of the four book classes, so
-         a single-subcategory class can deep-link to it */
+      /* every model class sits inside exactly one of the four book classes;
+         ?group= carries which of them, so the page shows only these subs */
       const parent = (D.subs.find((x) => x.key === c.subs[0]) || {}).cls;
       return {
         ...c, items, value: v, wt, count: items.length, unrealized: unrealized(items),
         model: m.w[c.key], drift: wt - m.w[c.key], blocked: !!m.blocked[c.key],
-        route: "/portfolio/" + parent + (c.subs.length === 1 ? "?sub=" + c.subs[0] : ""),
+        route: "/portfolio/" + parent + "?group=" + c.key,
       };
     });
   }

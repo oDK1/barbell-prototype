@@ -4740,7 +4740,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     const y = (v) => H - ((v - lo) / (hi - lo || 1)) * (H - 20) - 10;
     const line = proj.map((m, i) => x(i) + "," + y(m.cash)).join(" ");
     const floor = D.liquidityAssumptions.reserveFloor;
-    const calls60 = D.capitalCalls.filter((c) => u.days(D.TODAY, c.date) <= 60 && u.days(D.TODAY, c.date) >= 0);
+    const calls90 = D.capitalCalls.filter((c) => u.days(D.TODAY, c.date) <= 90 && u.days(D.TODAY, c.date) >= 0);
     const liq = u.liquidity90(positions);
 
     return (
@@ -4749,7 +4749,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
           <div className="cell"><div className="stat-l">Cash equivalents</div><div className="stat-v"><Money v={liq.cash} compact /></div><div className="stat-s">immediately available</div></div>
           <div className="cell"><div className="stat-l">Redeemable within 90 days</div><div className="stat-v"><Money v={liq.within90} compact /></div><div className="stat-s">incl. quarterly funds</div></div>
           <div className="cell"><div className="stat-l">Realisable from listed positions</div><div className="stat-v"><Money v={liq.listed} compact /></div><div className="stat-s">daily liquidity, not earmarked</div></div>
-          <div className="cell"><div className="stat-l">Capital calls · next 60 days</div><div className="stat-v"><Money v={u.sum(calls60, (c) => c.amount)} compact /></div><div className="stat-s">{calls60.length} calls</div></div>
+          <div className="cell"><div className="stat-l">Capital calls · next 90 days</div><div className="stat-v"><Money v={u.sum(calls90, (c) => c.amount)} compact /></div><div className="stat-s">{calls90.length} calls</div></div>
           <div className="cell"><div className="stat-l">Runway breach</div>
             <div className="stat-v" style={{ color: short ? "var(--neg)" : "var(--pos)" }}>{short ? short.month : "None"}</div>
             <div className="stat-s">{short ? u.usd(short.amount) + " short" : "within 24 months"}</div></div>
@@ -4977,7 +4977,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     const liq = u.liquidity90(ps);
     const stale = ps.filter((p) => p.prov === "self" && u.staleness(p).d > 90);
     const alpha = ps.filter((p) => p.sleeve === "alpha");
-    const calls60 = D.capitalCalls.filter((c) => u.days(D.TODAY, c.date) <= 60 && u.days(D.TODAY, c.date) >= 0);
+    const calls90 = D.capitalCalls.filter((c) => u.days(D.TODAY, c.date) <= 90 && u.days(D.TODAY, c.date) >= 0);
 
     const tabs = (isSuccessor ? [{ k: "alpha", label: "Alpha sleeve" }] : [])
       .concat([{ k: "alloc", label: "Allocation" }, { k: "liq", label: "Liquidity" }, { k: "tax", label: "Tax" }]);
@@ -5003,9 +5003,9 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
           <div className="right">
             <div className="num tri" style={{ fontSize: 11.5 }}>Updated {u.fmtTs(D.family.asOf)} KST</div>
             <div style={{ display: "flex", gap: 14, justifyContent: "flex-end", marginTop: 5 }}>
-              {calls60.length > 0 && (
+              {calls90.length > 0 && (
                 <button className="link" onClick={() => setTab("liq")}>
-                  {calls60.length} capital calls within 60 days · {u.usdC(u.sum(calls60, (c) => c.amount))}
+                  {calls90.length} capital calls within 90 days · {u.usdC(u.sum(calls90, (c) => c.amount))}
                 </button>
               )}
               {stale.length > 0 && (

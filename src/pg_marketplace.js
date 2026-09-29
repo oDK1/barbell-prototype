@@ -174,7 +174,7 @@
 
           {/* sidebar */}
           <div style={{ width: 280, flexShrink: 0 }}>
-            <Panel title="Allocation context" sub={"Against the model for " + u.usdC(t)}>
+            <Panel title="Allocation context">
               <table className="t dense">
                 <thead><tr><th>Class</th><th className="n">Now</th><th className="n">Model</th></tr></thead>
                 <tbody>
@@ -187,14 +187,11 @@
                   ))}
                 </tbody>
               </table>
-              <div className="tri mt8" style={{ fontSize: 11 }}>
-                Context, not a queue of trades. Nothing on this page is ranked by how far the book sits from the model.
-              </div>
               <button className="btn sm block mt8" onClick={() => S.navigate("/portfolio")}>Open the model</button>
             </Panel>
 
             <div className="mt16">
-              <Panel title="Invitations" sub={st.referrals.sent + " sent · " + st.referrals.joined + " joined"}>
+              <Panel title="Invitations">
                 <table className="t dense">
                   <tbody>
                     {st.referrals.invites.slice(0, 5).map((i) => (
@@ -205,14 +202,11 @@
                     ))}
                   </tbody>
                 </table>
-                <div className="tri mt8" style={{ fontSize: 11 }}>
-                  Members invite members. Recipients see the thesis; terms and allocation stay gated behind a membership request.
-                </div>
               </Panel>
             </div>
 
             <div className="mt16">
-              <Panel title="Liquidity context" sub="What the next two years demand">
+              <Panel title="Liquidity context">
                 <div className="kv">
                   <span className="k">Calls · next 90 days</span><span className="v">{u.usdC(ctx.calls90)}</span>
                   <span className="k">Calls · 24 months</span><span className="v">{u.usdC(ctx.calls24)}</span>
@@ -222,17 +216,12 @@
                     {ctx.short ? "breaks " + ctx.short.month : "holds 24 months"}
                   </span>
                 </div>
-                <div className="tri mt8" style={{ fontSize: 11 }}>
-                  {ctx.short
-                    ? "Offerings that lock capital past " + ctx.short.month + " are scored down."
-                    : "Illiquidity can be paid for, so locked offerings are scored up."}
-                </div>
                 <button className="btn sm block mt8" onClick={() => S.navigate("/portfolio?tab=liq")}>Open the liquidity view</button>
               </Panel>
             </div>
 
             <div className="mt16">
-              <Panel title="Tax context" sub="Observations, not advice">
+              <Panel title="Tax context">
                 <div className="kv">
                   <span className="k">Realised year to date</span><span className="v">{u.usdC(ctx.tax.realized)}</span>
                   <span className="k">Harvestable loss</span>
@@ -242,21 +231,6 @@
               </Panel>
             </div>
 
-            <div className="mt16">
-              <Panel title="What you can do here">
-                <div className="kv">
-                  <span className="k">Signed in as</span>
-                  <span className="v">{st.account === "principal" ? D.accounts.principal.name : D.accounts.successor.name}</span>
-                  <span className="k">Commitments</span>
-                  <span className="v">{st.account === "principal" ? "Execute directly" : "Go to the Principal"}</span>
-                </div>
-                <div className="tri mt8" style={{ fontSize: 11 }}>
-                  {st.account === "principal"
-                    ? "Whatever you buy or commit to here happens straight away."
-                    : "You see the whole book and can act on any of it — the button sends the Principal a proposal rather than executing."}
-                </div>
-              </Panel>
-            </div>
           </div>
         </div>
 

@@ -3,7 +3,7 @@
 (function () {
   const { useState } = React;
   const D = BB.data, u = BB.u, S = BB.store;
-  const { Modal, Money, Delta, Amount } = BB.ui;
+  const { Modal, Money, Delta, Amount, Dropzone } = BB.ui;
 
   /* Allocation impact — shown before every confirmation. */
   function Impact({ subKey, amount }) {
@@ -239,27 +239,87 @@
   }
 
   /* --------------------------------------------------- valuation editor */
+  /* A self-maintained mark is only as good as the document behind it, so the
+     update is an upload, not a typed number. Barbell reads the file, shows the
+     cell it read and what that moves the carrying value to, and records the
+     filename as the position's new source. */
   function ValuationEditor({ p, onClose }) {
-    const [v, setV] = useState(p.value);
+    const [file, setFile] = useState(null);
+    const [reading, setReading] = useState(false);
+    const [found, setFound] = useState(null);
     const st = u.staleness(p);
+
+    /* Deterministic per position, so the same file always reads the same way. */
+    const readFile = (f) => {
+      setFile(f); setReading(true); setFound(null);
+      const seed = p.id.split("").reduce((a, ch) => a + ch.charCodeAt(0), 0);
+      const drift = ((seed % 19) - 6) / 100;                 // −6% … +12%
+      const value = Math.max(1000, Math.round((p.value * (1 + drift)) / 1000) * 1000);
+      const cell = "Sheet1!" + String.fromCharCode(66 + (seed % 5)) + (11 + (seed % 27));
+      const t = setTimeout(() => { setReading(false); setFound({ value, cell }); }, 900);
+      return () => clearTimeout(t);
+    };
+
+    const delta = found ? found.value - p.value : 0;
     return (
       <Modal title="Update valuation" sub={p.name} onClose={onClose}
         footer={<>
-          <div className="tri" style={{ fontSize: 11.5 }}>Self-maintained position · the update is written to the activity log.</div>
+          <div className="tri" style={{ fontSize: 11.5 }}>
+            {found
+              ? <>The filename and cell become this position's source. The update is written to the activity log.</>
+              : <>Self-maintained position · a new mark needs the document it came from.</>}
+          </div>
           <div className="btn-row">
             <button className="btn" onClick={onClose}>Cancel</button>
-            <button className="btn p" onClick={() => { S.actions.updateValuation(p.id, v); onClose(); }}>Save valuation</button>
+            <button className="btn p" disabled={!found}
+              onClick={() => { S.actions.updateValuation(p.id, found.value, { file: file.name, cell: found.cell }); onClose(); }}>
+              {found ? "Apply " + u.usd(found.value) : "Upload a file first"}
+            </button>
           </div>
         </>}>
         <div className="kv mb16">
           <span className="k">Current carrying value</span><span className="v">{u.usd(p.value)}</span>
           <span className="k">Last updated</span><span className="v">{u.fmtDate(p.asOf)} · {st.d} days ago</span>
-          <span className="k">Source</span><span className="v mono" style={{ fontSize: 11 }}>{p.src.file}</span>
+          <span className="k">Current source</span><span className="v mono" style={{ fontSize: 11 }}>{p.src.file}</span>
         </div>
-        <label className="f"><span>New valuation (USD)</span><Amount value={v} onChange={setV} /></label>
+
+        {!file && (
+          <Dropzone compact onFiles={(fs) => readFile(fs[0])}
+            title="Drop the latest statement or valuation file"
+            hint="Manager statement · capital account · appraisal · .xlsx · .csv · PDF · 한글 파일명 지원" />
+        )}
+
+        {file && (
+          <div className="panel">
+            <div className="panel-hd">
+              <div>
+                <div className="mono" style={{ fontSize: 12.5, fontWeight: 600 }}>{file.name}</div>
+                <div className="tri" style={{ fontSize: 11, marginTop: 2 }}>
+                  {reading ? "Reading the file…" : "Read " + found.cell + " · " + u.fmtDate(D.TODAY)}
+                </div>
+              </div>
+              <button className="link g" onClick={() => { setFile(null); setFound(null); setReading(false); }}>
+                Use a different file
+              </button>
+            </div>
+            {found && (
+              <div className="panel-bd">
+                <div className="kv">
+                  <span className="k">Value read from the file</span>
+                  <span className="v num" style={{ fontWeight: 600 }}>{u.usd(found.value)}</span>
+                  <span className="k">Against the current mark</span>
+                  <span className="v"><Delta v={delta} usd /> · {u.pct((delta / p.value) * 100)}</span>
+                  <span className="k">New source cell</span>
+                  <span className="v mono" style={{ fontSize: 11 }}>{file.name} · {found.cell}</span>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="note mt12">
-          Self-maintained positions are the family's own marks. Barbell records what you enter, dates it, and shows
-          everyone how old it is.
+          Self-maintained positions are the family's own marks. Barbell will not take a number without the document
+          behind it — the file becomes the position's source, and everyone can see how old it is.
         </div>
       </Modal>
     );

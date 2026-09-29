@@ -230,14 +230,21 @@
     },
 
     /* ---- valuations ---- */
-    updateValuation(pid, value) {
+    /* `src` is the file the new mark was read from — it replaces the position's
+       recorded source, so provenance moves with the number. */
+    updateValuation(pid, value, src) {
       const p = state.positions.find((x) => x.id === pid);
       if (!p) return;
-      const prev = p.value;
+      const prev = p.value, prevFile = p.src ? p.src.file : null;
       p.value = value; p.asOf = D.TODAY;
+      if (src && src.file) p.src = { file: src.file, cell: src.cell || "—" };
       log("Valuation", "Updated valuation — " + p.name,
-        u.usd(prev) + " → " + u.usd(value) + " · self-maintained position re-dated to today.");
-      toast("Valuation updated");
+        u.usd(prev) + " → " + u.usd(value)
+        + (src && src.file
+            ? " · read from " + src.file + (src.cell ? " · " + src.cell : "")
+              + (prevFile ? " (was " + prevFile + ")" : "")
+            : " · self-maintained position re-dated to today."));
+      toast("Valuation updated from " + (src && src.file ? src.file : "manual entry"));
       emit();
     },
 

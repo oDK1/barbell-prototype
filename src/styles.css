@@ -515,3 +515,7 @@ label.f>span{display:block;font-size:10.5px;letter-spacing:.08em;text-transform:
   .seg button, .btn { font-size: 11.5px; }
   h1 { font-size: 24px; }
 }
+
+/* The position's value is what the row is about — give it the weight. */
+table.t td.val{font-weight:600;font-size:13.5px;color:var(--ink)}
+table.t td.val .krw{font-weight:400}

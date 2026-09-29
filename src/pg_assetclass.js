@@ -116,15 +116,15 @@
         <thead>
           <tr>
             <th style={{ minWidth: 240 }}>Position</th>
-            <th>Provenance</th>
+            <th className="n" style={{ minWidth: 118 }}>Value</th>
             <th className="n">Price</th>
             <th className="n">Chg</th>
             <th className="n">Quantity</th>
             <th className="n">Cost basis</th>
-            <th className="n">Value</th>
             <th className="n">Unrealised</th>
             <th className="n">Wt total</th>
             <th className="hide-narrow">Tags</th>
+            <th>Provenance</th>
             <th></th>
           </tr>
         </thead>
@@ -141,13 +141,13 @@
                     {p.legacy && <> · was <span className="mono">{p.legacy}</span></>}
                   </div>
                 </td>
-                <td><ProvBadge p={p} /></td>
+                {/* what the position is worth leads the row */}
+                <td className="n val"><Money v={p.value} /></td>
                 <td className="n num">{p.px ? u.localPx(p) : "—"}
                   {p.ccy !== "USD" && p.px ? <span className="krw">{u.usd(p.pxUsd, 2)}</span> : null}</td>
                 <td className="n">{p.chg !== undefined ? <Delta v={p.chg} dp={2} /> : <span className="tri">—</span>}</td>
                 <td className="n num">{p.qty ? u.num(p.qty) : "—"}</td>
                 <td className="n num">{u.usd(p.cost)}</td>
-                <td className="n"><Money v={p.value} /></td>
                 <td className="n"><Delta v={p.value - p.cost} usd />
                   <span className="krw">{u.sgn(((p.value - p.cost) / p.cost) * 100)}</span></td>
                 <td className="n num">{u.pct((p.value / total) * 100)}</td>
@@ -156,6 +156,7 @@
                   <span className="chip">{p.geo}</span>
                   {p.affiliate && <span className="chip" style={{ color: "var(--neg)", borderColor: "#E7C7C2" }}>Affiliate</span>}
                 </td>
+                <td><ProvBadge p={p} /></td>
                 <td className="right">
                   <div className="rowbtns">
                     {listed ? (

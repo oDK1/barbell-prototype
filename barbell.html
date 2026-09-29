@@ -2265,6 +2265,9 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   }
   function subLabel(k) { const s = D.subs.find((x) => x.key === k); return s ? s.label : k; }
   function clsLabel(k) { const c = D.classes.find((x) => x.key === k); return c ? c.label : k; }
+  /* Which of the six model classes a subcategory belongs to. */
+  function modelClassOf(subKey) { return D.modelClasses.find((c) => c.subs.indexOf(subKey) >= 0) || null; }
+  function modelClassLabel(subKey) { const c = modelClassOf(subKey); return c ? c.label : clsLabel(subKey); }
   function clsOf(subKey) { const s = D.subs.find((x) => x.key === subKey); return s ? s.cls : null; }
 
   /* impact of a hypothetical transaction on the allocation */
@@ -2285,7 +2288,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     usd, usdC, krwC, krwFull, pct, pp, sgn, sgnUsd, num, localPx, days, fmtDate, fmtTs, monthKey, monthLabel,
     staleness, provLabel, sum, total, byClass, bySub, gaps, unrealized, realizedYTD,
     liquidity90, liquidityProjection, shortfall, coverage, projectMix,
-    modelSix, bySix, sixToFour, sixToSubs, pickForClass, holdingsSix, geoBucket, GEO_BUCKETS, listingDocs, listingView, topHoldings, affiliateExposure, taxLots, eligibility,
+    modelSix, bySix, sixToFour, sixToSubs, pickForClass, holdingsSix, geoBucket, GEO_BUCKETS, listingDocs, listingView, modelClassOf, modelClassLabel, topHoldings, affiliateExposure, taxLots, eligibility,
     fitFor, subLabel, clsLabel, clsOf, impact, modelWeights, marketContext, scoreFor, suggestAmount,
   };
 })();
@@ -5290,7 +5293,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
             {m.hanwha && <span className="bdg hanwha"><i className="pt" />Hanwha-sourced</span>}
           </div>
         </td>
-        <td>{u.subLabel(m.fills)}<div className="tsub hide-narrow">{u.clsLabel(m.cls)}</div></td>
+        <td>{u.subLabel(m.fills)}<div className="tsub">{u.modelClassLabel(m.fills)}</div></td>
         <td className="n num">{m.ret}</td>
         <td>
           <span className="bdg plain">{m.liq}</span>
@@ -5842,7 +5845,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                       <div className="tname">{l.instrument}</div>
                       <div className="tsub">{l.manager} · vintage {l.vintage}</div>
                     </td>
-                    <td>{u.subLabel(l.sub)}<div className="tsub hide-narrow">{u.clsLabel(l.cls)}</div></td>
+                    <td>{u.subLabel(l.sub)}<div className="tsub">{u.modelClassLabel(l.sub)}</div></td>
                     <td className="n num">{u.pct(v.toNav)}
                       <div className="tsub">to last NAV</div></td>
                     <td><span className="bdg plain">Locked</span></td>

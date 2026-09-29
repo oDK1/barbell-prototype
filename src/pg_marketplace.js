@@ -19,7 +19,7 @@
             {m.hanwha && <span className="bdg hanwha"><i className="pt" />Hanwha-sourced</span>}
           </div>
         </td>
-        <td>{u.subLabel(m.fills)}<div className="tsub hide-narrow">{u.clsLabel(m.cls)}</div></td>
+        <td>{u.subLabel(m.fills)}<div className="tsub">{u.modelClassLabel(m.fills)}</div></td>
         <td className="n num">{m.ret}</td>
         <td>
           <span className="bdg plain">{m.liq}</span>

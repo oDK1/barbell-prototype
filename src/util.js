@@ -513,6 +513,9 @@
   }
   function subLabel(k) { const s = D.subs.find((x) => x.key === k); return s ? s.label : k; }
   function clsLabel(k) { const c = D.classes.find((x) => x.key === k); return c ? c.label : k; }
+  /* Which of the six model classes a subcategory belongs to. */
+  function modelClassOf(subKey) { return D.modelClasses.find((c) => c.subs.indexOf(subKey) >= 0) || null; }
+  function modelClassLabel(subKey) { const c = modelClassOf(subKey); return c ? c.label : clsLabel(subKey); }
   function clsOf(subKey) { const s = D.subs.find((x) => x.key === subKey); return s ? s.cls : null; }
 
   /* impact of a hypothetical transaction on the allocation */
@@ -533,7 +536,7 @@
     usd, usdC, krwC, krwFull, pct, pp, sgn, sgnUsd, num, localPx, days, fmtDate, fmtTs, monthKey, monthLabel,
     staleness, provLabel, sum, total, byClass, bySub, gaps, unrealized, realizedYTD,
     liquidity90, liquidityProjection, shortfall, coverage, projectMix,
-    modelSix, bySix, sixToFour, sixToSubs, pickForClass, holdingsSix, geoBucket, GEO_BUCKETS, listingDocs, listingView, topHoldings, affiliateExposure, taxLots, eligibility,
+    modelSix, bySix, sixToFour, sixToSubs, pickForClass, holdingsSix, geoBucket, GEO_BUCKETS, listingDocs, listingView, modelClassOf, modelClassLabel, topHoldings, affiliateExposure, taxLots, eligibility,
     fitFor, subLabel, clsLabel, clsOf, impact, modelWeights, marketContext, scoreFor, suggestAmount,
   };
 })();

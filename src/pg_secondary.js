@@ -66,7 +66,7 @@
                       <div className="tname">{l.instrument}</div>
                       <div className="tsub">{l.manager} · vintage {l.vintage}</div>
                     </td>
-                    <td>{u.subLabel(l.sub)}<div className="tsub hide-narrow">{u.clsLabel(l.cls)}</div></td>
+                    <td>{u.subLabel(l.sub)}<div className="tsub">{u.modelClassLabel(l.sub)}</div></td>
                     <td className="n num">{u.pct(v.toNav)}
                       <div className="tsub">to last NAV</div></td>
                     <td><span className="bdg plain">Locked</span></td>

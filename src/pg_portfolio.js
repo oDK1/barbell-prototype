@@ -76,7 +76,7 @@
   }
 
   /* ------------------------------------------------------- allocation tab */
-  function AllocationTab({ positions }) {
+  function AllocationTab({ positions, openSignal }) {
     const t = u.total(positions);
     const rows = u.holdingsSix(positions, S.get().mandate);
 
@@ -136,7 +136,7 @@
         <QueryBar positions={positions} />
 
         <ModelPanel positions={positions} />
-        <ProvenancePanel positions={positions} />
+        <ProvenancePanel positions={positions} openSignal={openSignal} />
         <AllPositions positions={positions} />
       </>
     );
@@ -513,9 +513,11 @@
   }
 
   /* ------------------------------------------------------ provenance */
-  function ProvenancePanel({ positions }) {
+  function ProvenancePanel({ positions, openSignal }) {
     const [edit, setEdit] = useState(null);
     const [open, setOpen] = useState(false);
+    /* the header's "positions stale" link opens this panel on its way here */
+    React.useEffect(() => { if (openSignal) setOpen(true); }, [openSignal]);
     const self = positions.filter((p) => p.prov === "self");
     const stale = self.filter((p) => u.staleness(p).d > 90);
     const counts = {
@@ -525,7 +527,7 @@
     };
     return (
       <>
-        <div className="panel mt16">
+        <div className="panel mt16" id="sec-provenance">
           <div className="panel-hd clickable" onClick={() => setOpen(!open)} style={{ cursor: "pointer" }}>
             <div>
               <h3><span style={{ fontSize: 11, color: "var(--g1)", marginRight: 7 }}>{open ? "▾" : "▸"}</span>Data provenance</h3>
@@ -752,7 +754,7 @@
         </div>
 
         <div className="grid mt16" style={{ gridTemplateColumns: "1fr 1fr" }}>
-          <Panel title="Committed capital calls" sub="Contractual and projected">
+          <Panel id="sec-calls" title="Committed capital calls" sub="Contractual and projected">
             <table className="t dense">
               <thead><tr><th>Fund</th><th>Date</th><th className="n">Amount</th><th>Status</th></tr></thead>
               <tbody>
@@ -918,6 +920,40 @@
     const isSuccessor = st.account === "successor";
     const wanted = route && route.query && route.query.tab;
     const [tab, setTab] = useState(wanted || (isSuccessor ? "alpha" : "alloc"));
+    /* Switching tab and scrolling are two paints apart: the tab's content does
+       not exist until React has re-rendered, so the scroll waits for it. */
+    const [focus, setFocus] = useState(null);
+    /* useLayoutEffect runs after the DOM commit, so the newly-switched tab's
+       markup already exists. Retries go through setTimeout rather than
+       requestAnimationFrame, which never fires in a pane that is not
+       painting. Collapsed targets open themselves first, so the retry covers
+       the extra commit. */
+    React.useLayoutEffect(() => {
+      if (!focus) return;
+      let tries = 0, timer = null;
+      const find = () => {
+        const el = document.getElementById(focus.id);
+        if (!el) { if (tries++ < 20) timer = setTimeout(find, 16); return; }
+        el.classList.add("flash");
+        /* A collapsed target opens itself as it is reached, which moves it
+           after the first scroll — so settle onto it rather than assuming one
+           measurement holds. */
+        let passes = 0;
+        const settle = () => {
+          const top = el.getBoundingClientRect().top;
+          if (Math.abs(top - 78) > 4 && passes++ < 8) {
+            window.scrollTo(0, Math.max(0, window.scrollY + top - 78));
+            timer = setTimeout(settle, 40);
+          } else {
+            timer = setTimeout(() => el.classList.remove("flash"), 1200);
+          }
+        };
+        settle();
+      };
+      find();
+      return () => timer && clearTimeout(timer);
+    }, [focus]);
+    const jump = (t, id) => { setTab(t); setFocus({ id, n: Date.now() }); };
     /* Switching account changes the home view, not just the permissions. */
     React.useEffect(() => { setTab(st.account === "successor" ? "alpha" : "alloc"); }, [st.account]);
     /* …and a link may ask for a particular tab. */
@@ -959,12 +995,12 @@
             <div className="num tri" style={{ fontSize: 11.5 }}>Updated {u.fmtTs(D.family.asOf)} KST</div>
             <div style={{ display: "flex", gap: 14, justifyContent: "flex-end", marginTop: 5 }}>
               {calls90.length > 0 && (
-                <button className="link" onClick={() => setTab("liq")}>
+                <button className="link" onClick={() => jump("liq", "sec-calls")}>
                   {calls90.length} capital calls within 90 days · {u.usdC(u.sum(calls90, (c) => c.amount))}
                 </button>
               )}
               {stale.length > 0 && (
-                <button className="link" onClick={() => setTab("alloc")}>
+                <button className="link" onClick={() => jump("alloc", "sec-provenance")}>
                   <span className="stale-dot" />{stale.length} positions stale
                 </button>
               )}
@@ -990,7 +1026,7 @@
 
         <div className="mt16"><Tabs tabs={tabs} active={tab} onChange={setTab} /></div>
         {tab === "alpha" && <AlphaTab positions={ps} />}
-        {tab === "alloc" && <AllocationTab positions={ps} />}
+        {tab === "alloc" && <AllocationTab positions={ps} openSignal={focus && focus.id === "sec-provenance" ? focus.n : 0} />}
         {tab === "liq" && <LiquidityTab positions={ps} />}
         {tab === "tax" && <TaxTab positions={ps} />}
 

@@ -71,9 +71,9 @@
   }
   function Band({ children }) { return <div className="band">{children}</div>; }
 
-  function Panel({ title, right, children, sub, flush }) {
+  function Panel({ title, right, children, sub, flush, id }) {
     return (
-      <div className="panel">
+      <div className="panel" id={id}>
         {(title || right) && (
           <div className="panel-hd">
             <div>

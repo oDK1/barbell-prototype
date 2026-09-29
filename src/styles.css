@@ -519,3 +519,7 @@ label.f>span{display:block;font-size:10.5px;letter-spacing:.08em;text-transform:
 /* The position's value is what the row is about — give it the weight. */
 table.t td.val{font-weight:600;font-size:13.5px;color:var(--ink)}
 table.t td.val .krw{font-weight:400}
+
+/* A section arrived at from a header link says so, briefly. */
+@keyframes bb-flash { from { box-shadow: 0 0 0 2px var(--navy); } to { box-shadow: 0 0 0 2px rgba(27,42,74,0); } }
+.panel.flash { animation: bb-flash 1.4s ease-out; }

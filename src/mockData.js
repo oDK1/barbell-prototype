@@ -354,6 +354,38 @@
     },
   };
 
+
+  /* ----------------------------------------------- secondary trade history */
+  /* Prior transfers of the same interest on the platform. A thin board, so not
+     every listing has a history — and where there is one, the direction of the
+     clearing price matches what the capital account says about the asset. */
+  const secondaryTrades = [
+    /* Foundry VC — marked down through 2025, and the price follows */
+    { id: "t01", listing: "s01", ts: "2025-09-12", size: 300000, pricePct: 98.0, navDate: "2025-06-30", method: "Ask taken",    buyer: "Member #0088", seller: "Member #0209" },
+    { id: "t02", listing: "s01", ts: "2026-03-18", size: 450000, pricePct: 94.5, navDate: "2025-12-31", method: "Bid accepted", buyer: "Member #0315", seller: "Member #0088" },
+
+    /* Northgate credit — contractual cash flows, so it trades near par */
+    { id: "t03", listing: "s02", ts: "2025-11-05", size: 500000, pricePct: 99.0,  navDate: "2025-06-30", method: "Bid accepted", buyer: "Member #0147", seller: "Member #0401" },
+    { id: "t04", listing: "s02", ts: "2026-05-22", size: 750000, pricePct: 99.8,  navDate: "2025-12-31", method: "Ask taken",    buyer: "Member #0032", seller: "Member #0147" },
+
+    /* Aeris — Series F mark-up pulled it to a premium */
+    { id: "t05", listing: "s03", ts: "2025-07-30", size: 350000, pricePct: 96.0,  navDate: "2025-06-30", method: "Bid accepted", buyer: "Member #0209", seller: "Member #0512" },
+    { id: "t06", listing: "s03", ts: "2026-02-14", size: 600000, pricePct: 101.0, navDate: "2025-12-31", method: "Ask taken",    buyer: "Member #0088", seller: "Member #0209" },
+
+    /* Daol — flat since inception, and bid down */
+    { id: "t07", listing: "s09", ts: "2025-10-02", size: 250000, pricePct: 88.0,  navDate: "2025-06-30", method: "Ask taken",    buyer: "Member #0401", seller: "Member #0315" },
+    { id: "t08", listing: "s09", ts: "2026-04-09", size: 180000, pricePct: 85.5,  navDate: "2025-12-31", method: "Bid accepted", buyer: "Member #0512", seller: "Member #0401" },
+
+    /* Helios — the board's best performer, and the only one at a real premium */
+    { id: "t09", listing: "s11", ts: "2026-01-16", size: 200000, pricePct: 109.0, navDate: "2025-06-30", method: "Bid accepted", buyer: "Member #0032", seller: "Member #0147" },
+    { id: "t10", listing: "s11", ts: "2026-06-04", size: 300000, pricePct: 115.0, navDate: "2025-12-31", method: "Ask taken",    buyer: "Member #0209", seller: "Member #0032" },
+
+    /* Seoul Station retail — three years of a falling clearing price */
+    { id: "t11", listing: "s12", ts: "2024-11-21", size: 400000, pricePct: 91.0,  navDate: "2024-06-30", method: "Ask taken",    buyer: "Member #0315", seller: "Member #0088" },
+    { id: "t12", listing: "s12", ts: "2025-08-13", size: 350000, pricePct: 84.0,  navDate: "2025-06-30", method: "Bid accepted", buyer: "Member #0401", seller: "Member #0315" },
+    { id: "t13", listing: "s12", ts: "2026-05-30", size: 300000, pricePct: 80.5,  navDate: "2025-12-31", method: "Bid accepted", buyer: "Member #0512", seller: "Member #0401" },
+  ];
+
   /* ----------------------------------------------------------------- mandate */
   const mandates = [
     { key: "preservation", label: "Protect capital", core: 95, alpha: 5,
@@ -886,6 +918,6 @@
     uploadFiles, ingestSteps, exceptions, mandates, survey, modelPortfolios,
     capitalCalls, distributions, benchmark, performance, attribution, modelGoals, ALT_SUBS,
     modelClasses, modelMatrix, modelExcuses, expectedReturn, expectedVol, classCorr, idiosyncraticVol,
-    market, secondary, bidsSeed, approvalsSeed, activitySeed, opsLedger, referrals, liquidityAssumptions,
+    market, secondary, secondaryTrades, bidsSeed, approvalsSeed, activitySeed, opsLedger, referrals, liquidityAssumptions,
   };
 })();

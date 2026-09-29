@@ -1212,6 +1212,38 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     },
   };
 
+
+  /* ----------------------------------------------- secondary trade history */
+  /* Prior transfers of the same interest on the platform. A thin board, so not
+     every listing has a history — and where there is one, the direction of the
+     clearing price matches what the capital account says about the asset. */
+  const secondaryTrades = [
+    /* Foundry VC — marked down through 2025, and the price follows */
+    { id: "t01", listing: "s01", ts: "2025-09-12", size: 300000, pricePct: 98.0, navDate: "2025-06-30", method: "Ask taken",    buyer: "Member #0088", seller: "Member #0209" },
+    { id: "t02", listing: "s01", ts: "2026-03-18", size: 450000, pricePct: 94.5, navDate: "2025-12-31", method: "Bid accepted", buyer: "Member #0315", seller: "Member #0088" },
+
+    /* Northgate credit — contractual cash flows, so it trades near par */
+    { id: "t03", listing: "s02", ts: "2025-11-05", size: 500000, pricePct: 99.0,  navDate: "2025-06-30", method: "Bid accepted", buyer: "Member #0147", seller: "Member #0401" },
+    { id: "t04", listing: "s02", ts: "2026-05-22", size: 750000, pricePct: 99.8,  navDate: "2025-12-31", method: "Ask taken",    buyer: "Member #0032", seller: "Member #0147" },
+
+    /* Aeris — Series F mark-up pulled it to a premium */
+    { id: "t05", listing: "s03", ts: "2025-07-30", size: 350000, pricePct: 96.0,  navDate: "2025-06-30", method: "Bid accepted", buyer: "Member #0209", seller: "Member #0512" },
+    { id: "t06", listing: "s03", ts: "2026-02-14", size: 600000, pricePct: 101.0, navDate: "2025-12-31", method: "Ask taken",    buyer: "Member #0088", seller: "Member #0209" },
+
+    /* Daol — flat since inception, and bid down */
+    { id: "t07", listing: "s09", ts: "2025-10-02", size: 250000, pricePct: 88.0,  navDate: "2025-06-30", method: "Ask taken",    buyer: "Member #0401", seller: "Member #0315" },
+    { id: "t08", listing: "s09", ts: "2026-04-09", size: 180000, pricePct: 85.5,  navDate: "2025-12-31", method: "Bid accepted", buyer: "Member #0512", seller: "Member #0401" },
+
+    /* Helios — the board's best performer, and the only one at a real premium */
+    { id: "t09", listing: "s11", ts: "2026-01-16", size: 200000, pricePct: 109.0, navDate: "2025-06-30", method: "Bid accepted", buyer: "Member #0032", seller: "Member #0147" },
+    { id: "t10", listing: "s11", ts: "2026-06-04", size: 300000, pricePct: 115.0, navDate: "2025-12-31", method: "Ask taken",    buyer: "Member #0209", seller: "Member #0032" },
+
+    /* Seoul Station retail — three years of a falling clearing price */
+    { id: "t11", listing: "s12", ts: "2024-11-21", size: 400000, pricePct: 91.0,  navDate: "2024-06-30", method: "Ask taken",    buyer: "Member #0315", seller: "Member #0088" },
+    { id: "t12", listing: "s12", ts: "2025-08-13", size: 350000, pricePct: 84.0,  navDate: "2025-06-30", method: "Bid accepted", buyer: "Member #0401", seller: "Member #0315" },
+    { id: "t13", listing: "s12", ts: "2026-05-30", size: 300000, pricePct: 80.5,  navDate: "2025-12-31", method: "Bid accepted", buyer: "Member #0512", seller: "Member #0401" },
+  ];
+
   /* ----------------------------------------------------------------- mandate */
   const mandates = [
     { key: "preservation", label: "Protect capital", core: 95, alpha: 5,
@@ -1744,7 +1776,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     uploadFiles, ingestSteps, exceptions, mandates, survey, modelPortfolios,
     capitalCalls, distributions, benchmark, performance, attribution, modelGoals, ALT_SUBS,
     modelClasses, modelMatrix, modelExcuses, expectedReturn, expectedVol, classCorr, idiosyncraticVol,
-    market, secondary, bidsSeed, approvalsSeed, activitySeed, opsLedger, referrals, liquidityAssumptions,
+    market, secondary, secondaryTrades, bidsSeed, approvalsSeed, activitySeed, opsLedger, referrals, liquidityAssumptions,
   };
 })();
 
@@ -2174,6 +2206,17 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     return { irr, since: firstDate ? firstDate.slice(0, 4) : null, markDate: terminal ? terminal.t : null, n: flows.length };
   }
 
+
+  /* Prior transfers of an interest, newest first, with where the current ask
+     sits against the last one that cleared. */
+  function tradeHistory(listingId, trades, askPct) {
+    const rows = (trades || []).filter((t) => t.listing === listingId)
+      .sort((a, b) => (a.ts < b.ts ? 1 : -1));
+    if (!rows.length) return { rows, last: null, vsLast: null };
+    const last = rows[0];
+    return { rows, last, vsLast: askPct === undefined ? null : askPct - last.pricePct };
+  }
+
   /* ----------------------------------------------------------- projection */
   /* A lognormal fan: the mean path plus the 10th and 90th percentiles, given
      the class weights, their expected returns, their volatilities and how
@@ -2324,7 +2367,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     usd, usdC, krwC, krwFull, pct, pp, sgn, sgnUsd, num, localPx, days, fmtDate, fmtTs, monthKey, monthLabel,
     staleness, provLabel, sum, total, byClass, bySub, gaps, unrealized, realizedYTD,
     liquidity90, liquidityProjection, shortfall, coverage, projectMix,
-    modelSix, bySix, sixToFour, sixToSubs, pickForClass, holdingsSix, geoBucket, GEO_BUCKETS, listingDocs, listingView, currentIRR, modelClassOf, modelClassLabel, topHoldings, affiliateExposure, taxLots, eligibility,
+    modelSix, bySix, sixToFour, sixToSubs, pickForClass, holdingsSix, geoBucket, GEO_BUCKETS, listingDocs, listingView, currentIRR, tradeHistory, modelClassOf, modelClassLabel, topHoldings, affiliateExposure, taxLots, eligibility,
     fitFor, subLabel, clsLabel, clsOf, impact, modelWeights, marketContext, scoreFor, suggestAmount,
   };
 })();
@@ -2358,6 +2401,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     activity: clone(D.activitySeed),
     listings: clone(D.secondary),
     bids: clone(D.bidsSeed),
+    trades: clone(D.secondaryTrades),
     ops: clone(D.opsLedger),
     referrals: clone(D.referrals),
     mandate: "balanced",
@@ -2628,6 +2672,10 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       });
       const l = state.listings.find((x) => x.id === listing.id);
       if (l) { l.status = "Settled"; l.buyer = state.account; }
+      /* what just cleared is a price reference for whoever looks next */
+      state.trades.push({ id: nextId("t"), listing: listing.id, ts: D.TODAY, size: listing.size,
+        pricePct: listing.askPct, navDate: "2026-06-30", method: "Ask taken",
+        buyer: "You", seller: listing.seller });
       log("Secondary", "Bought " + u.usd(listing.size) + " of " + listing.instrument + " at " + listing.askPct.toFixed(1) + "% of NAV",
         "Consideration " + u.usd(consideration) + " · taken at the ask · ownership record updated, settles same day.");
       ops(listing.id.toUpperCase(), listing.instrument, u.usd(consideration));
@@ -2640,7 +2688,12 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       if (!b) return;
       b.status = status;
       const l = state.listings.find((x) => x.id === b.listingId);
-      if (l && status === "Accepted") l.status = "Settled";
+      if (l && status === "Accepted") {
+        l.status = "Settled";
+        state.trades.push({ id: nextId("t"), listing: l.id, ts: D.TODAY, size: b.size,
+          pricePct: b.price, navDate: "2026-06-30", method: "Bid accepted",
+          buyer: b.bidder || "You", seller: l.seller });
+      }
       log("Secondary", status + " bid — " + u.usd(b.size) + " of " + (l ? l.instrument : ""),
         status === "Accepted" ? "Ownership record updated. Settles same day." : "");
       toast(status + " — bid " + b.id);
@@ -5985,6 +6038,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
        argument, so merit is the discount to the last mark. */
     const ctx = u.marketContext(st.positions, st.mandate, st.realizedClosed);
     const sc = u.listingView(l, ctx).sc;
+    const hist = u.tradeHistory(l.id, st.trades, l.askPct);
     const gap = u.bySub(st.positions).find((x) => x.key === l.sub);
     const gapWord = (x) => u.num(Math.abs(x || 0), 1) + "pp " + ((x || 0) > 0 ? "below" : "above") + " the model";
     const why = u.listingView(l, ctx).why;
@@ -6145,6 +6199,44 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
               </Panel>
             </div>
           </div>
+        </div>
+
+        <div className="panel mt16">
+          <div className="panel-hd">
+            <div>
+              <h3>Transfer history</h3>
+              <div className="tri" style={{ fontSize: 11.5, marginTop: 2 }}>
+                What this interest has cleared at on the platform before
+              </div>
+            </div>
+            {hist.last && (
+              <span className="tri" style={{ fontSize: 11.5 }}>
+                Last cleared <b className="num">{u.pct(hist.last.pricePct)}</b> on {u.fmtDate(hist.last.ts)} ·
+                today's ask is <b className="num">{u.pp(hist.vsLast)}</b> against it
+              </span>
+            )}
+          </div>
+          {hist.rows.length === 0
+            ? <div className="empty">No prior transfers of this interest on the platform.</div>
+            : (
+              <table className="t dense">
+                <thead><tr><th>Date</th><th className="n">Size</th><th className="n">Price</th>
+                  <th className="n">Consideration</th><th>Cleared</th><th>Priced against</th><th>Counterparties</th></tr></thead>
+                <tbody>
+                  {hist.rows.map((t) => (
+                    <tr key={t.id}>
+                      <td className="num">{u.fmtDate(t.ts)}</td>
+                      <td className="n num">{u.usd(t.size)}</td>
+                      <td className="n num" style={{ fontWeight: 600 }}>{u.pct(t.pricePct)}</td>
+                      <td className="n num">{u.usd(Math.round(t.size * t.pricePct / 100))}</td>
+                      <td><span className="bdg plain">{t.method}</span></td>
+                      <td className="tri num">{u.fmtDate(t.navDate)} NAV</td>
+                      <td className="mono tri" style={{ fontSize: 11 }}>{t.seller} → {t.buyer}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
         </div>
 
         <div className="panel mt16">

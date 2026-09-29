@@ -170,6 +170,7 @@
        argument, so merit is the discount to the last mark. */
     const ctx = u.marketContext(st.positions, st.mandate, st.realizedClosed);
     const sc = u.listingView(l, ctx).sc;
+    const hist = u.tradeHistory(l.id, st.trades, l.askPct);
     const gap = u.bySub(st.positions).find((x) => x.key === l.sub);
     const gapWord = (x) => u.num(Math.abs(x || 0), 1) + "pp " + ((x || 0) > 0 ? "below" : "above") + " the model";
     const why = u.listingView(l, ctx).why;
@@ -330,6 +331,44 @@
               </Panel>
             </div>
           </div>
+        </div>
+
+        <div className="panel mt16">
+          <div className="panel-hd">
+            <div>
+              <h3>Transfer history</h3>
+              <div className="tri" style={{ fontSize: 11.5, marginTop: 2 }}>
+                What this interest has cleared at on the platform before
+              </div>
+            </div>
+            {hist.last && (
+              <span className="tri" style={{ fontSize: 11.5 }}>
+                Last cleared <b className="num">{u.pct(hist.last.pricePct)}</b> on {u.fmtDate(hist.last.ts)} ·
+                today's ask is <b className="num">{u.pp(hist.vsLast)}</b> against it
+              </span>
+            )}
+          </div>
+          {hist.rows.length === 0
+            ? <div className="empty">No prior transfers of this interest on the platform.</div>
+            : (
+              <table className="t dense">
+                <thead><tr><th>Date</th><th className="n">Size</th><th className="n">Price</th>
+                  <th className="n">Consideration</th><th>Cleared</th><th>Priced against</th><th>Counterparties</th></tr></thead>
+                <tbody>
+                  {hist.rows.map((t) => (
+                    <tr key={t.id}>
+                      <td className="num">{u.fmtDate(t.ts)}</td>
+                      <td className="n num">{u.usd(t.size)}</td>
+                      <td className="n num" style={{ fontWeight: 600 }}>{u.pct(t.pricePct)}</td>
+                      <td className="n num">{u.usd(Math.round(t.size * t.pricePct / 100))}</td>
+                      <td><span className="bdg plain">{t.method}</span></td>
+                      <td className="tri num">{u.fmtDate(t.navDate)} NAV</td>
+                      <td className="mono tri" style={{ fontSize: 11 }}>{t.seller} → {t.buyer}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
         </div>
 
         <div className="panel mt16">

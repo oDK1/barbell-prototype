@@ -25,6 +25,7 @@
     activity: clone(D.activitySeed),
     listings: clone(D.secondary),
     bids: clone(D.bidsSeed),
+    trades: clone(D.secondaryTrades),
     ops: clone(D.opsLedger),
     referrals: clone(D.referrals),
     mandate: "balanced",
@@ -295,6 +296,10 @@
       });
       const l = state.listings.find((x) => x.id === listing.id);
       if (l) { l.status = "Settled"; l.buyer = state.account; }
+      /* what just cleared is a price reference for whoever looks next */
+      state.trades.push({ id: nextId("t"), listing: listing.id, ts: D.TODAY, size: listing.size,
+        pricePct: listing.askPct, navDate: "2026-06-30", method: "Ask taken",
+        buyer: "You", seller: listing.seller });
       log("Secondary", "Bought " + u.usd(listing.size) + " of " + listing.instrument + " at " + listing.askPct.toFixed(1) + "% of NAV",
         "Consideration " + u.usd(consideration) + " · taken at the ask · ownership record updated, settles same day.");
       ops(listing.id.toUpperCase(), listing.instrument, u.usd(consideration));
@@ -307,7 +312,12 @@
       if (!b) return;
       b.status = status;
       const l = state.listings.find((x) => x.id === b.listingId);
-      if (l && status === "Accepted") l.status = "Settled";
+      if (l && status === "Accepted") {
+        l.status = "Settled";
+        state.trades.push({ id: nextId("t"), listing: l.id, ts: D.TODAY, size: b.size,
+          pricePct: b.price, navDate: "2026-06-30", method: "Bid accepted",
+          buyer: b.bidder || "You", seller: l.seller });
+      }
       log("Secondary", status + " bid — " + u.usd(b.size) + " of " + (l ? l.instrument : ""),
         status === "Accepted" ? "Ownership record updated. Settles same day." : "");
       toast(status + " — bid " + b.id);

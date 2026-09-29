@@ -2128,11 +2128,50 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       fit: Math.max(5, Math.min(95, Math.round(50 + discount * 2))) };
     const sc = scoreFor(asOffering, ctx);
     return {
-      asOffering, sc, consideration, discount, toNav,
+      asOffering, sc, consideration, discount, toNav, irr: currentIRR(l),
       why: discount > 0
         ? "Acquires " + usd(l.size) + " of stated NAV for " + usd(consideration) + " — a " + pct(discount) + " discount to the last mark."
         : "Priced " + pct(-discount) + " above the last mark — the ask is for access, not for value.",
     };
+  }
+
+
+  /* ------------------------------------------------ secondary: IRR to date */
+  /* What the interest has actually returned in the seller's hands, annualised
+     from its own capital account. A commitment is a promise, not a cash flow;
+     a mark-up and reinvested income move the valuation, not the cash. The last
+     NAV mark stands in as the terminal value — which makes this an IRR to the
+     manager's own mark, not a realised one. */
+  const CASH_OUT = /call|funded|purchase|subscription/i;
+  const CASH_IN = /coupon|distribution/i;
+  function xirr(flows) {
+    if (flows.length < 2) return null;
+    const t0 = flows[0].t;
+    const years = (d) => (d - t0) / 31557600000;
+    const npv = (r) => flows.reduce((a, f) => a + f.a / Math.pow(1 + r, years(f.t)), 0);
+    let lo = -0.95, hi = 10;
+    if (npv(lo) * npv(hi) > 0) return null;
+    for (let i = 0; i < 200; i++) {
+      const mid = (lo + hi) / 2;
+      if (npv(lo) * npv(mid) <= 0) hi = mid; else lo = mid;
+    }
+    return ((lo + hi) / 2) * 100;
+  }
+  function currentIRR(l) {
+    if (!l || !l.account) return null;
+    const flows = [];
+    let terminal = null, firstDate = null;
+    l.account.forEach((r) => {
+      const t = new Date(r[0]);
+      if (/NAV mark/i.test(r[1])) { terminal = { t, a: r[2] }; return; }
+      if (CASH_OUT.test(r[1])) { flows.push({ t, a: -r[2] }); if (!firstDate) firstDate = r[0]; return; }
+      if (CASH_IN.test(r[1])) flows.push({ t, a: r[2] });
+    });
+    if (terminal) flows.push(terminal);
+    let irr = xirr(flows);
+    if (irr === null) return null;
+    if (Math.abs(irr) < 0.05) irr = 0;          /* do not print a signed zero */
+    return { irr, since: firstDate ? firstDate.slice(0, 4) : null, markDate: terminal ? terminal.t : null, n: flows.length };
   }
 
   /* ----------------------------------------------------------- projection */
@@ -2285,7 +2324,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     usd, usdC, krwC, krwFull, pct, pp, sgn, sgnUsd, num, localPx, days, fmtDate, fmtTs, monthKey, monthLabel,
     staleness, provLabel, sum, total, byClass, bySub, gaps, unrealized, realizedYTD,
     liquidity90, liquidityProjection, shortfall, coverage, projectMix,
-    modelSix, bySix, sixToFour, sixToSubs, pickForClass, holdingsSix, geoBucket, GEO_BUCKETS, listingDocs, listingView, modelClassOf, modelClassLabel, topHoldings, affiliateExposure, taxLots, eligibility,
+    modelSix, bySix, sixToFour, sixToSubs, pickForClass, holdingsSix, geoBucket, GEO_BUCKETS, listingDocs, listingView, currentIRR, modelClassOf, modelClassLabel, topHoldings, affiliateExposure, taxLots, eligibility,
     fitFor, subLabel, clsLabel, clsOf, impact, modelWeights, marketContext, scoreFor, suggestAmount,
   };
 })();
@@ -5827,7 +5866,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
           <table className="t">
             <thead>
               <tr>
-                <th style={{ minWidth: 240 }}>Instrument</th><th>Fills</th><th className="n">Return</th><th>Liquidity</th>
+                <th style={{ minWidth: 240 }}>Instrument</th><th>Fills</th><th className="n">Current IRR</th><th>Liquidity</th>
                 <th className="n">Last NAV</th><th className="n">Size offered</th><th className="n">Fit</th>
                 <th className="hide-narrow" style={{ minWidth: 170 }}>Why</th><th></th>
               </tr>
@@ -5842,8 +5881,14 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                       <div className="tsub">{l.manager} · vintage {l.vintage}</div>
                     </td>
                     <td>{u.subLabel(l.sub)}<div className="tsub">{u.modelClassLabel(l.sub)}</div></td>
-                    <td className="n num">{u.pct(v.toNav)}
-                      <div className="tsub">to last NAV</div></td>
+                    <td className="n">
+                      {v.irr
+                        ? <span title={"Annualised from the interest's own capital account to the " + u.fmtDate(l.account[l.account.length - 1][0]) + " mark, which is the manager's own."}>
+                            <Delta v={v.irr.irr} dp={1} />
+                            <div className="tsub">since {v.irr.since}</div>
+                          </span>
+                        : <span className="tri">—</span>}
+                    </td>
                     <td><span className="bdg plain">Locked</span></td>
                     <td className="n num">{u.usd(l.nav)}</td>
                     <td className="n num">{u.usd(l.size)}</td>
@@ -6043,6 +6088,10 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 <table className="t dense">
                   <tbody>
                     {[["Instrument", l.instrument], ["Manager", l.manager], ["Vintage", l.vintage],
+                      ["IRR to date", u.currentIRR(l)
+                        ? u.sgn(u.currentIRR(l).irr) + " annualised since " + u.currentIRR(l).since
+                          + " — to the last mark, which the manager reports"
+                        : "Not computable from the capital account"],
                       ["Subcategory", u.subLabel(l.sub)], ["Last NAV", u.usd(l.nav) + " as of 30 Jun 2026"],
                       ["Size offered", u.usd(l.size)], ["Ask", u.pct(l.askPct) + " of last NAV"],
                       ["Consideration", u.usd(consideration)],
@@ -6077,6 +6126,8 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 <span className="k">Mechanic</span><span className="v">Take the ask, or bid below it</span>
                 <span className="k">Ask</span><span className="v">{u.pct(l.askPct)} of last NAV</span>
                 <span className="k">You pay</span><span className="v">{u.usd(consideration)}</span>
+                <span className="k">IRR to date</span>
+                <span className="v">{u.currentIRR(l) ? u.sgn(u.currentIRR(l).irr) : "—"}</span>
                 <span className="k">Liquidity</span><span className="v">Locked until the fund returns capital</span>
                 {l.unfunded ? <><span className="k">Unfunded</span><span className="v">{u.usd(l.unfunded)}</span></> : null}
                 <span className="k">Days listed</span><span className="v">{l.days}</span>

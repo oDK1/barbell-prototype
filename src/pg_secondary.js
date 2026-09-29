@@ -51,7 +51,7 @@
           <table className="t">
             <thead>
               <tr>
-                <th style={{ minWidth: 240 }}>Instrument</th><th>Fills</th><th className="n">Return</th><th>Liquidity</th>
+                <th style={{ minWidth: 240 }}>Instrument</th><th>Fills</th><th className="n">Current IRR</th><th>Liquidity</th>
                 <th className="n">Last NAV</th><th className="n">Size offered</th><th className="n">Fit</th>
                 <th className="hide-narrow" style={{ minWidth: 170 }}>Why</th><th></th>
               </tr>
@@ -66,8 +66,14 @@
                       <div className="tsub">{l.manager} · vintage {l.vintage}</div>
                     </td>
                     <td>{u.subLabel(l.sub)}<div className="tsub">{u.modelClassLabel(l.sub)}</div></td>
-                    <td className="n num">{u.pct(v.toNav)}
-                      <div className="tsub">to last NAV</div></td>
+                    <td className="n">
+                      {v.irr
+                        ? <span title={"Annualised from the interest's own capital account to the " + u.fmtDate(l.account[l.account.length - 1][0]) + " mark, which is the manager's own."}>
+                            <Delta v={v.irr.irr} dp={1} />
+                            <div className="tsub">since {v.irr.since}</div>
+                          </span>
+                        : <span className="tri">—</span>}
+                    </td>
                     <td><span className="bdg plain">Locked</span></td>
                     <td className="n num">{u.usd(l.nav)}</td>
                     <td className="n num">{u.usd(l.size)}</td>
@@ -267,6 +273,10 @@
                 <table className="t dense">
                   <tbody>
                     {[["Instrument", l.instrument], ["Manager", l.manager], ["Vintage", l.vintage],
+                      ["IRR to date", u.currentIRR(l)
+                        ? u.sgn(u.currentIRR(l).irr) + " annualised since " + u.currentIRR(l).since
+                          + " — to the last mark, which the manager reports"
+                        : "Not computable from the capital account"],
                       ["Subcategory", u.subLabel(l.sub)], ["Last NAV", u.usd(l.nav) + " as of 30 Jun 2026"],
                       ["Size offered", u.usd(l.size)], ["Ask", u.pct(l.askPct) + " of last NAV"],
                       ["Consideration", u.usd(consideration)],
@@ -301,6 +311,8 @@
                 <span className="k">Mechanic</span><span className="v">Take the ask, or bid below it</span>
                 <span className="k">Ask</span><span className="v">{u.pct(l.askPct)} of last NAV</span>
                 <span className="k">You pay</span><span className="v">{u.usd(consideration)}</span>
+                <span className="k">IRR to date</span>
+                <span className="v">{u.currentIRR(l) ? u.sgn(u.currentIRR(l).irr) : "—"}</span>
                 <span className="k">Liquidity</span><span className="v">Locked until the fund returns capital</span>
                 {l.unfunded ? <><span className="k">Unfunded</span><span className="v">{u.usd(l.unfunded)}</span></> : null}
                 <span className="k">Days listed</span><span className="v">{l.days}</span>

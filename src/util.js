@@ -376,11 +376,50 @@
       fit: Math.max(5, Math.min(95, Math.round(50 + discount * 2))) };
     const sc = scoreFor(asOffering, ctx);
     return {
-      asOffering, sc, consideration, discount, toNav,
+      asOffering, sc, consideration, discount, toNav, irr: currentIRR(l),
       why: discount > 0
         ? "Acquires " + usd(l.size) + " of stated NAV for " + usd(consideration) + " — a " + pct(discount) + " discount to the last mark."
         : "Priced " + pct(-discount) + " above the last mark — the ask is for access, not for value.",
     };
+  }
+
+
+  /* ------------------------------------------------ secondary: IRR to date */
+  /* What the interest has actually returned in the seller's hands, annualised
+     from its own capital account. A commitment is a promise, not a cash flow;
+     a mark-up and reinvested income move the valuation, not the cash. The last
+     NAV mark stands in as the terminal value — which makes this an IRR to the
+     manager's own mark, not a realised one. */
+  const CASH_OUT = /call|funded|purchase|subscription/i;
+  const CASH_IN = /coupon|distribution/i;
+  function xirr(flows) {
+    if (flows.length < 2) return null;
+    const t0 = flows[0].t;
+    const years = (d) => (d - t0) / 31557600000;
+    const npv = (r) => flows.reduce((a, f) => a + f.a / Math.pow(1 + r, years(f.t)), 0);
+    let lo = -0.95, hi = 10;
+    if (npv(lo) * npv(hi) > 0) return null;
+    for (let i = 0; i < 200; i++) {
+      const mid = (lo + hi) / 2;
+      if (npv(lo) * npv(mid) <= 0) hi = mid; else lo = mid;
+    }
+    return ((lo + hi) / 2) * 100;
+  }
+  function currentIRR(l) {
+    if (!l || !l.account) return null;
+    const flows = [];
+    let terminal = null, firstDate = null;
+    l.account.forEach((r) => {
+      const t = new Date(r[0]);
+      if (/NAV mark/i.test(r[1])) { terminal = { t, a: r[2] }; return; }
+      if (CASH_OUT.test(r[1])) { flows.push({ t, a: -r[2] }); if (!firstDate) firstDate = r[0]; return; }
+      if (CASH_IN.test(r[1])) flows.push({ t, a: r[2] });
+    });
+    if (terminal) flows.push(terminal);
+    let irr = xirr(flows);
+    if (irr === null) return null;
+    if (Math.abs(irr) < 0.05) irr = 0;          /* do not print a signed zero */
+    return { irr, since: firstDate ? firstDate.slice(0, 4) : null, markDate: terminal ? terminal.t : null, n: flows.length };
   }
 
   /* ----------------------------------------------------------- projection */
@@ -533,7 +572,7 @@
     usd, usdC, krwC, krwFull, pct, pp, sgn, sgnUsd, num, localPx, days, fmtDate, fmtTs, monthKey, monthLabel,
     staleness, provLabel, sum, total, byClass, bySub, gaps, unrealized, realizedYTD,
     liquidity90, liquidityProjection, shortfall, coverage, projectMix,
-    modelSix, bySix, sixToFour, sixToSubs, pickForClass, holdingsSix, geoBucket, GEO_BUCKETS, listingDocs, listingView, modelClassOf, modelClassLabel, topHoldings, affiliateExposure, taxLots, eligibility,
+    modelSix, bySix, sixToFour, sixToSubs, pickForClass, holdingsSix, geoBucket, GEO_BUCKETS, listingDocs, listingView, currentIRR, modelClassOf, modelClassLabel, topHoldings, affiliateExposure, taxLots, eligibility,
     fitFor, subLabel, clsLabel, clsOf, impact, modelWeights, marketContext, scoreFor, suggestAmount,
   };
 })();

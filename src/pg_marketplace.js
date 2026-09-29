@@ -88,7 +88,7 @@
       if (q && !(m.name + " " + (m.ticker || "") + " " + m.sector).toLowerCase().includes(q.toLowerCase())) return false;
       return true;
     };
-    const ctx = u.marketContext(st.positions, st.mandate);
+    const ctx = u.marketContext(st.positions, st.mandate, st.realizedClosed);
     const scored = offered.map((m) => ({ ...m, s: u.scoreFor(m, ctx) }));
     const all = (asked && asked.rows.length ? asked.rows : scored.filter(pass)).sort((a, b) => b.s.score - a.s.score);
     /* Private, inside the sleeve's remaining cash — committable without asking. */

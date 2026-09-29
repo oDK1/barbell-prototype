@@ -384,7 +384,10 @@
   /* The three situations a recommendation has to answer to: where the book
      sits against the model, what the next two years of cash look like, and
      what has already been realised for tax. */
-  function marketContext(ps, mandateKey) {
+  /* `closedRealised` carries the realised P&L of positions already sold out,
+     which the positions array no longer holds. Without it a harvest would
+     lower the Tax tab's figure while the agent kept scoring the old one. */
+  function marketContext(ps, mandateKey, closedRealised) {
     const t = total(ps);
     const model = modelWeights(t, mandateKey);
     const cur = {}, under = {};
@@ -399,7 +402,7 @@
     const lots = taxLots(ps);
     const harvest = lots.filter((l) => l.harvest);
     const tax = {
-      realized: realizedYTD(ps),
+      realized: realizedYTD(ps) + (closedRealised || 0),
       harvestable: Math.abs(sum(harvest, (l) => l.gain)),
       harvestCount: harvest.length,
       nearLT: lots.filter((l) => !l.longTerm && l.held > 300).length,

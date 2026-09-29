@@ -18,7 +18,7 @@
 
     const isListed = m.kind === "listed";
     const gap = u.bySub(st.positions).find((s) => s.key === m.fills);
-    const ctx = u.marketContext(st.positions, st.mandate);
+    const ctx = u.marketContext(st.positions, st.mandate, st.realizedClosed);
     const sc = u.scoreFor(m, ctx);
     const gapWord = (x) => u.num(Math.abs(x), 1) + "pp " + (x > 0 ? "below" : "above") + " the model";
     const capacity = S.alphaCapacity();

@@ -535,6 +535,10 @@ table.t td.val .krw{font-weight:400}
 @keyframes bb-flash { from { box-shadow: 0 0 0 2px var(--navy); } to { box-shadow: 0 0 0 2px rgba(27,42,74,0); } }
 .panel.flash { animation: bb-flash 1.4s ease-out; }
 
+/* Harvesting books a loss on purpose — amber, not the usual primary navy. */
+.btn.harvest{border-color:var(--amber);color:var(--amber);font-weight:600}
+.btn.harvest:hover{background:var(--amber);border-color:var(--amber);color:#fff}
+
 </style>
 </head>
 <body>
@@ -2132,7 +2136,10 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   /* The three situations a recommendation has to answer to: where the book
      sits against the model, what the next two years of cash look like, and
      what has already been realised for tax. */
-  function marketContext(ps, mandateKey) {
+  /* `closedRealised` carries the realised P&L of positions already sold out,
+     which the positions array no longer holds. Without it a harvest would
+     lower the Tax tab's figure while the agent kept scoring the old one. */
+  function marketContext(ps, mandateKey, closedRealised) {
     const t = total(ps);
     const model = modelWeights(t, mandateKey);
     const cur = {}, under = {};
@@ -2147,7 +2154,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     const lots = taxLots(ps);
     const harvest = lots.filter((l) => l.harvest);
     const tax = {
-      realized: realizedYTD(ps),
+      realized: realizedYTD(ps) + (closedRealised || 0),
       harvestable: Math.abs(sum(harvest, (l) => l.gain)),
       harvestCount: harvest.length,
       nearLT: lots.filter((l) => !l.longTerm && l.held > 300).length,
@@ -2267,6 +2274,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     uploads: clone(D.uploadFiles),
     exceptions: clone(D.exceptions).map((e) => ({ ...e, resolved: false, value: e.type === "input" ? e.suggestion : e.answer })),
     ingestDone: false,
+    realizedClosed: 0,           // realised P&L of positions fully sold
     toast: null,
   };
 
@@ -2415,7 +2423,13 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
           const gain = portion * (1 - p.cost / p.value);
           p.value -= portion; p.cost -= portion - gain; p.realizedYTD = (p.realizedYTD || 0) + gain;
           if (p.pxUsd) p.qty = Math.round(p.value / p.pxUsd);
-          if (p.value < 1) state.positions = state.positions.filter((x) => x.id !== p.id);
+          /* A full exit removes the position — and would take the realised
+             amount with it, which is exactly what a harvest books. Realised
+             P&L belongs to the book, so it is kept at that level. */
+          if (p.value < 1) {
+            state.realizedClosed += p.realizedYTD || 0;
+            state.positions = state.positions.filter((x) => x.id !== p.id);
+          }
           addCash(portion, sleeve);
           log("Trade", "Sold " + u.usd(portion) + " " + name, "Realised " + u.sgnUsd(gain) + " · " + (sleeve === "alpha" ? "Alpha" : "Core") + " sleeve · settles same day.");
           ops(ticker || "—", name, "−" + u.usd(portion));
@@ -2578,7 +2592,10 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     return r;
   }
 
-  BB.store = { get, subscribe, actions, useStore, useRoute, navigate, canWrite, alphaCapacity, LOCK_TIP, log, toast };
+  /* Realised year to date across the book, closed positions included. */
+  function realizedBook() { return u.realizedYTD(state.positions) + state.realizedClosed; }
+
+  BB.store = { get, subscribe, actions, realizedBook, useStore, useRoute, navigate, canWrite, alphaCapacity, LOCK_TIP, log, toast };
 })();
 
 </script>
@@ -4502,7 +4519,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     const st = S.useStore();
     const [act, setAct] = useState(null);
     const ordered = rows.filter((r) => Math.abs(r.delta) > 0.2).sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
-    const ctx = u.marketContext(st.positions, st.mandate);
+    const ctx = u.marketContext(st.positions, st.mandate, st.realizedClosed);
     /* the highest-scoring thing on the marketplace that would fill each line */
     const pick = (key) => D.market.filter((m) => m.fills === key)
       .map((m) => ({ ...m, s: u.scoreFor(m, ctx) }))
@@ -4848,14 +4865,15 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
   /* -------------------------------------------------------------- tax tab */
   function TaxTab({ positions }) {
+    const [sell, setSell] = useState(null);
     const lots = u.taxLots(positions).sort((a, b) => b.value - a.value);
-    const realized = u.realizedYTD(positions);
+    const realized = S.realizedBook();
     const harvest = lots.filter((l) => l.harvest);
     const nearLT = lots.filter((l) => !l.longTerm && l.held > 300);
     return (
       <>
         <div className="band mt16">
-          <div className="cell"><div className="stat-l">Realised YTD</div><div className="stat-v"><Money v={realized} compact /></div><div className="stat-s">across {positions.filter((p) => p.realizedYTD).length} positions</div></div>
+          <div className="cell"><div className="stat-l">Realised YTD</div><div className="stat-v"><Money v={realized} compact /></div><div className="stat-s">across {positions.filter((p) => p.realizedYTD).length} positions{S.get().realizedClosed ? " · incl. closed" : ""}</div></div>
           <div className="cell"><div className="stat-l">Unrealised</div><div className="stat-v"><Money v={u.unrealized(positions)} compact /></div></div>
           <div className="cell"><div className="stat-l">Long-term lots</div><div className="stat-v">{lots.filter((l) => l.longTerm).length} <span className="tri" style={{ fontSize: 13 }}>/ {lots.length}</span></div><div className="stat-s">held 12 months or more</div></div>
           <div className="cell"><div className="stat-l">Harvest candidates</div><div className="stat-v">{harvest.length}</div><div className="stat-s">liquid positions below cost</div></div>
@@ -4884,7 +4902,18 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                   <td className="n num">{u.usd(l.value)}</td>
                   <td className="n"><Delta v={l.gain} usd /> <span className="tri num" style={{ fontSize: 11 }}>{u.sgn(l.gainPct)}</span></td>
                   <td className="n num">{l.realizedYTD ? u.usd(l.realizedYTD) : "—"}</td>
-                  <td className="right">{l.harvest && <span className="bdg self warn"><i className="pt" />Harvest</span>}</td>
+                  <td className="right">
+                    {/* a tax lot's whole point is the action it implies, so the
+                        flag is the button: it opens a sell for the full position */}
+                    {l.harvest && (
+                      <Lock sleeve={l.sleeve}>
+                        <button className="btn sm harvest" onClick={() => setSell(l)}
+                          title={"Sell " + l.name + " and realise " + u.usd(Math.abs(l.gain)) + " of loss"}>
+                          Harvest {u.usdC(Math.abs(l.gain))}
+                        </button>
+                      </Lock>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -4894,6 +4923,11 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
           Observations only. Barbell does not provide tax advice. Holding periods and classifications are computed from the
           reconciled book and should be confirmed with your tax adviser before any action.
         </div>
+
+        {sell && (
+          <BB.flows.TradeTicket instrument={sell} side="sell" amount0={sell.value}
+            onClose={() => setSell(null)} />
+        )}
       </>
     );
   }
@@ -5381,7 +5415,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       if (q && !(m.name + " " + (m.ticker || "") + " " + m.sector).toLowerCase().includes(q.toLowerCase())) return false;
       return true;
     };
-    const ctx = u.marketContext(st.positions, st.mandate);
+    const ctx = u.marketContext(st.positions, st.mandate, st.realizedClosed);
     const scored = offered.map((m) => ({ ...m, s: u.scoreFor(m, ctx) }));
     const all = (asked && asked.rows.length ? asked.rows : scored.filter(pass)).sort((a, b) => b.s.score - a.s.score);
     /* Private, inside the sleeve's remaining cash — committable without asking. */
@@ -5640,7 +5674,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
     const isListed = m.kind === "listed";
     const gap = u.bySub(st.positions).find((s) => s.key === m.fills);
-    const ctx = u.marketContext(st.positions, st.mandate);
+    const ctx = u.marketContext(st.positions, st.mandate, st.realizedClosed);
     const sc = u.scoreFor(m, ctx);
     const gapWord = (x) => u.num(Math.abs(x), 1) + "pp " + (x > 0 ? "below" : "above") + " the model";
     const capacity = S.alphaCapacity();

@@ -523,3 +523,7 @@ table.t td.val .krw{font-weight:400}
 /* A section arrived at from a header link says so, briefly. */
 @keyframes bb-flash { from { box-shadow: 0 0 0 2px var(--navy); } to { box-shadow: 0 0 0 2px rgba(27,42,74,0); } }
 .panel.flash { animation: bb-flash 1.4s ease-out; }
+
+/* Harvesting books a loss on purpose — amber, not the usual primary navy. */
+.btn.harvest{border-color:var(--amber);color:var(--amber);font-weight:600}
+.btn.harvest:hover{background:var(--amber);border-color:var(--amber);color:#fff}

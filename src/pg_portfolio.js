@@ -447,7 +447,7 @@
     const st = S.useStore();
     const [act, setAct] = useState(null);
     const ordered = rows.filter((r) => Math.abs(r.delta) > 0.2).sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
-    const ctx = u.marketContext(st.positions, st.mandate);
+    const ctx = u.marketContext(st.positions, st.mandate, st.realizedClosed);
     /* the highest-scoring thing on the marketplace that would fill each line */
     const pick = (key) => D.market.filter((m) => m.fills === key)
       .map((m) => ({ ...m, s: u.scoreFor(m, ctx) }))
@@ -793,14 +793,15 @@
 
   /* -------------------------------------------------------------- tax tab */
   function TaxTab({ positions }) {
+    const [sell, setSell] = useState(null);
     const lots = u.taxLots(positions).sort((a, b) => b.value - a.value);
-    const realized = u.realizedYTD(positions);
+    const realized = S.realizedBook();
     const harvest = lots.filter((l) => l.harvest);
     const nearLT = lots.filter((l) => !l.longTerm && l.held > 300);
     return (
       <>
         <div className="band mt16">
-          <div className="cell"><div className="stat-l">Realised YTD</div><div className="stat-v"><Money v={realized} compact /></div><div className="stat-s">across {positions.filter((p) => p.realizedYTD).length} positions</div></div>
+          <div className="cell"><div className="stat-l">Realised YTD</div><div className="stat-v"><Money v={realized} compact /></div><div className="stat-s">across {positions.filter((p) => p.realizedYTD).length} positions{S.get().realizedClosed ? " · incl. closed" : ""}</div></div>
           <div className="cell"><div className="stat-l">Unrealised</div><div className="stat-v"><Money v={u.unrealized(positions)} compact /></div></div>
           <div className="cell"><div className="stat-l">Long-term lots</div><div className="stat-v">{lots.filter((l) => l.longTerm).length} <span className="tri" style={{ fontSize: 13 }}>/ {lots.length}</span></div><div className="stat-s">held 12 months or more</div></div>
           <div className="cell"><div className="stat-l">Harvest candidates</div><div className="stat-v">{harvest.length}</div><div className="stat-s">liquid positions below cost</div></div>
@@ -829,7 +830,18 @@
                   <td className="n num">{u.usd(l.value)}</td>
                   <td className="n"><Delta v={l.gain} usd /> <span className="tri num" style={{ fontSize: 11 }}>{u.sgn(l.gainPct)}</span></td>
                   <td className="n num">{l.realizedYTD ? u.usd(l.realizedYTD) : "—"}</td>
-                  <td className="right">{l.harvest && <span className="bdg self warn"><i className="pt" />Harvest</span>}</td>
+                  <td className="right">
+                    {/* a tax lot's whole point is the action it implies, so the
+                        flag is the button: it opens a sell for the full position */}
+                    {l.harvest && (
+                      <Lock sleeve={l.sleeve}>
+                        <button className="btn sm harvest" onClick={() => setSell(l)}
+                          title={"Sell " + l.name + " and realise " + u.usd(Math.abs(l.gain)) + " of loss"}>
+                          Harvest {u.usdC(Math.abs(l.gain))}
+                        </button>
+                      </Lock>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -839,6 +851,11 @@
           Observations only. Barbell does not provide tax advice. Holding periods and classifications are computed from the
           reconciled book and should be confirmed with your tax adviser before any action.
         </div>
+
+        {sell && (
+          <BB.flows.TradeTicket instrument={sell} side="sell" amount0={sell.value}
+            onClose={() => setSell(null)} />
+        )}
       </>
     );
   }

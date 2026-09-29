@@ -32,6 +32,7 @@
     uploads: clone(D.uploadFiles),
     exceptions: clone(D.exceptions).map((e) => ({ ...e, resolved: false, value: e.type === "input" ? e.suggestion : e.answer })),
     ingestDone: false,
+    realizedClosed: 0,           // realised P&L of positions fully sold
     toast: null,
   };
 
@@ -180,7 +181,13 @@
           const gain = portion * (1 - p.cost / p.value);
           p.value -= portion; p.cost -= portion - gain; p.realizedYTD = (p.realizedYTD || 0) + gain;
           if (p.pxUsd) p.qty = Math.round(p.value / p.pxUsd);
-          if (p.value < 1) state.positions = state.positions.filter((x) => x.id !== p.id);
+          /* A full exit removes the position — and would take the realised
+             amount with it, which is exactly what a harvest books. Realised
+             P&L belongs to the book, so it is kept at that level. */
+          if (p.value < 1) {
+            state.realizedClosed += p.realizedYTD || 0;
+            state.positions = state.positions.filter((x) => x.id !== p.id);
+          }
           addCash(portion, sleeve);
           log("Trade", "Sold " + u.usd(portion) + " " + name, "Realised " + u.sgnUsd(gain) + " · " + (sleeve === "alpha" ? "Alpha" : "Core") + " sleeve · settles same day.");
           ops(ticker || "—", name, "−" + u.usd(portion));
@@ -343,5 +350,8 @@
     return r;
   }
 
-  BB.store = { get, subscribe, actions, useStore, useRoute, navigate, canWrite, alphaCapacity, LOCK_TIP, log, toast };
+  /* Realised year to date across the book, closed positions included. */
+  function realizedBook() { return u.realizedYTD(state.positions) + state.realizedClosed; }
+
+  BB.store = { get, subscribe, actions, realizedBook, useStore, useRoute, navigate, canWrite, alphaCapacity, LOCK_TIP, log, toast };
 })();

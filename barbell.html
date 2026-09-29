@@ -4048,7 +4048,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   const { useState } = React;
   const D = BB.data, u = BB.u, S = BB.store;
   const { Money, Delta, Panel, Tabs, Seg, MiniBar, ProvBadge, SleeveBadge, Modal, Lock, GrowthFan } = BB.ui;
-  const { Agent, runQuery } = BB.agent;
+  const { runQuery } = BB.agent;
 
   /* Drift is context, not a verdict: grey, unsigned by colour, no urgency. */
   function VsTarget({ v }) {
@@ -4741,7 +4741,6 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     const line = proj.map((m, i) => x(i) + "," + y(m.cash)).join(" ");
     const floor = D.liquidityAssumptions.reserveFloor;
     const calls60 = D.capitalCalls.filter((c) => u.days(D.TODAY, c.date) <= 60 && u.days(D.TODAY, c.date) >= 0);
-    const cover = u.coverage(positions, short ? short.amount : 0);
     const liq = u.liquidity90(positions);
 
     return (
@@ -4756,25 +4755,6 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
             <div className="stat-s">{short ? u.usd(short.amount) + " short" : "within 24 months"}</div></div>
         </div>
 
-        <div className="mt16">
-          <Agent where="Liquidity" tone={short ? "warn" : null}
-            why={["Committed capital call schedule from 4 funds",
-                  "Announced and projected distributions",
-                  "Net family spending of " + u.usd(D.liquidityAssumptions.monthlySpend - D.liquidityAssumptions.monthlyIncome) + " per month",
-                  "Cash equivalents of " + u.usd(liq.cash) + " as the opening balance",
-                  "Quarterly-redeemable funds counted at 90 days' notice"]}
-            actions={<>
-              <button className="btn sm p" onClick={() => S.navigate("/marketplace")}>Review liquid instruments</button>
-              <button className="btn sm" onClick={() => S.navigate("/secondary")}>Secondary board</button>
-            </>}>
-            {short
-              ? <>Your {short.quarter} capital calls of {u.usd(short.quarterCalls)} exceed projected cash by{" "}
-                <b>{u.usd(short.amount)}</b> in {short.month}. {cover.items.length} positions are liquid enough to cover it:{" "}
-                {cover.items.map((p) => p.name).join(", ")} — together {u.usd(cover.total)}, without touching the
-                operating company holding.</>
-              : <>Projected cash stays positive across the 24-month window.</>}
-          </Agent>
-        </div>
 
         <div className="panel mt16">
           <div className="panel-hd">
@@ -4870,20 +4850,6 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
           <div className="cell"><div className="stat-l">Approaching long-term</div><div className="stat-v">{nearLT.length}</div><div className="stat-s">within 65 days</div></div>
         </div>
 
-        <div className="mt16">
-          <Agent where="Tax"
-            why={["Acquisition dates per lot from the reconciled book",
-                  "Carrying values as of today's marks",
-                  "Holding period measured against a 365-day long-term threshold",
-                  "Realised gains and losses booked year to date"]}>
-            {harvest.length > 0
-              ? <>{harvest.length} liquid positions are carried below cost, together {u.usd(Math.abs(u.sum(harvest, (l) => l.gain)))} of unrealised
-                loss — enough to offset {u.pct((Math.abs(u.sum(harvest, (l) => l.gain)) / Math.max(realized, 1)) * 100, 0)} of the
-                gains realised this year. {nearLT.length > 0 && <>Separately, {nearLT.length} lot{nearLT.length > 1 ? "s cross" : " crosses"} the
-                long-term threshold within 65 days.</>}</>
-              : <>No harvest candidates. Every liquid position is carried above cost.</>}
-          </Agent>
-        </div>
 
         <div className="panel mt16">
           <div className="panel-hd"><h3>Lots</h3><span className="tri" style={{ fontSize: 11 }}>Holding period and classification per position</span></div>

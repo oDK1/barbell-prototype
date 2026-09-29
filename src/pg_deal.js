@@ -21,8 +21,7 @@
     const ctx = u.marketContext(st.positions, st.mandate, st.realizedClosed);
     const sc = u.scoreFor(m, ctx);
     const gapWord = (x) => u.num(Math.abs(x), 1) + "pp " + (x > 0 ? "below" : "above") + " the model";
-    const capacity = S.alphaCapacity();
-    const needsProposal = st.account === "successor" && (isListed ? false : m.min > capacity);
+    const needsProposal = st.account === "successor" && !isListed;
 
     const tabs = [{ k: "thesis", label: isListed ? "Overview" : "Thesis" }, { k: "terms", label: "Terms" }, { k: "docs", label: "Documents", n: m.docs.length }]
       .concat(m.hanwha ? [{ k: "hanwha", label: "Hanwha's position" }] : [])
@@ -43,11 +42,11 @@
           </div>
           <div className="btn-row">
             <button className="btn" onClick={() => setShare(true)}>Share</button>
-            <Lock sleeve={st.account === "successor" ? "alpha" : "core"}>
+            
               <button className="btn p lg" onClick={() => setAct(true)}>
                 {isListed ? "Buy" : needsProposal ? "Submit proposal to Principal" : "Commit"}
               </button>
-            </Lock>
+            
           </div>
         </div>
 
@@ -177,16 +176,14 @@
                 {m.px !== undefined && <><span className="k">Last price</span><span className="v">{u.localPx(m)}</span></>}
                 {m.chg !== undefined && <><span className="k">Intraday</span><span className="v"><Delta v={m.chg} dp={2} /></span></>}
               </div>
-              <Lock sleeve={st.account === "successor" ? "alpha" : "core"}>
+              
                 <button className="btn p block mt12" onClick={() => setAct(true)}>
                   {isListed ? "Open order ticket" : needsProposal ? "Submit proposal to Principal" : "Commit"}
                 </button>
-              </Lock>
+              
               {st.account === "successor" && !isListed && (
-                <div className={"note mt12 " + (needsProposal ? "warn" : "ok")} style={{ fontSize: 11.5 }}>
-                  {needsProposal
-                    ? "Minimum exceeds the Alpha sleeve's remaining capacity of " + u.usd(capacity) + ". The button submits a proposal."
-                    : "Within the Alpha sleeve's remaining capacity of " + u.usd(capacity) + ". Executes directly."}
+                <div className="note mt12 warn" style={{ fontSize: 11.5 }}>
+                  Commitments are settled by the Principal, so the button submits a proposal.
                 </div>
               )}
               <button className="btn block mt8" onClick={() => setShare(true)}>Share with a member</button>
@@ -206,7 +203,7 @@
         </div>
 
         {act && (isListed
-          ? <BB.flows.TradeTicket instrument={{ ...m, sub: m.fills, sleeve: st.account === "successor" ? "alpha" : "core", pxUsd: m.px }} side="buy" onClose={() => setAct(false)} />
+          ? <BB.flows.TradeTicket instrument={{ ...m, sub: m.fills, pxUsd: m.px }} side="buy" onClose={() => setAct(false)} />
           : <BB.flows.CommitFlow deal={m} onClose={() => setAct(false)} />)}
         {share && <BB.flows.ShareModal deal={m} onClose={() => setShare(false)} />}
       </div>

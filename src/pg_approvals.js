@@ -24,7 +24,6 @@
           <span className="k">Submitted by</span><span className="v">{D.accounts[a.from].name}</span>
           <span className="k">Type</span><span className="v">{a.type}</span>
           <span className="k">Amount</span><span className="v">{u.usd(a.amount)}</span>
-          <span className="k">Sleeve</span><span className="v">{a.sleeve === "core" ? "Core" : "Alpha"}</span>
         </div>
         <div className="note mb16">{a.rationale}</div>
         <label className="f"><span>{mode === "returned" ? "Comment (required)" : "Comment (optional)"}</span>
@@ -32,8 +31,8 @@
             placeholder={mode === "returned" ? "What needs to change before resubmission." : "Any condition attached to the decision."} /></label>
         {mode === "approved" && a.payload && (
           <div className="note ok mt12">
-            Approving executes the underlying {a.payload.kind === "trade" ? "order" : "commitment"} immediately against the
-            Core sleeve and updates the allocation.
+            Approving executes the underlying {a.payload.kind === "trade" ? "order" : "commitment"} immediately and
+            updates the allocation.
           </div>
         )}
       </Modal>
@@ -53,7 +52,6 @@
           <div>
             <div className="row tight" style={{ alignItems: "center" }}>
               <span className="bdg plain">{a.type}</span>
-              <span className={"bdg " + (a.sleeve === "alpha" ? "alpha" : "core")}>{a.sleeve === "alpha" ? "Alpha" : "Core"}</span>
               <span className="tri" style={{ fontSize: 11 }}>{u.fmtTs(a.ts)} · {D.accounts[a.from].name}</span>
             </div>
             <h2 className="mt8" style={{ fontSize: 15 }}>{a.title}</h2>
@@ -100,7 +98,7 @@
             <h1 className="mt8">{isPrincipal ? "Approval inbox" : "Your proposals"}</h1>
             <div className="sub mt8" style={{ maxWidth: "72ch" }}>
               {isPrincipal
-                ? "Anything the successor account proposes outside the Alpha sleeve queues here. Approving executes it; returning sends it back with a comment."
+                ? "Every commitment the successor account proposes queues here. Approving executes it; returning sends it back with a comment."
                 : "Proposals you have submitted to the Principal. You can see the decision and the comment; you cannot decide."}
             </div>
           </div>

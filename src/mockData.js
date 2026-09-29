@@ -30,7 +30,7 @@
       age: 68,
       mandate: "Capital preservation",
       scope: "Acts on the whole portfolio · has the final say on proposals",
-      desc: "Buys, sells and commits anywhere in the book, and sets the objective everything else is measured against. Anything the successor wants to do beyond their own sleeve arrives here first.",
+      desc: "Buys, sells and commits anywhere in the book, and sets the objective everything else is measured against. Every commitment the successor proposes arrives here first.",
     },
     successor: {
       id: "successor",
@@ -39,8 +39,8 @@
       title: "Director · Successor",
       age: 34,
       mandate: "Growth",
-      scope: "Acts inside the Alpha sleeve · proposes anything beyond it",
-      desc: "A free hand with the 10% Alpha sleeve — no permission needed. The other 90% is fully visible but not theirs to move; acting on it means sending the Principal a proposal.",
+      scope: "Sees the whole book · commitments go to the Principal",
+      desc: "The same balance sheet as the Principal, in full. Can raise a trade or a commitment anywhere in it, and each one is sent to the Principal to settle rather than executed.",
     },
   };
 

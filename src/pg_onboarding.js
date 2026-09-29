@@ -102,8 +102,8 @@
             </div>
             <div className="btn-row">
               {e.resolved
-                ? <Lock sleeve="core"><button className="btn" onClick={() => S.actions.unresolveException(e.id)}>Reopen</button></Lock>
-                : <Lock sleeve="core"><button className="btn p" onClick={() => onResolve(e.id, v)}>Apply</button></Lock>}
+                ? <Lock><button className="btn" onClick={() => S.actions.unresolveException(e.id)}>Reopen</button></Lock>
+                : <Lock><button className="btn p" onClick={() => onResolve(e.id, v)}>Apply</button></Lock>}
             </div>
           </div>
           {e.suggestion && !e.resolved && <div className="tri mt8" style={{ fontSize: 11.5 }}>Agent suggestion pre-filled from the registry record.</div>}
@@ -146,7 +146,7 @@
 
         <div className="btn-row mt16">
           {open.length > 0 && (
-            <Lock sleeve="core">
+            <Lock>
               {/* Clearing every exception leaves nothing to look at here, so carry on to the posture. */}
               <button className="btn p lg"
                 onClick={() => { S.actions.resolveAllExceptions(); S.navigate("/onboarding/mandate"); }}>
@@ -213,8 +213,12 @@
                 <h2>{x.label}</h2>
                 {sel === x.key && <span className="bdg hanwha"><i className="pt" />Selected</span>}
               </div>
-              <div className="num mt8" style={{ fontSize: 18, fontWeight: 600 }}>{x.core}/{x.alpha}</div>
-              <div className="tri" style={{ fontSize: 11 }}>Core / Alpha</div>
+              <div className="num mt8" style={{ fontSize: 18, fontWeight: 600 }}>
+                {u.pct(((D.modelMatrix[x.key] || {})[10] || {}).pubeq
+                  + ((D.modelMatrix[x.key] || {})[10] || {}).priveq
+                  + ((D.modelMatrix[x.key] || {})[10] || {}).real, 0)}
+              </div>
+              <div className="tri" style={{ fontSize: 11 }}>in equity and real assets</div>
               <div className="sub mt8" style={{ fontSize: 12, lineHeight: 1.5 }}>{x.line}</div>
             </button>
           ))}
@@ -312,7 +316,7 @@
         </div>
 
         <div className="btn-row mt16">
-          <Lock sleeve="core">
+          <Lock>
             <button className="btn p lg" onClick={() => { S.actions.setMandate(sel); S.navigate("/portfolio"); }}>
               Confirm mandate and open the portfolio →
             </button>

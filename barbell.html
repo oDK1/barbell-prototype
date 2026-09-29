@@ -888,7 +888,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       age: 68,
       mandate: "Capital preservation",
       scope: "Acts on the whole portfolio · has the final say on proposals",
-      desc: "Buys, sells and commits anywhere in the book, and sets the objective everything else is measured against. Anything the successor wants to do beyond their own sleeve arrives here first.",
+      desc: "Buys, sells and commits anywhere in the book, and sets the objective everything else is measured against. Every commitment the successor proposes arrives here first.",
     },
     successor: {
       id: "successor",
@@ -897,8 +897,8 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       title: "Director · Successor",
       age: 34,
       mandate: "Growth",
-      scope: "Acts inside the Alpha sleeve · proposes anything beyond it",
-      desc: "A free hand with the 10% Alpha sleeve — no permission needed. The other 90% is fully visible but not theirs to move; acting on it means sending the Principal a proposal.",
+      scope: "Sees the whole book · commitments go to the Principal",
+      desc: "The same balance sheet as the Principal, in full. Can raise a trade or a commitment anywhere in it, and each one is sent to the Principal to settle rather than executed.",
     },
   };
 
@@ -1856,12 +1856,6 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   function gaps(ps) {
     return bySub(ps).filter((s) => s.drift < -0.15).sort((a, b) => b.gapUsd - a.gapUsd);
   }
-  function sleeveTotals(ps) {
-    const t = total(ps);
-    const core = total(ps.filter((p) => p.sleeve === "core"));
-    const alpha = total(ps.filter((p) => p.sleeve === "alpha"));
-    return { core, alpha, total: t, corePct: (core / t) * 100, alphaPct: (alpha / t) * 100 };
-  }
   function unrealized(ps) { return sum(ps, (p) => p.value - p.cost); }
   function realizedYTD(ps) { return sum(ps, (p) => p.realizedYTD || 0); }
 
@@ -2244,7 +2238,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
   BB.u = {
     usd, usdC, krwC, krwFull, pct, pp, sgn, sgnUsd, num, localPx, days, fmtDate, fmtTs, monthKey, monthLabel,
-    staleness, provLabel, sum, total, byClass, bySub, gaps, sleeveTotals, unrealized, realizedYTD,
+    staleness, provLabel, sum, total, byClass, bySub, gaps, unrealized, realizedYTD,
     liquidity90, liquidityProjection, shortfall, coverage, projectMix,
     modelSix, bySix, sixToFour, sixToSubs, pickForClass, holdingsSix, geoBucket, GEO_BUCKETS, topHoldings, affiliateExposure, taxLots, eligibility,
     fitFor, subLabel, clsLabel, clsOf, impact, modelWeights, marketContext, scoreFor, suggestAmount,
@@ -2311,16 +2305,16 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   function toast(msg) { state.toast = { msg, id: Date.now() }; }
 
   /* ------------------------------------------------------------ permissions */
-  function canWrite(sleeve) { return state.account === "principal" || sleeve === "alpha"; }
-  function alphaCapacity() {
-    return u.total(state.positions.filter((p) => p.sleeve === "alpha" && p.cls === "cash"));
-  }
-  const LOCK_TIP = "Only the Principal can act on the Core sleeve.";
+  /* One balance sheet. The Principal acts directly; the Successor sees the
+     same book and may act on it, but every commitment goes to the Principal
+     for approval first. */
+  function canWrite() { return state.account === "principal"; }
+  const LOCK_TIP = "The Principal settles this one.";
 
   /* ------------------------------------------------------------------ cash */
-  function drawCash(amount, sleeve) {
+  function drawCash(amount) {
     const pool = state.positions
-      .filter((p) => p.cls === "cash" && (sleeve === "alpha" ? p.sleeve === "alpha" : true))
+      .filter((p) => p.cls === "cash")
       .sort((a, b) => (a.sub === "mmf" ? -1 : 1) - (b.sub === "mmf" ? -1 : 1));
     let left = amount;
     pool.forEach((p) => {
@@ -2331,8 +2325,8 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     });
     return amount - left;
   }
-  function addCash(amount, sleeve) {
-    const t = state.positions.find((p) => p.cls === "cash" && p.sub === "mmf" && (sleeve === "alpha" ? p.sleeve === "alpha" : p.sleeve === "core"))
+  function addCash(amount) {
+    const t = state.positions.find((p) => p.cls === "cash" && p.sub === "mmf")
       || state.positions.find((p) => p.cls === "cash");
     t.value += amount; t.cost += amount;
   }
@@ -2411,22 +2405,22 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     clearSurvey() { state.survey = {}; emit(); },
 
     /* ---- trading listed instruments ---- */
-    trade({ side, name, ticker, sub, cls, amount, qty, px, sleeve, orderType, limit, source }) {
+    trade({ side, name, ticker, sub, cls, amount, qty, px, orderType, limit, source }) {
       const existing = state.positions.find((p) => ticker && p.ticker === ticker);
       if (side === "buy") {
-        drawCash(amount, sleeve);
+        drawCash(amount);
         if (existing) {
           existing.value += amount; existing.cost += amount;
           if (existing.pxUsd) existing.qty = Math.round(existing.value / existing.pxUsd);
         } else {
           state.positions.push({
-            id: nextId("p"), name, ticker, cls, sub, grp: "—", sleeve, prov: "live",
+            id: nextId("p"), name, ticker, cls, sub, grp: "—", prov: "live",
             value: amount, cost: amount, qty: qty || null, px: px || null, pxUsd: px || null,
             ccy: "USD", chg: 0, sector: "—", geo: "—", liq: "Daily",
             acquired: D.TODAY, realizedYTD: 0, src: { file: "Barbell order", cell: "—" },
           });
         }
-        log("Trade", "Bought " + u.usd(amount) + " " + name, (orderType === "limit" ? "Limit " + limit : "Market") + " · " + (sleeve === "alpha" ? "Alpha" : "Core") + " sleeve · routed through Hanwha Securities · settles same day.");
+        log("Trade", "Bought " + u.usd(amount) + " " + name, (orderType === "limit" ? "Limit " + limit : "Market") + " · routed through Hanwha Securities · settles same day.");
         ops(ticker || "—", name, u.usd(amount));
         toast("Order filled — " + name);
       } else {
@@ -2443,8 +2437,8 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
             state.realizedClosed += p.realizedYTD || 0;
             state.positions = state.positions.filter((x) => x.id !== p.id);
           }
-          addCash(portion, sleeve);
-          log("Trade", "Sold " + u.usd(portion) + " " + name, "Realised " + u.sgnUsd(gain) + " · " + (sleeve === "alpha" ? "Alpha" : "Core") + " sleeve · settles same day.");
+          addCash(portion);
+          log("Trade", "Sold " + u.usd(portion) + " " + name, "Realised " + u.sgnUsd(gain) + " · settles same day.");
           ops(ticker || "—", name, "−" + u.usd(portion));
           toast("Order filled — " + name);
         }
@@ -2453,25 +2447,25 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     },
 
     /* ---- committing to a private offering ---- */
-    commit({ deal, amount, sleeve }) {
-      drawCash(amount, sleeve);
+    commit({ deal, amount }) {
+      drawCash(amount);
       state.positions.push({
         id: nextId("p"), name: deal.name, cls: deal.cls, sub: deal.fills, grp: "—",
-        sleeve, prov: "hanwha", value: amount, cost: amount, ccy: deal.ccy || "USD",
+        prov: "hanwha", value: amount, cost: amount, ccy: deal.ccy || "USD",
         liq: deal.liq, term: deal.term, sector: deal.sector, geo: deal.geo,
         asOf: D.TODAY, acquired: D.TODAY, onBarbell: true, vintage: String(new Date(D.TODAY).getFullYear()),
         src: { file: "Barbell subscription", cell: "—" },
       });
       log("Commitment", "Committed " + u.usd(amount) + " to " + deal.name,
-        (sleeve === "alpha" ? "Alpha" : "Core") + " sleeve · documents acknowledged · ownership record updated.");
+        "Documents acknowledged · ownership record updated.");
       ops(deal.id.toUpperCase(), deal.name, u.usd(amount));
       toast("Commitment recorded — " + deal.name);
       emit();
     },
 
     /* ---- proposals ---- */
-    propose({ type, title, target, amount, sleeve, rationale, payload }) {
-      const a = { id: nextId("a"), ts: nowTs(), from: state.account, type, title, target, amount, sleeve, rationale, payload, status: "pending" };
+    propose({ type, title, target, amount, rationale, payload }) {
+      const a = { id: nextId("a"), ts: nowTs(), from: state.account, type, title, target, amount, rationale, payload, status: "pending" };
       state.approvals.unshift(a);
       log("Proposal", "Submitted proposal — " + title, rationale);
       toast("Proposal submitted to the Principal");
@@ -2538,12 +2532,12 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       return b;
     },
     /* Take the ask as it stands — no negotiation. */
-    buyListing({ listing, sleeve }) {
+    buyListing({ listing }) {
       const consideration = Math.round(listing.size * listing.askPct / 100);
-      drawCash(consideration, sleeve);
+      drawCash(consideration);
       state.positions.push({
         id: nextId("p"), name: listing.instrument.replace(/ — .*$/, ""), cls: listing.cls, sub: listing.sub, grp: "Secondary",
-        sleeve, prov: "hanwha", value: listing.size, cost: consideration, ccy: "USD",
+        prov: "hanwha", value: listing.size, cost: consideration, ccy: "USD",
         liq: "Locked", term: "As the original offering", sector: "—", geo: "—",
         asOf: D.TODAY, acquired: D.TODAY, onBarbell: true, vintage: listing.vintage,
         src: { file: "Barbell secondary", cell: "—" },
@@ -2608,7 +2602,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   /* Realised year to date across the book, closed positions included. */
   function realizedBook() { return u.realizedYTD(state.positions) + state.realizedClosed; }
 
-  BB.store = { get, subscribe, actions, realizedBook, useStore, useRoute, navigate, canWrite, alphaCapacity, LOCK_TIP, log, toast };
+  BB.store = { get, subscribe, actions, realizedBook, useStore, useRoute, navigate, canWrite, LOCK_TIP, log, toast };
 })();
 
 </script>
@@ -2651,17 +2645,15 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       </span>);
   }
 
-  function SleeveBadge({ s }) {
-    return <span className={"bdg " + (s === "alpha" ? "alpha" : "core")}>{s === "alpha" ? "Alpha" : "Core"}</span>;
-  }
-
   function LiqBadge({ liq, term }) {
     return <span className="bdg plain" title={term || ""}>{liq}{term ? " · " + term : ""}</span>;
   }
 
   /* A control the current account may not use. Renders visibly disabled with a tooltip. */
-  function Lock({ sleeve, children, tip }) {
-    const allowed = S.canWrite(sleeve);
+  /* Wraps something only the Principal may do. Trading and committing are no
+     longer among them — the Successor does those through approval. */
+  function Lock({ children, tip }) {
+    const allowed = S.canWrite();
     if (allowed) return children;
     return (
       <span className="tip" data-tip={tip || S.LOCK_TIP}>
@@ -3084,7 +3076,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     );
   }
 
-  BB.ui = { Money, Delta, ProvBadge, SleeveBadge, LiqBadge, Lock, Stat, Band, Panel, Tabs, Seg, Modal, MiniBar, Fit, Crumb, Toast, Amount, Dropzone, FileRow, ModeStrip, AccountCard, AccountCards, Steps, GrowthFan };
+  BB.ui = { Money, Delta, ProvBadge, LiqBadge, Lock, Stat, Band, Panel, Tabs, Seg, Modal, MiniBar, Fit, Crumb, Toast, Amount, Dropzone, FileRow, ModeStrip, AccountCard, AccountCards, Steps, GrowthFan };
 })();
 
 </script>
@@ -3132,8 +3124,6 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     { re: /stale|old|out of date/i, label: "Stale valuations", f: (p) => p.prov === "self" && u.staleness(p).d > 90 },
     { re: /illiquid|locked/i, label: "Locked positions", f: (p) => p.liq === "Locked" },
     { re: /liquid|daily/i, label: "Daily liquidity", f: (p) => p.liq === "Daily" },
-    { re: /alpha/i, label: "Alpha sleeve", f: (p) => p.sleeve === "alpha" },
-    { re: /core/i, label: "Core sleeve", f: (p) => p.sleeve === "core" },
     { re: /private/i, label: "Private positions", f: (p) => p.liq !== "Daily" },
     { re: /tech|semiconductor|ai/i, label: "Technology", f: (p) => p.sector === "Info Tech" || p.sector === "Technology" },
     { re: /real estate|property|부동산/i, label: "Real estate", f: (p) => p.sub === "re" },
@@ -3239,30 +3229,6 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     );
   }
 
-  function SleevePicker({ sleeve, setSleeve, note }) {
-    const st = S.get();
-    if (st.account === "principal") {
-      return (
-        <label className="f"><span>Sleeve</span>
-          <select value={sleeve} onChange={(e) => setSleeve(e.target.value)}>
-            <option value="core">Core — $56.2M · Principal authority</option>
-            <option value="alpha">Alpha — $6.2M · Successor authority</option>
-          </select>
-        </label>
-      );
-    }
-    return (
-      <label className="f"><span>Sleeve</span>
-        <select value={sleeve} onChange={(e) => setSleeve(e.target.value)}>
-          <option value="alpha">Alpha — within your authority</option>
-          <option value="core">Core — requires the Principal's approval</option>
-        </select>
-        {note && <div className="tri" style={{ fontSize: 11, marginTop: 4 }}>{note}</div>}
-      </label>
-    );
-  }
-
-  /* --------------------------------------------------------- order ticket */
   function TradeTicket({ instrument, side: side0, amount0, onClose }) {
     const st = S.useStore();
     const [side, setSide] = useState(side0 || "buy");
@@ -3271,23 +3237,25 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     const [qty, setQty] = useState("");
     const [orderType, setOrderType] = useState("market");
     const [limit, setLimit] = useState(instrument.px || "");
-    const [sleeve, setSleeve] = useState(instrument.sleeve || (st.account === "successor" ? "alpha" : "core"));
+
     const [rationale, setRationale] = useState("");
 
     const px = instrument.pxUsd || instrument.px || 1;
     const notional = mode === "notional" ? (amount || 0) : Math.round((qty || 0) * px);
-    const needsApproval = st.account === "successor" && sleeve === "core";
-    const cash = u.total(st.positions.filter((p) => p.cls === "cash" && (sleeve === "alpha" ? p.sleeve === "alpha" : true)));
+    /* One book: the Successor may act on any of it, but it goes to the
+       Principal first. */
+    const needsApproval = st.account === "successor";
+    const cash = u.total(st.positions.filter((p) => p.cls === "cash"));
     const overCash = side === "buy" && notional > cash;
 
     const confirm = () => {
       const args = {
         side, name: instrument.name, ticker: instrument.ticker, sub: instrument.sub, cls: instrument.cls,
-        amount: notional, qty: mode === "qty" ? qty : Math.round(notional / px), px, sleeve, orderType, limit,
+        amount: notional, qty: mode === "qty" ? qty : Math.round(notional / px), px, orderType, limit,
       };
       if (needsApproval) {
         S.actions.propose({
-          type: "Trade", sleeve: "core", amount: notional,
+          type: "Trade", amount: notional,
           title: (side === "buy" ? "Buy " : "Sell ") + u.usd(notional) + " " + instrument.name + " in Core",
           target: instrument.id || instrument.ticker,
           rationale: rationale || "Submitted from the order ticket.",
@@ -3334,21 +3302,19 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 <label className="f"><span>Limit price</span>
                   <input type="text" value={limit} onChange={(e) => setLimit(e.target.value)} /></label>
               )}
-              <SleevePicker sleeve={sleeve} setSleeve={setSleeve}
-                note={needsApproval ? "This sleeve is not yours to act on, so the order becomes a proposal." : null} />
               {needsApproval && (
                 <label className="f"><span>Rationale for the Principal</span>
                   <textarea rows="3" value={rationale} onChange={(e) => setRationale(e.target.value)}
                     placeholder="Why this closes a gap in the mandate." /></label>
               )}
-              {overCash && <div className="note bad">Exceeds available cash in this sleeve ({u.usd(cash)}).</div>}
+              {overCash && <div className="note bad">Exceeds available cash ({u.usd(cash)}).</div>}
             </div>
           </div>
           <div style={{ width: 320 }}>
             <Impact subKey={instrument.sub} amount={side === "buy" ? notional : -notional} />
             <div className="kv mt12">
               <span className="k">Last price</span><span className="v">{instrument.px ? u.localPx(instrument) : "—"}</span>
-              <span className="k">Cash in sleeve</span><span className="v">{u.usd(cash)}</span>
+              <span className="k">Cash available</span><span className="v">{u.usd(cash)}</span>
               <span className="k">Settlement</span><span className="v">Same day</span>
             </div>
           </div>
@@ -3362,21 +3328,20 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     const st = S.useStore();
     const [amount, setAmount] = useState(amount0 || deal.min);
     const [ack, setAck] = useState(false);
-    const [sleeve, setSleeve] = useState(st.account === "successor" ? "alpha" : "core");
     const [rationale, setRationale] = useState("");
-    const capacity = S.alphaCapacity();
-    const overCapacity = st.account === "successor" && (sleeve === "core" || amount > capacity);
+    /* Every commitment the Successor makes is a proposal. */
+    const needsApproval = st.account === "successor";
     const belowMin = amount < deal.min;
 
     const confirm = () => {
-      const args = { deal, amount, sleeve: overCapacity ? "core" : sleeve };
-      if (overCapacity) {
+      const args = { deal, amount };
+      if (needsApproval) {
         S.actions.propose({
-          type: "Commitment", sleeve: "core", amount,
+          type: "Commitment", amount,
           title: "Commit " + u.usd(amount) + " to " + deal.name,
           target: deal.id,
-          rationale: rationale || ("Fills the " + u.subLabel(deal.fills) + " gap. Above the Alpha sleeve's remaining capacity of " + u.usd(capacity) + "."),
-          payload: { kind: "commit", args: { deal, amount, sleeve: "core" } },
+          rationale: rationale || ("Fills the " + u.subLabel(deal.fills) + " gap."),
+          payload: { kind: "commit", args },
         });
       } else {
         S.actions.commit(args);
@@ -3394,7 +3359,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
             <div className="btn-row">
               <button className="btn" onClick={onClose}>Cancel</button>
               <button className="btn p" disabled={!ack || belowMin} onClick={confirm}>
-                {overCapacity ? "Submit proposal to Principal" : "Confirm commitment"}
+                {needsApproval ? "Submit proposal to Principal" : "Confirm commitment"}
               </button>
             </div>
           </>
@@ -3405,16 +3370,12 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
               <label className="f"><span>Commitment amount (USD)</span>
                 <Amount value={amount} onChange={setAmount} min={deal.min} /></label>
               {belowMin && <div className="note bad">Below the minimum of {u.usd(deal.min)}.</div>}
-              <SleevePicker sleeve={sleeve} setSleeve={setSleeve} />
-              {st.account === "successor" && (
-                <div className={"note " + (overCapacity ? "warn" : "ok")}>
-                  Alpha sleeve capacity: <b>{u.usd(capacity)}</b>.{" "}
-                  {overCapacity
-                    ? "This commitment exceeds it, so the button submits a proposal to the Principal rather than executing."
-                    : "This commitment is within your authority and executes directly."}
+              {needsApproval && (
+                <div className="note warn">
+                  Commitments are settled by the Principal, so this submits a proposal rather than executing.
                 </div>
               )}
-              {overCapacity && (
+              {needsApproval && (
                 <label className="f"><span>Rationale for the Principal</span>
                   <textarea rows="3" value={rationale} onChange={(e) => setRationale(e.target.value)}
                     placeholder="Why this closes a gap in the mandate." /></label>
@@ -3592,8 +3553,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   function BuyNowFlow({ listing, onClose }) {
     const st = S.useStore();
     const consideration = Math.round(listing.size * listing.askPct / 100);
-    const capacity = S.alphaCapacity();
-    const overCapacity = st.account === "successor" && consideration > capacity;
+    const needsApproval = st.account === "successor";
     const discount = 100 - listing.askPct;
     return (
       <Modal title="Buy at the ask" sub={listing.instrument} onClose={onClose}
@@ -3602,19 +3562,19 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
           <div className="btn-row">
             <button className="btn" onClick={onClose}>Cancel</button>
             <button className="btn p" onClick={() => {
-              if (overCapacity) {
+              if (needsApproval) {
                 S.actions.propose({
-                  type: "Secondary purchase", sleeve: "core", amount: consideration,
+                  type: "Secondary purchase", amount: consideration,
                   title: "Buy " + u.usd(listing.size) + " of " + listing.instrument + " at " + listing.askPct.toFixed(1) + "% of NAV",
                   target: listing.id,
-                  rationale: "Taking the ask on the secondary board. Above the Alpha sleeve's capacity of " + u.usd(capacity) + ".",
-                  payload: { kind: "buyListing", args: { listing, sleeve: "core" } },
+                  rationale: "Taking the ask on the secondary board.",
+                  payload: { kind: "buyListing", args: { listing } },
                 });
               } else {
-                S.actions.buyListing({ listing, sleeve: st.account === "successor" ? "alpha" : "core" });
+                S.actions.buyListing({ listing });
               }
               onClose();
-            }}>{overCapacity ? "Submit proposal to Principal" : "Buy at " + u.pct(listing.askPct)}</button>
+            }}>{needsApproval ? "Submit proposal to Principal" : "Buy at " + u.pct(listing.askPct)}</button>
           </div>
         </>}>
         <div className="kv mb16">
@@ -3631,9 +3591,9 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
               judgement on the asset.</>
             : <>The ask is {u.pct(-discount)} above last NAV. Above the indicative range means paying for access.</>}
         </div>
-        {overCapacity && (
+        {needsApproval && (
           <div className="note warn mt12">
-            {u.usd(consideration)} exceeds the Alpha sleeve's remaining {u.usd(capacity)}, so this goes to the Principal.
+            The Principal approves commitments, so this is submitted rather than executed.
           </div>
         )}
       </Modal>
@@ -3854,8 +3814,8 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
             </div>
             <div className="btn-row">
               {e.resolved
-                ? <Lock sleeve="core"><button className="btn" onClick={() => S.actions.unresolveException(e.id)}>Reopen</button></Lock>
-                : <Lock sleeve="core"><button className="btn p" onClick={() => onResolve(e.id, v)}>Apply</button></Lock>}
+                ? <Lock><button className="btn" onClick={() => S.actions.unresolveException(e.id)}>Reopen</button></Lock>
+                : <Lock><button className="btn p" onClick={() => onResolve(e.id, v)}>Apply</button></Lock>}
             </div>
           </div>
           {e.suggestion && !e.resolved && <div className="tri mt8" style={{ fontSize: 11.5 }}>Agent suggestion pre-filled from the registry record.</div>}
@@ -3898,7 +3858,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
         <div className="btn-row mt16">
           {open.length > 0 && (
-            <Lock sleeve="core">
+            <Lock>
               {/* Clearing every exception leaves nothing to look at here, so carry on to the posture. */}
               <button className="btn p lg"
                 onClick={() => { S.actions.resolveAllExceptions(); S.navigate("/onboarding/mandate"); }}>
@@ -3965,8 +3925,12 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 <h2>{x.label}</h2>
                 {sel === x.key && <span className="bdg hanwha"><i className="pt" />Selected</span>}
               </div>
-              <div className="num mt8" style={{ fontSize: 18, fontWeight: 600 }}>{x.core}/{x.alpha}</div>
-              <div className="tri" style={{ fontSize: 11 }}>Core / Alpha</div>
+              <div className="num mt8" style={{ fontSize: 18, fontWeight: 600 }}>
+                {u.pct(((D.modelMatrix[x.key] || {})[10] || {}).pubeq
+                  + ((D.modelMatrix[x.key] || {})[10] || {}).priveq
+                  + ((D.modelMatrix[x.key] || {})[10] || {}).real, 0)}
+              </div>
+              <div className="tri" style={{ fontSize: 11 }}>in equity and real assets</div>
               <div className="sub mt8" style={{ fontSize: 12, lineHeight: 1.5 }}>{x.line}</div>
             </button>
           ))}
@@ -4064,7 +4028,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
         </div>
 
         <div className="btn-row mt16">
-          <Lock sleeve="core">
+          <Lock>
             <button className="btn p lg" onClick={() => { S.actions.setMandate(sel); S.navigate("/portfolio"); }}>
               Confirm mandate and open the portfolio →
             </button>
@@ -4087,7 +4051,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 (function () {
   const { useState } = React;
   const D = BB.data, u = BB.u, S = BB.store;
-  const { Money, Delta, Panel, Tabs, Seg, MiniBar, ProvBadge, SleeveBadge, Modal, Lock, GrowthFan } = BB.ui;
+  const { Money, Delta, Panel, Tabs, Seg, MiniBar, ProvBadge, Modal, GrowthFan } = BB.ui;
   const { runQuery } = BB.agent;
 
   /* Drift is context, not a verdict: grey, unsigned by colour, no urgency. */
@@ -4143,7 +4107,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
         {!res && (focus || q) && (
           <div className="askhint">
             Read-only. Returns a filtered view of positions, never prose. Try “stale valuations”, “locked private
-            positions”, “Korea equity”, “alpha sleeve”.
+            positions”, “Korea equity”, “Hanwha-sourced”.
           </div>
         )}
         <div className="askrow">
@@ -4369,20 +4333,20 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                   <span style={{ flex: 1 }}>A what-if. The family's mandate is <b>{mandate.label}</b>.</span>
                   <span className="btn-row">
                     <button className="link g" onClick={() => setGoal(st.mandate)}>Discard</button>
-                    <Lock sleeve="core">
+                    
                       <button className="btn sm p" onClick={() => S.actions.setMandate(goal)}>Adopt as mandate</button>
-                    </Lock>
+                    
                   </span>
                 </div>
               ) : (
                 <div className="lever-note">
                   <span style={{ flex: 1 }}>
-                    The family's mandate · <b>{mandate.core} / {mandate.alpha}</b> Core / Alpha
+                    The family's mandate · <b>{mandate.label}</b>
                     {confirmed ? " · confirmed " + u.fmtDate(confirmed.ts) : ""}
                   </span>
-                  <Lock sleeve="core">
+                  
                     <button className="link g" onClick={() => S.navigate("/onboarding/mandate")}>Refine with 8 questions</button>
-                  </Lock>
+                  
                 </div>
               )}
               <div className="tri" style={{ fontSize: 11.5, marginTop: 6 }}>{selected.line}</div>
@@ -4571,11 +4535,11 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                   </td>
                   <td className="right">
                     {best
-                      ? <BB.ui.Lock sleeve={st.account === "successor" ? "alpha" : "core"}>
+                      ? <>
                           <button className="btn sm p" onClick={() => setAct({ m: best, amount })}>
                             {best.kind === "listed" ? "Buy" : "Commit"}
                           </button>
-                        </BB.ui.Lock>
+                        </>
                       : <button className="btn sm" onClick={() => { onClose(); S.navigate(liquid ? "/portfolio/" + r.cls + "?sub=" + r.key : "/secondary"); }}>
                           Review
                         </button>}
@@ -4590,7 +4554,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
           shows the highest-scoring offering that would fill it — the button opens the ticket, it does not place anything.
         </div>
         {act && (act.m.kind === "listed"
-          ? <BB.flows.TradeTicket instrument={{ ...act.m, sub: act.m.fills, sleeve: st.account === "successor" ? "alpha" : "core", pxUsd: act.m.px }}
+          ? <BB.flows.TradeTicket instrument={{ ...act.m, sub: act.m.fills, pxUsd: act.m.px }}
               side="buy" onClose={() => setAct(null)} />
           : <BB.flows.CommitFlow deal={act.m} onClose={() => setAct(null)} />)}
       </Modal>
@@ -4640,9 +4604,9 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                       </span>
                     </td>
                     <td className="right">
-                      <Lock sleeve={p.sleeve}>
+                      
                         <button className="btn sm" onClick={() => setEdit(p)}>Update valuation</button>
-                      </Lock>
+                      
                     </td>
                   </tr>
                 );
@@ -4669,7 +4633,6 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       if (k === "name") return p.name.toLowerCase();
       if (k === "cls") return u.clsLabel(p.cls);
       if (k === "sub") return u.subLabel(p.sub);
-      if (k === "sleeve") return p.sleeve;
       if (k === "prov") return u.provLabel(p);
       if (k === "liq") return p.liq;
       if (k === "gain") return p.value - p.cost;
@@ -4721,7 +4684,6 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 <Th k="name" label="Position" w={280} />
                 <Th k="cls" label="Class" />
                 <Th k="sub" label="Subcategory" />
-                <Th k="sleeve" label="Sleeve" opt />
                 <Th k="prov" label="Provenance" />
                 <Th k="liq" label="Liquidity" />
                 <Th k="cost" label="Cost basis" n opt />
@@ -4740,7 +4702,6 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                   </td>
                   <td>{u.clsLabel(p.cls)}</td>
                   <td>{u.subLabel(p.sub)}</td>
-                  <td className="hide-narrow"><SleeveBadge s={p.sleeve} /></td>
                   <td><ProvBadge p={p} showDate={false} /></td>
                   <td><span className="bdg plain">{p.liq}</span></td>
                   <td className="n num hide-narrow">{u.usd(p.cost)}</td>
@@ -4919,12 +4880,12 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                     {/* a tax lot's whole point is the action it implies, so the
                         flag is the button: it opens a sell for the full position */}
                     {l.harvest && (
-                      <Lock sleeve={l.sleeve}>
+                      
                         <button className="btn sm harvest" onClick={() => setSell(l)}
                           title={"Sell " + l.name + " and realise " + u.usd(Math.abs(l.gain)) + " of loss"}>
                           Harvest {u.usdC(Math.abs(l.gain))}
                         </button>
-                      </Lock>
+                      
                     )}
                   </td>
                 </tr>
@@ -4945,83 +4906,11 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     );
   }
 
-  /* ------------------------------------------------------------ alpha tab */
-  function AlphaTab({ positions }) {
-    const alpha = positions.filter((p) => p.sleeve === "alpha");
-    const t = u.total(positions);
-    const av = u.total(alpha);
-    const capacity = S.alphaCapacity();
-    const active = alpha.filter((p) => p.liq !== "Daily");
-    /* the marketplace carries private offerings only, so discovery matches it */
-    const fits = D.market.filter((m) => m.kind === "private").sort((a, b) => b.fit - a.fit).slice(0, 4);
-    return (
-      <>
-        <div className="panel mt16">
-          <div className="panel-hd"><h3>Alpha positions</h3>
-            <div className="btn-row"><button className="btn sm p" onClick={() => S.navigate("/marketplace")}>Find the next one</button></div></div>
-          <table className="t dense">
-            <thead><tr><th>Position</th><th>Subcategory</th><th>Provenance</th><th>Liquidity</th>
-              <th className="n">Cost</th><th className="n">Value</th><th className="n">Unrealised</th><th className="n">% of sleeve</th></tr></thead>
-            <tbody>
-              {alpha.sort((a, b) => b.value - a.value).map((p) => (
-                <tr key={p.id} className="clickable" onClick={() => S.navigate("/portfolio/" + p.cls + "?sub=" + p.sub)}>
-                  <td><div className="tname">{p.name}</div><div className="tsub">{p.ticker || p.grp}</div></td>
-                  <td>{u.subLabel(p.sub)}</td>
-                  <td><ProvBadge p={p} showDate={false} /></td>
-                  <td><span className="bdg plain">{p.liq}</span></td>
-                  <td className="n num">{u.usd(p.cost)}</td>
-                  <td className="n num">{u.usd(p.value)}</td>
-                  <td className="n"><Delta v={p.value - p.cost} usd /></td>
-                  <td className="n num">{u.pct((p.value / av) * 100)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="grid mt16" style={{ gridTemplateColumns: "1.4fr 1fr" }}>
-          <Panel title="Discovery" sub="Highest-ranked offerings for this family"
-            right={<button className="btn sm" onClick={() => S.navigate("/marketplace")}>Open marketplace</button>}>
-            <table className="t dense">
-              <thead><tr><th>Opportunity</th><th>Fills</th><th>Liquidity</th><th className="n">Minimum</th><th className="n">Fit</th><th></th></tr></thead>
-              <tbody>
-                {fits.map((m) => (
-                  <tr key={m.id} className="clickable" onClick={() => S.navigate("/marketplace/" + m.id)}>
-                    <td><div className="tname">{m.name}</div><div className="tsub">{m.ret}</div></td>
-                    <td>{u.subLabel(m.fills)}</td>
-                    <td><span className="bdg plain">{m.liq}</span></td>
-                    <td className="n num">{u.usd(m.min)}</td>
-                    <td className="n"><BB.ui.Fit score={m.fit} /></td>
-                    <td className="right"><span className="tri">›</span></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </Panel>
-          <Panel title="Authority" sub="What this account can do without asking">
-            <div className="kv">
-              <span className="k">The Alpha sleeve</span><span className="v">Yours to act on</span>
-              <span className="k">The rest of the book</span><span className="v">Visible, not yours to move</span>
-              <span className="k">Commit without asking, up to</span><span className="v">{u.usd(capacity)}</span>
-              <span className="k">Beyond that</span><span className="v">The Principal decides</span>
-            </div>
-            <div className="note mt12">
-              Wherever you cannot act, the button is still there — greyed, with the reason on it. You can always write the
-              trade or commitment up and send it: it lands in the Principal's inbox with your reasoning attached.
-            </div>
-            <button className="btn mt12 block" onClick={() => S.navigate("/approvals")}>View submitted proposals</button>
-          </Panel>
-        </div>
-      </>
-    );
-  }
-
-  /* ------------------------------------------------------------- the page */
   function Portfolio({ route }) {
     const st = S.useStore();
     const isSuccessor = st.account === "successor";
     const wanted = route && route.query && route.query.tab;
-    const [tab, setTab] = useState(wanted || (isSuccessor ? "alpha" : "alloc"));
+    const [tab, setTab] = useState(wanted || "alloc");
     /* Switching tab and scrolling are two paints apart: the tab's content does
        not exist until React has re-rendered, so the scroll waits for it. */
     const [focus, setFocus] = useState(null);
@@ -5057,23 +4946,20 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     }, [focus]);
     const jump = (t, id) => { setTab(t); setFocus({ id, n: Date.now() }); };
     /* Switching account changes the home view, not just the permissions. */
-    React.useEffect(() => { setTab(st.account === "successor" ? "alpha" : "alloc"); }, [st.account]);
+    React.useEffect(() => { setTab("alloc"); }, [st.account]);
     /* …and a link may ask for a particular tab. */
     React.useEffect(() => { if (wanted) setTab(wanted); }, [wanted]);
     const ps = st.positions;
     const t = u.total(ps);
-    const sl = u.sleeveTotals(ps);
     const cls = u.byClass(ps);
     const priv = ps.filter((p) => p.liq !== "Daily");
     const privShare = (u.total(priv) / t) * 100;
     const privCount = priv.length;
     const liq = u.liquidity90(ps);
     const stale = ps.filter((p) => p.prov === "self" && u.staleness(p).d > 90);
-    const alpha = ps.filter((p) => p.sleeve === "alpha");
     const calls90 = D.capitalCalls.filter((c) => u.days(D.TODAY, c.date) <= 90 && u.days(D.TODAY, c.date) >= 0);
 
-    const tabs = (isSuccessor ? [{ k: "alpha", label: "Alpha sleeve" }] : [])
-      .concat([{ k: "alloc", label: "Allocation" }, { k: "liq", label: "Liquidity" }, { k: "tax", label: "Tax" }]);
+    const tabs = [{ k: "alloc", label: "Allocation" }, { k: "liq", label: "Liquidity" }, { k: "tax", label: "Tax" }];
 
     return (
       <div className="wrap page hasagent">
@@ -5083,15 +4969,10 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
             {/* one number carries the page; everything else is a supporting line */}
             <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginTop: 6 }}>
               <h1 className="num" style={{ fontSize: 34, letterSpacing: "-.03em", lineHeight: 1.05 }}>
-                {u.usdC(isSuccessor ? u.total(alpha) : t)}
+                {u.usdC(t)}
               </h1>
-              <span className="sub" style={{ fontSize: 13.5 }}>{isSuccessor ? "Alpha sleeve" : "Total assets"}</span>
+              <span className="sub" style={{ fontSize: 13.5 }}>Total assets</span>
             </div>
-            {isSuccessor && (
-              <div className="tri" style={{ fontSize: 11.5, marginTop: 3 }}>
-                {u.pct((u.total(alpha) / t) * 100)} of assets
-              </div>
-            )}
           </div>
           <div className="right">
             <div className="num tri" style={{ fontSize: 11.5 }}>Updated {u.fmtTs(D.family.asOf)} KST</div>
@@ -5112,12 +4993,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
         {/* secondary figures, deliberately quiet */}
         <div className="subline">
-          {(isSuccessor
-            ? [["Unrealised", <Delta v={u.unrealized(alpha)} usd />, u.sgn((u.unrealized(alpha) / (u.total(alpha) - u.unrealized(alpha))) * 100) + " on cost"],
-               ["Remaining capacity", u.usdC(S.alphaCapacity()), "commit direct up to this"],
-               ["Total assets", u.usdC(t), "yours to see, not to move"]]
-            : [["Unrealised", <Delta v={u.unrealized(ps)} usd />, u.sgn((u.unrealized(ps) / (t - u.unrealized(ps))) * 100) + " on cost"]]
-          ).map((m, i) => (
+          {[["Unrealised", <Delta v={u.unrealized(ps)} usd />, u.sgn((u.unrealized(ps) / (t - u.unrealized(ps))) * 100) + " on cost"]].map((m, i) => (
             <span className="item" key={i}>
               <span className="k">{m[0]}</span>
               <span className="v num">{m[1]}</span>
@@ -5127,7 +5003,6 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
         </div>
 
         <div className="mt16"><Tabs tabs={tabs} active={tab} onChange={setTab} /></div>
-        {tab === "alpha" && <AlphaTab positions={ps} />}
         {tab === "alloc" && <AllocationTab positions={ps} openSignal={focus && focus.id === "sec-provenance" ? focus.n : 0} />}
         {tab === "liq" && <LiquidityTab positions={ps} />}
         {tab === "tax" && <TaxTab positions={ps} />}
@@ -5204,19 +5079,19 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                   <div className="rowbtns">
                     {listed ? (
                       <>
-                        <Lock sleeve={p.sleeve}><button className="btn sm p" onClick={() => onTrade(p, "buy")}>Trade</button></Lock>
+                        <button className="btn sm p" onClick={() => onTrade(p, "buy")}>Trade</button>
                         {/* Trading Core is the Principal's; proposing it is not. */}
-                        {!S.canWrite(p.sleeve) && (
+                        {!S.canWrite() && (
                           <button className="btn sm" onClick={() => onTrade(p, "buy")}>Propose</button>
                         )}
                       </>
                     ) : (
                       <>
                         {p.prov === "self" && (
-                          <Lock sleeve={p.sleeve}><button className="btn sm" onClick={() => onValue(p)}>Update valuation</button></Lock>
+                          <button className="btn sm" onClick={() => onValue(p)}>Update valuation</button>
                         )}
                         {el.ok
-                          ? <Lock sleeve={p.sleeve}><button className="btn sm p" onClick={() => onList(p)}>List on secondary</button></Lock>
+                          ? <button className="btn sm p" onClick={() => onList(p)}>List on secondary</button>
                           : <span className="tip" data-tip={el.reason}><button className="btn sm" disabled>List on secondary</button></span>}
                       </>
                     )}
@@ -5377,11 +5252,11 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
         <td className="hide-narrow" style={{ maxWidth: 260 }}><div className="tsub" style={{ fontSize: 11.5, color: "var(--g1)" }}>{m.why}</div></td>
         <td className="right">
           <div className="rowbtns">
-            <Lock sleeve={st.account === "successor" ? "alpha" : "core"}>
+            
               <button className="btn sm p" onClick={(e) => { e.stopPropagation(); onAct(m, sug && sug.amount); }}>
                 {isListed ? "Buy" : "Commit"}
               </button>
-            </Lock>
+            
           </div>
         </td>
       </tr>
@@ -5411,11 +5286,10 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     const isSuccessor = st.account === "successor";
 
     /* The marketplace carries private-market offerings only. Listed instruments
-       are held in the Core sleeve and are not transacted on this surface. */
+       are not transacted on this surface. */
     const offered = D.market.filter((m) => m.kind === "private");
 
     const t = u.total(st.positions);
-    const capacity = S.alphaCapacity();
     const model = u.modelWeights(t, st.mandate);
 
     const pass = (m) => {
@@ -5434,15 +5308,9 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     const ctx = u.marketContext(st.positions, st.mandate, st.realizedClosed);
     const scored = offered.map((m) => ({ ...m, s: u.scoreFor(m, ctx) }));
     const all = (asked && asked.rows.length ? asked.rows : scored.filter(pass)).sort((a, b) => b.s.score - a.s.score);
-    /* Private, inside the sleeve's remaining cash — committable without asking. */
-    const readyNow = scored
-      .filter((m) => m.min <= capacity)
-      .sort((a, b) => b.s.score - a.s.score);
     const top3 = all.slice(0, 3);
     /* what could actually fund a purchase today */
-    const funds = st.account === "principal"
-      ? u.total(st.positions.filter((x) => x.cls === "cash"))
-      : S.alphaCapacity();
+    const funds = u.total(st.positions.filter((x) => x.cls === "cash"));
     const sectors = Array.from(new Set(offered.map((m) => m.sector))).sort();
 
     const open = (m) => S.navigate("/marketplace/" + m.id);
@@ -5491,26 +5359,6 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 </div>
               </div>
             </div>
-
-            {/* what the Successor can act on unaided */}
-            {isSuccessor && !gapFocus && readyNow.length > 0 && (
-              <div className="gapsec mt24">
-                <div className="gaphd">
-                  <span className="g-t">Within your authority</span>
-                  <span className="g-d">{u.usd(capacity)} of Alpha sleeve capacity remaining</span>
-                  <span className="spacer" style={{ flex: 1 }} />
-                  <span className="tri" style={{ fontSize: 11.5 }}>
-                    {readyNow.length} of {offered.length} private-market
-                    offerings fit the capacity · the rest need the Principal
-                  </span>
-                </div>
-                <div className="tscroll">
-                  <table className="t dense"><Head />
-                    <tbody>{readyNow.map((m) => <Row key={m.id} m={m} sug={u.suggestAmount(m, ctx, funds)} onOpen={open} onAct={onAct} />)}</tbody>
-                  </table>
-                </div>
-              </div>
-            )}
 
             <div className="between mt24 mb12">
               <h2>{asked && asked.rows.length ? asked.label : gapFocus ? u.subLabel(gapFocus) : "Ranked for this family"}</h2>
@@ -5614,13 +5462,13 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 <div className="kv">
                   <span className="k">Signed in as</span>
                   <span className="v">{st.account === "principal" ? D.accounts.principal.name : D.accounts.successor.name}</span>
-                  <span className="k">Can commit without asking</span>
-                  <span className="v">{st.account === "principal" ? "Any amount" : "Up to " + u.usd(S.alphaCapacity())}</span>
+                  <span className="k">Commitments</span>
+                  <span className="v">{st.account === "principal" ? "Execute directly" : "Go to the Principal"}</span>
                 </div>
                 <div className="tri mt8" style={{ fontSize: 11 }}>
                   {st.account === "principal"
                     ? "Whatever you buy or commit to here happens straight away."
-                    : "Past that amount the button changes: instead of buying, it sends the Principal a proposal."}
+                    : "You see the whole book and can act on any of it — the button sends the Principal a proposal rather than executing."}
                 </div>
               </Panel>
             </div>
@@ -5650,7 +5498,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
         </div>
 
         {act && (act.m.kind === "listed"
-          ? <BB.flows.TradeTicket instrument={{ ...act.m, sub: act.m.fills, sleeve: st.account === "successor" ? "alpha" : "core", pxUsd: act.m.px }}
+          ? <BB.flows.TradeTicket instrument={{ ...act.m, sub: act.m.fills, pxUsd: act.m.px }}
               side="buy" amount0={act.amount} onClose={() => setAct(null)} />
           : <BB.flows.CommitFlow deal={act.m} amount0={act.amount} onClose={() => setAct(null)} />)}
       </div>
@@ -5686,8 +5534,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     const ctx = u.marketContext(st.positions, st.mandate, st.realizedClosed);
     const sc = u.scoreFor(m, ctx);
     const gapWord = (x) => u.num(Math.abs(x), 1) + "pp " + (x > 0 ? "below" : "above") + " the model";
-    const capacity = S.alphaCapacity();
-    const needsProposal = st.account === "successor" && (isListed ? false : m.min > capacity);
+    const needsProposal = st.account === "successor" && !isListed;
 
     const tabs = [{ k: "thesis", label: isListed ? "Overview" : "Thesis" }, { k: "terms", label: "Terms" }, { k: "docs", label: "Documents", n: m.docs.length }]
       .concat(m.hanwha ? [{ k: "hanwha", label: "Hanwha's position" }] : [])
@@ -5708,11 +5555,11 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
           </div>
           <div className="btn-row">
             <button className="btn" onClick={() => setShare(true)}>Share</button>
-            <Lock sleeve={st.account === "successor" ? "alpha" : "core"}>
+            
               <button className="btn p lg" onClick={() => setAct(true)}>
                 {isListed ? "Buy" : needsProposal ? "Submit proposal to Principal" : "Commit"}
               </button>
-            </Lock>
+            
           </div>
         </div>
 
@@ -5842,16 +5689,14 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 {m.px !== undefined && <><span className="k">Last price</span><span className="v">{u.localPx(m)}</span></>}
                 {m.chg !== undefined && <><span className="k">Intraday</span><span className="v"><Delta v={m.chg} dp={2} /></span></>}
               </div>
-              <Lock sleeve={st.account === "successor" ? "alpha" : "core"}>
+              
                 <button className="btn p block mt12" onClick={() => setAct(true)}>
                   {isListed ? "Open order ticket" : needsProposal ? "Submit proposal to Principal" : "Commit"}
                 </button>
-              </Lock>
+              
               {st.account === "successor" && !isListed && (
-                <div className={"note mt12 " + (needsProposal ? "warn" : "ok")} style={{ fontSize: 11.5 }}>
-                  {needsProposal
-                    ? "Minimum exceeds the Alpha sleeve's remaining capacity of " + u.usd(capacity) + ". The button submits a proposal."
-                    : "Within the Alpha sleeve's remaining capacity of " + u.usd(capacity) + ". Executes directly."}
+                <div className="note mt12 warn" style={{ fontSize: 11.5 }}>
+                  Commitments are settled by the Principal, so the button submits a proposal.
                 </div>
               )}
               <button className="btn block mt8" onClick={() => setShare(true)}>Share with a member</button>
@@ -5871,7 +5716,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
         </div>
 
         {act && (isListed
-          ? <BB.flows.TradeTicket instrument={{ ...m, sub: m.fills, sleeve: st.account === "successor" ? "alpha" : "core", pxUsd: m.px }} side="buy" onClose={() => setAct(false)} />
+          ? <BB.flows.TradeTicket instrument={{ ...m, sub: m.fills, pxUsd: m.px }} side="buy" onClose={() => setAct(false)} />
           : <BB.flows.CommitFlow deal={m} onClose={() => setAct(false)} />)}
         {share && <BB.flows.ShareModal deal={m} onClose={() => setShare(false)} />}
       </div>
@@ -6004,11 +5849,11 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                   <td><StatusBadge s={l.status} /></td>
                   <td className="right">
                     {l.status !== "Settled" && !l.mine
-                      ? <Lock sleeve={st.account === "successor" ? "alpha" : "core"}>
+                      ? 
                           <button className="btn sm" onClick={(e) => { e.stopPropagation(); setBuy(l); }}>
                             Buy at {u.pct(l.askPct)}
                           </button>
-                        </Lock>
+                        
                       : <span className="tri">›</span>}
                   </td>
                 </tr>
@@ -6045,7 +5890,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                     <td>{e.ok ? <span className="bdg live"><i className="pt" />Eligible</span> : <span className="tri">{e.reason}</span>}</td>
                     <td className="right">
                       {e.ok
-                        ? <Lock sleeve={p.sleeve}><button className="btn sm p" onClick={() => setList(p)}>List on secondary</button></Lock>
+                        ? <button className="btn sm p" onClick={() => setList(p)}>List on secondary</button>
                         : <span className="tip" data-tip={e.reason}><button className="btn sm" disabled>List on secondary</button></span>}
                     </td>
                   </tr>
@@ -6099,11 +5944,11 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
           <div className="btn-row">
             {!isSeller && (
               <>
-                <Lock sleeve={st.account === "successor" ? "alpha" : "core"}>
+                
                   <button className="btn p lg" disabled={l.status === "Settled"} onClick={() => setBuy(true)}>
                     Buy now at {u.pct(l.askPct)} · {u.usdC(Math.round(l.size * l.askPct / 100))}
                   </button>
-                </Lock>
+                
                 <button className="btn lg" disabled={l.status === "Settled"} onClick={() => setBid(true)}>Bid below the ask</button>
               </>
             )}
@@ -6232,7 +6077,6 @@ Two ways in: take the ask and it settles immediately, or bid below it and wait f
           <span className="k">Submitted by</span><span className="v">{D.accounts[a.from].name}</span>
           <span className="k">Type</span><span className="v">{a.type}</span>
           <span className="k">Amount</span><span className="v">{u.usd(a.amount)}</span>
-          <span className="k">Sleeve</span><span className="v">{a.sleeve === "core" ? "Core" : "Alpha"}</span>
         </div>
         <div className="note mb16">{a.rationale}</div>
         <label className="f"><span>{mode === "returned" ? "Comment (required)" : "Comment (optional)"}</span>
@@ -6240,8 +6084,8 @@ Two ways in: take the ask and it settles immediately, or bid below it and wait f
             placeholder={mode === "returned" ? "What needs to change before resubmission." : "Any condition attached to the decision."} /></label>
         {mode === "approved" && a.payload && (
           <div className="note ok mt12">
-            Approving executes the underlying {a.payload.kind === "trade" ? "order" : "commitment"} immediately against the
-            Core sleeve and updates the allocation.
+            Approving executes the underlying {a.payload.kind === "trade" ? "order" : "commitment"} immediately and
+            updates the allocation.
           </div>
         )}
       </Modal>
@@ -6261,7 +6105,6 @@ Two ways in: take the ask and it settles immediately, or bid below it and wait f
           <div>
             <div className="row tight" style={{ alignItems: "center" }}>
               <span className="bdg plain">{a.type}</span>
-              <span className={"bdg " + (a.sleeve === "alpha" ? "alpha" : "core")}>{a.sleeve === "alpha" ? "Alpha" : "Core"}</span>
               <span className="tri" style={{ fontSize: 11 }}>{u.fmtTs(a.ts)} · {D.accounts[a.from].name}</span>
             </div>
             <h2 className="mt8" style={{ fontSize: 15 }}>{a.title}</h2>
@@ -6308,7 +6151,7 @@ Two ways in: take the ask and it settles immediately, or bid below it and wait f
             <h1 className="mt8">{isPrincipal ? "Approval inbox" : "Your proposals"}</h1>
             <div className="sub mt8" style={{ maxWidth: "72ch" }}>
               {isPrincipal
-                ? "Anything the successor account proposes outside the Alpha sleeve queues here. Approving executes it; returning sends it back with a comment."
+                ? "Every commitment the successor account proposes queues here. Approving executes it; returning sends it back with a comment."
                 : "Proposals you have submitted to the Principal. You can see the decision and the comment; you cannot decide."}
             </div>
           </div>

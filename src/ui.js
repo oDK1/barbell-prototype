@@ -36,17 +36,15 @@
       </span>);
   }
 
-  function SleeveBadge({ s }) {
-    return <span className={"bdg " + (s === "alpha" ? "alpha" : "core")}>{s === "alpha" ? "Alpha" : "Core"}</span>;
-  }
-
   function LiqBadge({ liq, term }) {
     return <span className="bdg plain" title={term || ""}>{liq}{term ? " · " + term : ""}</span>;
   }
 
   /* A control the current account may not use. Renders visibly disabled with a tooltip. */
-  function Lock({ sleeve, children, tip }) {
-    const allowed = S.canWrite(sleeve);
+  /* Wraps something only the Principal may do. Trading and committing are no
+     longer among them — the Successor does those through approval. */
+  function Lock({ children, tip }) {
+    const allowed = S.canWrite();
     if (allowed) return children;
     return (
       <span className="tip" data-tip={tip || S.LOCK_TIP}>
@@ -469,5 +467,5 @@
     );
   }
 
-  BB.ui = { Money, Delta, ProvBadge, SleeveBadge, LiqBadge, Lock, Stat, Band, Panel, Tabs, Seg, Modal, MiniBar, Fit, Crumb, Toast, Amount, Dropzone, FileRow, ModeStrip, AccountCard, AccountCards, Steps, GrowthFan };
+  BB.ui = { Money, Delta, ProvBadge, LiqBadge, Lock, Stat, Band, Panel, Tabs, Seg, Modal, MiniBar, Fit, Crumb, Toast, Amount, Dropzone, FileRow, ModeStrip, AccountCard, AccountCards, Steps, GrowthFan };
 })();

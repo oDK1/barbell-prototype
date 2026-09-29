@@ -2,7 +2,7 @@
 (function () {
   const { useState } = React;
   const D = BB.data, u = BB.u, S = BB.store;
-  const { Money, Delta, Panel, Tabs, Seg, MiniBar, ProvBadge, SleeveBadge, Modal, Lock, GrowthFan } = BB.ui;
+  const { Money, Delta, Panel, Tabs, Seg, MiniBar, ProvBadge, Modal, GrowthFan } = BB.ui;
   const { runQuery } = BB.agent;
 
   /* Drift is context, not a verdict: grey, unsigned by colour, no urgency. */
@@ -58,7 +58,7 @@
         {!res && (focus || q) && (
           <div className="askhint">
             Read-only. Returns a filtered view of positions, never prose. Try “stale valuations”, “locked private
-            positions”, “Korea equity”, “alpha sleeve”.
+            positions”, “Korea equity”, “Hanwha-sourced”.
           </div>
         )}
         <div className="askrow">
@@ -284,20 +284,20 @@
                   <span style={{ flex: 1 }}>A what-if. The family's mandate is <b>{mandate.label}</b>.</span>
                   <span className="btn-row">
                     <button className="link g" onClick={() => setGoal(st.mandate)}>Discard</button>
-                    <Lock sleeve="core">
+                    
                       <button className="btn sm p" onClick={() => S.actions.setMandate(goal)}>Adopt as mandate</button>
-                    </Lock>
+                    
                   </span>
                 </div>
               ) : (
                 <div className="lever-note">
                   <span style={{ flex: 1 }}>
-                    The family's mandate · <b>{mandate.core} / {mandate.alpha}</b> Core / Alpha
+                    The family's mandate · <b>{mandate.label}</b>
                     {confirmed ? " · confirmed " + u.fmtDate(confirmed.ts) : ""}
                   </span>
-                  <Lock sleeve="core">
+                  
                     <button className="link g" onClick={() => S.navigate("/onboarding/mandate")}>Refine with 8 questions</button>
-                  </Lock>
+                  
                 </div>
               )}
               <div className="tri" style={{ fontSize: 11.5, marginTop: 6 }}>{selected.line}</div>
@@ -486,11 +486,11 @@
                   </td>
                   <td className="right">
                     {best
-                      ? <BB.ui.Lock sleeve={st.account === "successor" ? "alpha" : "core"}>
+                      ? <>
                           <button className="btn sm p" onClick={() => setAct({ m: best, amount })}>
                             {best.kind === "listed" ? "Buy" : "Commit"}
                           </button>
-                        </BB.ui.Lock>
+                        </>
                       : <button className="btn sm" onClick={() => { onClose(); S.navigate(liquid ? "/portfolio/" + r.cls + "?sub=" + r.key : "/secondary"); }}>
                           Review
                         </button>}
@@ -505,7 +505,7 @@
           shows the highest-scoring offering that would fill it — the button opens the ticket, it does not place anything.
         </div>
         {act && (act.m.kind === "listed"
-          ? <BB.flows.TradeTicket instrument={{ ...act.m, sub: act.m.fills, sleeve: st.account === "successor" ? "alpha" : "core", pxUsd: act.m.px }}
+          ? <BB.flows.TradeTicket instrument={{ ...act.m, sub: act.m.fills, pxUsd: act.m.px }}
               side="buy" onClose={() => setAct(null)} />
           : <BB.flows.CommitFlow deal={act.m} onClose={() => setAct(null)} />)}
       </Modal>
@@ -555,9 +555,9 @@
                       </span>
                     </td>
                     <td className="right">
-                      <Lock sleeve={p.sleeve}>
+                      
                         <button className="btn sm" onClick={() => setEdit(p)}>Update valuation</button>
-                      </Lock>
+                      
                     </td>
                   </tr>
                 );
@@ -584,7 +584,6 @@
       if (k === "name") return p.name.toLowerCase();
       if (k === "cls") return u.clsLabel(p.cls);
       if (k === "sub") return u.subLabel(p.sub);
-      if (k === "sleeve") return p.sleeve;
       if (k === "prov") return u.provLabel(p);
       if (k === "liq") return p.liq;
       if (k === "gain") return p.value - p.cost;
@@ -636,7 +635,6 @@
                 <Th k="name" label="Position" w={280} />
                 <Th k="cls" label="Class" />
                 <Th k="sub" label="Subcategory" />
-                <Th k="sleeve" label="Sleeve" opt />
                 <Th k="prov" label="Provenance" />
                 <Th k="liq" label="Liquidity" />
                 <Th k="cost" label="Cost basis" n opt />
@@ -655,7 +653,6 @@
                   </td>
                   <td>{u.clsLabel(p.cls)}</td>
                   <td>{u.subLabel(p.sub)}</td>
-                  <td className="hide-narrow"><SleeveBadge s={p.sleeve} /></td>
                   <td><ProvBadge p={p} showDate={false} /></td>
                   <td><span className="bdg plain">{p.liq}</span></td>
                   <td className="n num hide-narrow">{u.usd(p.cost)}</td>
@@ -834,12 +831,12 @@
                     {/* a tax lot's whole point is the action it implies, so the
                         flag is the button: it opens a sell for the full position */}
                     {l.harvest && (
-                      <Lock sleeve={l.sleeve}>
+                      
                         <button className="btn sm harvest" onClick={() => setSell(l)}
                           title={"Sell " + l.name + " and realise " + u.usd(Math.abs(l.gain)) + " of loss"}>
                           Harvest {u.usdC(Math.abs(l.gain))}
                         </button>
-                      </Lock>
+                      
                     )}
                   </td>
                 </tr>
@@ -860,83 +857,11 @@
     );
   }
 
-  /* ------------------------------------------------------------ alpha tab */
-  function AlphaTab({ positions }) {
-    const alpha = positions.filter((p) => p.sleeve === "alpha");
-    const t = u.total(positions);
-    const av = u.total(alpha);
-    const capacity = S.alphaCapacity();
-    const active = alpha.filter((p) => p.liq !== "Daily");
-    /* the marketplace carries private offerings only, so discovery matches it */
-    const fits = D.market.filter((m) => m.kind === "private").sort((a, b) => b.fit - a.fit).slice(0, 4);
-    return (
-      <>
-        <div className="panel mt16">
-          <div className="panel-hd"><h3>Alpha positions</h3>
-            <div className="btn-row"><button className="btn sm p" onClick={() => S.navigate("/marketplace")}>Find the next one</button></div></div>
-          <table className="t dense">
-            <thead><tr><th>Position</th><th>Subcategory</th><th>Provenance</th><th>Liquidity</th>
-              <th className="n">Cost</th><th className="n">Value</th><th className="n">Unrealised</th><th className="n">% of sleeve</th></tr></thead>
-            <tbody>
-              {alpha.sort((a, b) => b.value - a.value).map((p) => (
-                <tr key={p.id} className="clickable" onClick={() => S.navigate("/portfolio/" + p.cls + "?sub=" + p.sub)}>
-                  <td><div className="tname">{p.name}</div><div className="tsub">{p.ticker || p.grp}</div></td>
-                  <td>{u.subLabel(p.sub)}</td>
-                  <td><ProvBadge p={p} showDate={false} /></td>
-                  <td><span className="bdg plain">{p.liq}</span></td>
-                  <td className="n num">{u.usd(p.cost)}</td>
-                  <td className="n num">{u.usd(p.value)}</td>
-                  <td className="n"><Delta v={p.value - p.cost} usd /></td>
-                  <td className="n num">{u.pct((p.value / av) * 100)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="grid mt16" style={{ gridTemplateColumns: "1.4fr 1fr" }}>
-          <Panel title="Discovery" sub="Highest-ranked offerings for this family"
-            right={<button className="btn sm" onClick={() => S.navigate("/marketplace")}>Open marketplace</button>}>
-            <table className="t dense">
-              <thead><tr><th>Opportunity</th><th>Fills</th><th>Liquidity</th><th className="n">Minimum</th><th className="n">Fit</th><th></th></tr></thead>
-              <tbody>
-                {fits.map((m) => (
-                  <tr key={m.id} className="clickable" onClick={() => S.navigate("/marketplace/" + m.id)}>
-                    <td><div className="tname">{m.name}</div><div className="tsub">{m.ret}</div></td>
-                    <td>{u.subLabel(m.fills)}</td>
-                    <td><span className="bdg plain">{m.liq}</span></td>
-                    <td className="n num">{u.usd(m.min)}</td>
-                    <td className="n"><BB.ui.Fit score={m.fit} /></td>
-                    <td className="right"><span className="tri">›</span></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </Panel>
-          <Panel title="Authority" sub="What this account can do without asking">
-            <div className="kv">
-              <span className="k">The Alpha sleeve</span><span className="v">Yours to act on</span>
-              <span className="k">The rest of the book</span><span className="v">Visible, not yours to move</span>
-              <span className="k">Commit without asking, up to</span><span className="v">{u.usd(capacity)}</span>
-              <span className="k">Beyond that</span><span className="v">The Principal decides</span>
-            </div>
-            <div className="note mt12">
-              Wherever you cannot act, the button is still there — greyed, with the reason on it. You can always write the
-              trade or commitment up and send it: it lands in the Principal's inbox with your reasoning attached.
-            </div>
-            <button className="btn mt12 block" onClick={() => S.navigate("/approvals")}>View submitted proposals</button>
-          </Panel>
-        </div>
-      </>
-    );
-  }
-
-  /* ------------------------------------------------------------- the page */
   function Portfolio({ route }) {
     const st = S.useStore();
     const isSuccessor = st.account === "successor";
     const wanted = route && route.query && route.query.tab;
-    const [tab, setTab] = useState(wanted || (isSuccessor ? "alpha" : "alloc"));
+    const [tab, setTab] = useState(wanted || "alloc");
     /* Switching tab and scrolling are two paints apart: the tab's content does
        not exist until React has re-rendered, so the scroll waits for it. */
     const [focus, setFocus] = useState(null);
@@ -972,23 +897,20 @@
     }, [focus]);
     const jump = (t, id) => { setTab(t); setFocus({ id, n: Date.now() }); };
     /* Switching account changes the home view, not just the permissions. */
-    React.useEffect(() => { setTab(st.account === "successor" ? "alpha" : "alloc"); }, [st.account]);
+    React.useEffect(() => { setTab("alloc"); }, [st.account]);
     /* …and a link may ask for a particular tab. */
     React.useEffect(() => { if (wanted) setTab(wanted); }, [wanted]);
     const ps = st.positions;
     const t = u.total(ps);
-    const sl = u.sleeveTotals(ps);
     const cls = u.byClass(ps);
     const priv = ps.filter((p) => p.liq !== "Daily");
     const privShare = (u.total(priv) / t) * 100;
     const privCount = priv.length;
     const liq = u.liquidity90(ps);
     const stale = ps.filter((p) => p.prov === "self" && u.staleness(p).d > 90);
-    const alpha = ps.filter((p) => p.sleeve === "alpha");
     const calls90 = D.capitalCalls.filter((c) => u.days(D.TODAY, c.date) <= 90 && u.days(D.TODAY, c.date) >= 0);
 
-    const tabs = (isSuccessor ? [{ k: "alpha", label: "Alpha sleeve" }] : [])
-      .concat([{ k: "alloc", label: "Allocation" }, { k: "liq", label: "Liquidity" }, { k: "tax", label: "Tax" }]);
+    const tabs = [{ k: "alloc", label: "Allocation" }, { k: "liq", label: "Liquidity" }, { k: "tax", label: "Tax" }];
 
     return (
       <div className="wrap page hasagent">
@@ -998,15 +920,10 @@
             {/* one number carries the page; everything else is a supporting line */}
             <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginTop: 6 }}>
               <h1 className="num" style={{ fontSize: 34, letterSpacing: "-.03em", lineHeight: 1.05 }}>
-                {u.usdC(isSuccessor ? u.total(alpha) : t)}
+                {u.usdC(t)}
               </h1>
-              <span className="sub" style={{ fontSize: 13.5 }}>{isSuccessor ? "Alpha sleeve" : "Total assets"}</span>
+              <span className="sub" style={{ fontSize: 13.5 }}>Total assets</span>
             </div>
-            {isSuccessor && (
-              <div className="tri" style={{ fontSize: 11.5, marginTop: 3 }}>
-                {u.pct((u.total(alpha) / t) * 100)} of assets
-              </div>
-            )}
           </div>
           <div className="right">
             <div className="num tri" style={{ fontSize: 11.5 }}>Updated {u.fmtTs(D.family.asOf)} KST</div>
@@ -1027,12 +944,7 @@
 
         {/* secondary figures, deliberately quiet */}
         <div className="subline">
-          {(isSuccessor
-            ? [["Unrealised", <Delta v={u.unrealized(alpha)} usd />, u.sgn((u.unrealized(alpha) / (u.total(alpha) - u.unrealized(alpha))) * 100) + " on cost"],
-               ["Remaining capacity", u.usdC(S.alphaCapacity()), "commit direct up to this"],
-               ["Total assets", u.usdC(t), "yours to see, not to move"]]
-            : [["Unrealised", <Delta v={u.unrealized(ps)} usd />, u.sgn((u.unrealized(ps) / (t - u.unrealized(ps))) * 100) + " on cost"]]
-          ).map((m, i) => (
+          {[["Unrealised", <Delta v={u.unrealized(ps)} usd />, u.sgn((u.unrealized(ps) / (t - u.unrealized(ps))) * 100) + " on cost"]].map((m, i) => (
             <span className="item" key={i}>
               <span className="k">{m[0]}</span>
               <span className="v num">{m[1]}</span>
@@ -1042,7 +954,6 @@
         </div>
 
         <div className="mt16"><Tabs tabs={tabs} active={tab} onChange={setTab} /></div>
-        {tab === "alpha" && <AlphaTab positions={ps} />}
         {tab === "alloc" && <AllocationTab positions={ps} openSignal={focus && focus.id === "sec-provenance" ? focus.n : 0} />}
         {tab === "liq" && <LiquidityTab positions={ps} />}
         {tab === "tax" && <TaxTab positions={ps} />}

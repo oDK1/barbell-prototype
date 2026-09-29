@@ -59,19 +59,19 @@
                   <div className="rowbtns">
                     {listed ? (
                       <>
-                        <Lock sleeve={p.sleeve}><button className="btn sm p" onClick={() => onTrade(p, "buy")}>Trade</button></Lock>
+                        <button className="btn sm p" onClick={() => onTrade(p, "buy")}>Trade</button>
                         {/* Trading Core is the Principal's; proposing it is not. */}
-                        {!S.canWrite(p.sleeve) && (
+                        {!S.canWrite() && (
                           <button className="btn sm" onClick={() => onTrade(p, "buy")}>Propose</button>
                         )}
                       </>
                     ) : (
                       <>
                         {p.prov === "self" && (
-                          <Lock sleeve={p.sleeve}><button className="btn sm" onClick={() => onValue(p)}>Update valuation</button></Lock>
+                          <button className="btn sm" onClick={() => onValue(p)}>Update valuation</button>
                         )}
                         {el.ok
-                          ? <Lock sleeve={p.sleeve}><button className="btn sm p" onClick={() => onList(p)}>List on secondary</button></Lock>
+                          ? <button className="btn sm p" onClick={() => onList(p)}>List on secondary</button>
                           : <span className="tip" data-tip={el.reason}><button className="btn sm" disabled>List on secondary</button></span>}
                       </>
                     )}

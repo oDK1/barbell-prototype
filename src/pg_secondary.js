@@ -73,11 +73,11 @@
                   <td><StatusBadge s={l.status} /></td>
                   <td className="right">
                     {l.status !== "Settled" && !l.mine
-                      ? <Lock sleeve={st.account === "successor" ? "alpha" : "core"}>
+                      ? 
                           <button className="btn sm" onClick={(e) => { e.stopPropagation(); setBuy(l); }}>
                             Buy at {u.pct(l.askPct)}
                           </button>
-                        </Lock>
+                        
                       : <span className="tri">›</span>}
                   </td>
                 </tr>
@@ -114,7 +114,7 @@
                     <td>{e.ok ? <span className="bdg live"><i className="pt" />Eligible</span> : <span className="tri">{e.reason}</span>}</td>
                     <td className="right">
                       {e.ok
-                        ? <Lock sleeve={p.sleeve}><button className="btn sm p" onClick={() => setList(p)}>List on secondary</button></Lock>
+                        ? <button className="btn sm p" onClick={() => setList(p)}>List on secondary</button>
                         : <span className="tip" data-tip={e.reason}><button className="btn sm" disabled>List on secondary</button></span>}
                     </td>
                   </tr>
@@ -168,11 +168,11 @@
           <div className="btn-row">
             {!isSeller && (
               <>
-                <Lock sleeve={st.account === "successor" ? "alpha" : "core"}>
+                
                   <button className="btn p lg" disabled={l.status === "Settled"} onClick={() => setBuy(true)}>
                     Buy now at {u.pct(l.askPct)} · {u.usdC(Math.round(l.size * l.askPct / 100))}
                   </button>
-                </Lock>
+                
                 <button className="btn lg" disabled={l.status === "Settled"} onClick={() => setBid(true)}>Bid below the ask</button>
               </>
             )}

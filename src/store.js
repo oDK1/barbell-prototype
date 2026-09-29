@@ -56,16 +56,16 @@
   function toast(msg) { state.toast = { msg, id: Date.now() }; }
 
   /* ------------------------------------------------------------ permissions */
-  function canWrite(sleeve) { return state.account === "principal" || sleeve === "alpha"; }
-  function alphaCapacity() {
-    return u.total(state.positions.filter((p) => p.sleeve === "alpha" && p.cls === "cash"));
-  }
-  const LOCK_TIP = "Only the Principal can act on the Core sleeve.";
+  /* One balance sheet. The Principal acts directly; the Successor sees the
+     same book and may act on it, but every commitment goes to the Principal
+     for approval first. */
+  function canWrite() { return state.account === "principal"; }
+  const LOCK_TIP = "The Principal settles this one.";
 
   /* ------------------------------------------------------------------ cash */
-  function drawCash(amount, sleeve) {
+  function drawCash(amount) {
     const pool = state.positions
-      .filter((p) => p.cls === "cash" && (sleeve === "alpha" ? p.sleeve === "alpha" : true))
+      .filter((p) => p.cls === "cash")
       .sort((a, b) => (a.sub === "mmf" ? -1 : 1) - (b.sub === "mmf" ? -1 : 1));
     let left = amount;
     pool.forEach((p) => {
@@ -76,8 +76,8 @@
     });
     return amount - left;
   }
-  function addCash(amount, sleeve) {
-    const t = state.positions.find((p) => p.cls === "cash" && p.sub === "mmf" && (sleeve === "alpha" ? p.sleeve === "alpha" : p.sleeve === "core"))
+  function addCash(amount) {
+    const t = state.positions.find((p) => p.cls === "cash" && p.sub === "mmf")
       || state.positions.find((p) => p.cls === "cash");
     t.value += amount; t.cost += amount;
   }
@@ -156,22 +156,22 @@
     clearSurvey() { state.survey = {}; emit(); },
 
     /* ---- trading listed instruments ---- */
-    trade({ side, name, ticker, sub, cls, amount, qty, px, sleeve, orderType, limit, source }) {
+    trade({ side, name, ticker, sub, cls, amount, qty, px, orderType, limit, source }) {
       const existing = state.positions.find((p) => ticker && p.ticker === ticker);
       if (side === "buy") {
-        drawCash(amount, sleeve);
+        drawCash(amount);
         if (existing) {
           existing.value += amount; existing.cost += amount;
           if (existing.pxUsd) existing.qty = Math.round(existing.value / existing.pxUsd);
         } else {
           state.positions.push({
-            id: nextId("p"), name, ticker, cls, sub, grp: "—", sleeve, prov: "live",
+            id: nextId("p"), name, ticker, cls, sub, grp: "—", prov: "live",
             value: amount, cost: amount, qty: qty || null, px: px || null, pxUsd: px || null,
             ccy: "USD", chg: 0, sector: "—", geo: "—", liq: "Daily",
             acquired: D.TODAY, realizedYTD: 0, src: { file: "Barbell order", cell: "—" },
           });
         }
-        log("Trade", "Bought " + u.usd(amount) + " " + name, (orderType === "limit" ? "Limit " + limit : "Market") + " · " + (sleeve === "alpha" ? "Alpha" : "Core") + " sleeve · routed through Hanwha Securities · settles same day.");
+        log("Trade", "Bought " + u.usd(amount) + " " + name, (orderType === "limit" ? "Limit " + limit : "Market") + " · routed through Hanwha Securities · settles same day.");
         ops(ticker || "—", name, u.usd(amount));
         toast("Order filled — " + name);
       } else {
@@ -188,8 +188,8 @@
             state.realizedClosed += p.realizedYTD || 0;
             state.positions = state.positions.filter((x) => x.id !== p.id);
           }
-          addCash(portion, sleeve);
-          log("Trade", "Sold " + u.usd(portion) + " " + name, "Realised " + u.sgnUsd(gain) + " · " + (sleeve === "alpha" ? "Alpha" : "Core") + " sleeve · settles same day.");
+          addCash(portion);
+          log("Trade", "Sold " + u.usd(portion) + " " + name, "Realised " + u.sgnUsd(gain) + " · settles same day.");
           ops(ticker || "—", name, "−" + u.usd(portion));
           toast("Order filled — " + name);
         }
@@ -198,25 +198,25 @@
     },
 
     /* ---- committing to a private offering ---- */
-    commit({ deal, amount, sleeve }) {
-      drawCash(amount, sleeve);
+    commit({ deal, amount }) {
+      drawCash(amount);
       state.positions.push({
         id: nextId("p"), name: deal.name, cls: deal.cls, sub: deal.fills, grp: "—",
-        sleeve, prov: "hanwha", value: amount, cost: amount, ccy: deal.ccy || "USD",
+        prov: "hanwha", value: amount, cost: amount, ccy: deal.ccy || "USD",
         liq: deal.liq, term: deal.term, sector: deal.sector, geo: deal.geo,
         asOf: D.TODAY, acquired: D.TODAY, onBarbell: true, vintage: String(new Date(D.TODAY).getFullYear()),
         src: { file: "Barbell subscription", cell: "—" },
       });
       log("Commitment", "Committed " + u.usd(amount) + " to " + deal.name,
-        (sleeve === "alpha" ? "Alpha" : "Core") + " sleeve · documents acknowledged · ownership record updated.");
+        "Documents acknowledged · ownership record updated.");
       ops(deal.id.toUpperCase(), deal.name, u.usd(amount));
       toast("Commitment recorded — " + deal.name);
       emit();
     },
 
     /* ---- proposals ---- */
-    propose({ type, title, target, amount, sleeve, rationale, payload }) {
-      const a = { id: nextId("a"), ts: nowTs(), from: state.account, type, title, target, amount, sleeve, rationale, payload, status: "pending" };
+    propose({ type, title, target, amount, rationale, payload }) {
+      const a = { id: nextId("a"), ts: nowTs(), from: state.account, type, title, target, amount, rationale, payload, status: "pending" };
       state.approvals.unshift(a);
       log("Proposal", "Submitted proposal — " + title, rationale);
       toast("Proposal submitted to the Principal");
@@ -283,12 +283,12 @@
       return b;
     },
     /* Take the ask as it stands — no negotiation. */
-    buyListing({ listing, sleeve }) {
+    buyListing({ listing }) {
       const consideration = Math.round(listing.size * listing.askPct / 100);
-      drawCash(consideration, sleeve);
+      drawCash(consideration);
       state.positions.push({
         id: nextId("p"), name: listing.instrument.replace(/ — .*$/, ""), cls: listing.cls, sub: listing.sub, grp: "Secondary",
-        sleeve, prov: "hanwha", value: listing.size, cost: consideration, ccy: "USD",
+        prov: "hanwha", value: listing.size, cost: consideration, ccy: "USD",
         liq: "Locked", term: "As the original offering", sector: "—", geo: "—",
         asOf: D.TODAY, acquired: D.TODAY, onBarbell: true, vintage: listing.vintage,
         src: { file: "Barbell secondary", cell: "—" },
@@ -353,5 +353,5 @@
   /* Realised year to date across the book, closed positions included. */
   function realizedBook() { return u.realizedYTD(state.positions) + state.realizedClosed; }
 
-  BB.store = { get, subscribe, actions, realizedBook, useStore, useRoute, navigate, canWrite, alphaCapacity, LOCK_TIP, log, toast };
+  BB.store = { get, subscribe, actions, realizedBook, useStore, useRoute, navigate, canWrite, LOCK_TIP, log, toast };
 })();

@@ -37,11 +37,11 @@
         <td className="hide-narrow" style={{ maxWidth: 260 }}><div className="tsub" style={{ fontSize: 11.5, color: "var(--g1)" }}>{m.why}</div></td>
         <td className="right">
           <div className="rowbtns">
-            <Lock sleeve={st.account === "successor" ? "alpha" : "core"}>
+            
               <button className="btn sm p" onClick={(e) => { e.stopPropagation(); onAct(m, sug && sug.amount); }}>
                 {isListed ? "Buy" : "Commit"}
               </button>
-            </Lock>
+            
           </div>
         </td>
       </tr>
@@ -71,11 +71,10 @@
     const isSuccessor = st.account === "successor";
 
     /* The marketplace carries private-market offerings only. Listed instruments
-       are held in the Core sleeve and are not transacted on this surface. */
+       are not transacted on this surface. */
     const offered = D.market.filter((m) => m.kind === "private");
 
     const t = u.total(st.positions);
-    const capacity = S.alphaCapacity();
     const model = u.modelWeights(t, st.mandate);
 
     const pass = (m) => {
@@ -94,15 +93,9 @@
     const ctx = u.marketContext(st.positions, st.mandate, st.realizedClosed);
     const scored = offered.map((m) => ({ ...m, s: u.scoreFor(m, ctx) }));
     const all = (asked && asked.rows.length ? asked.rows : scored.filter(pass)).sort((a, b) => b.s.score - a.s.score);
-    /* Private, inside the sleeve's remaining cash — committable without asking. */
-    const readyNow = scored
-      .filter((m) => m.min <= capacity)
-      .sort((a, b) => b.s.score - a.s.score);
     const top3 = all.slice(0, 3);
     /* what could actually fund a purchase today */
-    const funds = st.account === "principal"
-      ? u.total(st.positions.filter((x) => x.cls === "cash"))
-      : S.alphaCapacity();
+    const funds = u.total(st.positions.filter((x) => x.cls === "cash"));
     const sectors = Array.from(new Set(offered.map((m) => m.sector))).sort();
 
     const open = (m) => S.navigate("/marketplace/" + m.id);
@@ -151,26 +144,6 @@
                 </div>
               </div>
             </div>
-
-            {/* what the Successor can act on unaided */}
-            {isSuccessor && !gapFocus && readyNow.length > 0 && (
-              <div className="gapsec mt24">
-                <div className="gaphd">
-                  <span className="g-t">Within your authority</span>
-                  <span className="g-d">{u.usd(capacity)} of Alpha sleeve capacity remaining</span>
-                  <span className="spacer" style={{ flex: 1 }} />
-                  <span className="tri" style={{ fontSize: 11.5 }}>
-                    {readyNow.length} of {offered.length} private-market
-                    offerings fit the capacity · the rest need the Principal
-                  </span>
-                </div>
-                <div className="tscroll">
-                  <table className="t dense"><Head />
-                    <tbody>{readyNow.map((m) => <Row key={m.id} m={m} sug={u.suggestAmount(m, ctx, funds)} onOpen={open} onAct={onAct} />)}</tbody>
-                  </table>
-                </div>
-              </div>
-            )}
 
             <div className="between mt24 mb12">
               <h2>{asked && asked.rows.length ? asked.label : gapFocus ? u.subLabel(gapFocus) : "Ranked for this family"}</h2>
@@ -274,13 +247,13 @@
                 <div className="kv">
                   <span className="k">Signed in as</span>
                   <span className="v">{st.account === "principal" ? D.accounts.principal.name : D.accounts.successor.name}</span>
-                  <span className="k">Can commit without asking</span>
-                  <span className="v">{st.account === "principal" ? "Any amount" : "Up to " + u.usd(S.alphaCapacity())}</span>
+                  <span className="k">Commitments</span>
+                  <span className="v">{st.account === "principal" ? "Execute directly" : "Go to the Principal"}</span>
                 </div>
                 <div className="tri mt8" style={{ fontSize: 11 }}>
                   {st.account === "principal"
                     ? "Whatever you buy or commit to here happens straight away."
-                    : "Past that amount the button changes: instead of buying, it sends the Principal a proposal."}
+                    : "You see the whole book and can act on any of it — the button sends the Principal a proposal rather than executing."}
                 </div>
               </Panel>
             </div>
@@ -310,7 +283,7 @@
         </div>
 
         {act && (act.m.kind === "listed"
-          ? <BB.flows.TradeTicket instrument={{ ...act.m, sub: act.m.fills, sleeve: st.account === "successor" ? "alpha" : "core", pxUsd: act.m.px }}
+          ? <BB.flows.TradeTicket instrument={{ ...act.m, sub: act.m.fills, pxUsd: act.m.px }}
               side="buy" amount0={act.amount} onClose={() => setAct(null)} />
           : <BB.flows.CommitFlow deal={act.m} amount0={act.amount} onClose={() => setAct(null)} />)}
       </div>

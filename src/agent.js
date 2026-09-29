@@ -41,8 +41,6 @@
     { re: /stale|old|out of date/i, label: "Stale valuations", f: (p) => p.prov === "self" && u.staleness(p).d > 90 },
     { re: /illiquid|locked/i, label: "Locked positions", f: (p) => p.liq === "Locked" },
     { re: /liquid|daily/i, label: "Daily liquidity", f: (p) => p.liq === "Daily" },
-    { re: /alpha/i, label: "Alpha sleeve", f: (p) => p.sleeve === "alpha" },
-    { re: /core/i, label: "Core sleeve", f: (p) => p.sleeve === "core" },
     { re: /private/i, label: "Private positions", f: (p) => p.liq !== "Daily" },
     { re: /tech|semiconductor|ai/i, label: "Technology", f: (p) => p.sector === "Info Tech" || p.sector === "Technology" },
     { re: /real estate|property|부동산/i, label: "Real estate", f: (p) => p.sub === "re" },

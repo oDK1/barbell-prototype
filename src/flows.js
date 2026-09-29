@@ -38,30 +38,6 @@
     );
   }
 
-  function SleevePicker({ sleeve, setSleeve, note }) {
-    const st = S.get();
-    if (st.account === "principal") {
-      return (
-        <label className="f"><span>Sleeve</span>
-          <select value={sleeve} onChange={(e) => setSleeve(e.target.value)}>
-            <option value="core">Core — $56.2M · Principal authority</option>
-            <option value="alpha">Alpha — $6.2M · Successor authority</option>
-          </select>
-        </label>
-      );
-    }
-    return (
-      <label className="f"><span>Sleeve</span>
-        <select value={sleeve} onChange={(e) => setSleeve(e.target.value)}>
-          <option value="alpha">Alpha — within your authority</option>
-          <option value="core">Core — requires the Principal's approval</option>
-        </select>
-        {note && <div className="tri" style={{ fontSize: 11, marginTop: 4 }}>{note}</div>}
-      </label>
-    );
-  }
-
-  /* --------------------------------------------------------- order ticket */
   function TradeTicket({ instrument, side: side0, amount0, onClose }) {
     const st = S.useStore();
     const [side, setSide] = useState(side0 || "buy");
@@ -70,23 +46,25 @@
     const [qty, setQty] = useState("");
     const [orderType, setOrderType] = useState("market");
     const [limit, setLimit] = useState(instrument.px || "");
-    const [sleeve, setSleeve] = useState(instrument.sleeve || (st.account === "successor" ? "alpha" : "core"));
+
     const [rationale, setRationale] = useState("");
 
     const px = instrument.pxUsd || instrument.px || 1;
     const notional = mode === "notional" ? (amount || 0) : Math.round((qty || 0) * px);
-    const needsApproval = st.account === "successor" && sleeve === "core";
-    const cash = u.total(st.positions.filter((p) => p.cls === "cash" && (sleeve === "alpha" ? p.sleeve === "alpha" : true)));
+    /* One book: the Successor may act on any of it, but it goes to the
+       Principal first. */
+    const needsApproval = st.account === "successor";
+    const cash = u.total(st.positions.filter((p) => p.cls === "cash"));
     const overCash = side === "buy" && notional > cash;
 
     const confirm = () => {
       const args = {
         side, name: instrument.name, ticker: instrument.ticker, sub: instrument.sub, cls: instrument.cls,
-        amount: notional, qty: mode === "qty" ? qty : Math.round(notional / px), px, sleeve, orderType, limit,
+        amount: notional, qty: mode === "qty" ? qty : Math.round(notional / px), px, orderType, limit,
       };
       if (needsApproval) {
         S.actions.propose({
-          type: "Trade", sleeve: "core", amount: notional,
+          type: "Trade", amount: notional,
           title: (side === "buy" ? "Buy " : "Sell ") + u.usd(notional) + " " + instrument.name + " in Core",
           target: instrument.id || instrument.ticker,
           rationale: rationale || "Submitted from the order ticket.",
@@ -133,21 +111,19 @@
                 <label className="f"><span>Limit price</span>
                   <input type="text" value={limit} onChange={(e) => setLimit(e.target.value)} /></label>
               )}
-              <SleevePicker sleeve={sleeve} setSleeve={setSleeve}
-                note={needsApproval ? "This sleeve is not yours to act on, so the order becomes a proposal." : null} />
               {needsApproval && (
                 <label className="f"><span>Rationale for the Principal</span>
                   <textarea rows="3" value={rationale} onChange={(e) => setRationale(e.target.value)}
                     placeholder="Why this closes a gap in the mandate." /></label>
               )}
-              {overCash && <div className="note bad">Exceeds available cash in this sleeve ({u.usd(cash)}).</div>}
+              {overCash && <div className="note bad">Exceeds available cash ({u.usd(cash)}).</div>}
             </div>
           </div>
           <div style={{ width: 320 }}>
             <Impact subKey={instrument.sub} amount={side === "buy" ? notional : -notional} />
             <div className="kv mt12">
               <span className="k">Last price</span><span className="v">{instrument.px ? u.localPx(instrument) : "—"}</span>
-              <span className="k">Cash in sleeve</span><span className="v">{u.usd(cash)}</span>
+              <span className="k">Cash available</span><span className="v">{u.usd(cash)}</span>
               <span className="k">Settlement</span><span className="v">Same day</span>
             </div>
           </div>
@@ -161,21 +137,20 @@
     const st = S.useStore();
     const [amount, setAmount] = useState(amount0 || deal.min);
     const [ack, setAck] = useState(false);
-    const [sleeve, setSleeve] = useState(st.account === "successor" ? "alpha" : "core");
     const [rationale, setRationale] = useState("");
-    const capacity = S.alphaCapacity();
-    const overCapacity = st.account === "successor" && (sleeve === "core" || amount > capacity);
+    /* Every commitment the Successor makes is a proposal. */
+    const needsApproval = st.account === "successor";
     const belowMin = amount < deal.min;
 
     const confirm = () => {
-      const args = { deal, amount, sleeve: overCapacity ? "core" : sleeve };
-      if (overCapacity) {
+      const args = { deal, amount };
+      if (needsApproval) {
         S.actions.propose({
-          type: "Commitment", sleeve: "core", amount,
+          type: "Commitment", amount,
           title: "Commit " + u.usd(amount) + " to " + deal.name,
           target: deal.id,
-          rationale: rationale || ("Fills the " + u.subLabel(deal.fills) + " gap. Above the Alpha sleeve's remaining capacity of " + u.usd(capacity) + "."),
-          payload: { kind: "commit", args: { deal, amount, sleeve: "core" } },
+          rationale: rationale || ("Fills the " + u.subLabel(deal.fills) + " gap."),
+          payload: { kind: "commit", args },
         });
       } else {
         S.actions.commit(args);
@@ -193,7 +168,7 @@
             <div className="btn-row">
               <button className="btn" onClick={onClose}>Cancel</button>
               <button className="btn p" disabled={!ack || belowMin} onClick={confirm}>
-                {overCapacity ? "Submit proposal to Principal" : "Confirm commitment"}
+                {needsApproval ? "Submit proposal to Principal" : "Confirm commitment"}
               </button>
             </div>
           </>
@@ -204,16 +179,12 @@
               <label className="f"><span>Commitment amount (USD)</span>
                 <Amount value={amount} onChange={setAmount} min={deal.min} /></label>
               {belowMin && <div className="note bad">Below the minimum of {u.usd(deal.min)}.</div>}
-              <SleevePicker sleeve={sleeve} setSleeve={setSleeve} />
-              {st.account === "successor" && (
-                <div className={"note " + (overCapacity ? "warn" : "ok")}>
-                  Alpha sleeve capacity: <b>{u.usd(capacity)}</b>.{" "}
-                  {overCapacity
-                    ? "This commitment exceeds it, so the button submits a proposal to the Principal rather than executing."
-                    : "This commitment is within your authority and executes directly."}
+              {needsApproval && (
+                <div className="note warn">
+                  Commitments are settled by the Principal, so this submits a proposal rather than executing.
                 </div>
               )}
-              {overCapacity && (
+              {needsApproval && (
                 <label className="f"><span>Rationale for the Principal</span>
                   <textarea rows="3" value={rationale} onChange={(e) => setRationale(e.target.value)}
                     placeholder="Why this closes a gap in the mandate." /></label>
@@ -391,8 +362,7 @@
   function BuyNowFlow({ listing, onClose }) {
     const st = S.useStore();
     const consideration = Math.round(listing.size * listing.askPct / 100);
-    const capacity = S.alphaCapacity();
-    const overCapacity = st.account === "successor" && consideration > capacity;
+    const needsApproval = st.account === "successor";
     const discount = 100 - listing.askPct;
     return (
       <Modal title="Buy at the ask" sub={listing.instrument} onClose={onClose}
@@ -401,19 +371,19 @@
           <div className="btn-row">
             <button className="btn" onClick={onClose}>Cancel</button>
             <button className="btn p" onClick={() => {
-              if (overCapacity) {
+              if (needsApproval) {
                 S.actions.propose({
-                  type: "Secondary purchase", sleeve: "core", amount: consideration,
+                  type: "Secondary purchase", amount: consideration,
                   title: "Buy " + u.usd(listing.size) + " of " + listing.instrument + " at " + listing.askPct.toFixed(1) + "% of NAV",
                   target: listing.id,
-                  rationale: "Taking the ask on the secondary board. Above the Alpha sleeve's capacity of " + u.usd(capacity) + ".",
-                  payload: { kind: "buyListing", args: { listing, sleeve: "core" } },
+                  rationale: "Taking the ask on the secondary board.",
+                  payload: { kind: "buyListing", args: { listing } },
                 });
               } else {
-                S.actions.buyListing({ listing, sleeve: st.account === "successor" ? "alpha" : "core" });
+                S.actions.buyListing({ listing });
               }
               onClose();
-            }}>{overCapacity ? "Submit proposal to Principal" : "Buy at " + u.pct(listing.askPct)}</button>
+            }}>{needsApproval ? "Submit proposal to Principal" : "Buy at " + u.pct(listing.askPct)}</button>
           </div>
         </>}>
         <div className="kv mb16">
@@ -430,9 +400,9 @@
               judgement on the asset.</>
             : <>The ask is {u.pct(-discount)} above last NAV. Above the indicative range means paying for access.</>}
         </div>
-        {overCapacity && (
+        {needsApproval && (
           <div className="note warn mt12">
-            {u.usd(consideration)} exceeds the Alpha sleeve's remaining {u.usd(capacity)}, so this goes to the Principal.
+            The Principal approves commitments, so this is submitted rather than executed.
           </div>
         )}
       </Modal>

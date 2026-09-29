@@ -104,12 +104,6 @@
   function gaps(ps) {
     return bySub(ps).filter((s) => s.drift < -0.15).sort((a, b) => b.gapUsd - a.gapUsd);
   }
-  function sleeveTotals(ps) {
-    const t = total(ps);
-    const core = total(ps.filter((p) => p.sleeve === "core"));
-    const alpha = total(ps.filter((p) => p.sleeve === "alpha"));
-    return { core, alpha, total: t, corePct: (core / t) * 100, alphaPct: (alpha / t) * 100 };
-  }
   function unrealized(ps) { return sum(ps, (p) => p.value - p.cost); }
   function realizedYTD(ps) { return sum(ps, (p) => p.realizedYTD || 0); }
 
@@ -492,7 +486,7 @@
 
   BB.u = {
     usd, usdC, krwC, krwFull, pct, pp, sgn, sgnUsd, num, localPx, days, fmtDate, fmtTs, monthKey, monthLabel,
-    staleness, provLabel, sum, total, byClass, bySub, gaps, sleeveTotals, unrealized, realizedYTD,
+    staleness, provLabel, sum, total, byClass, bySub, gaps, unrealized, realizedYTD,
     liquidity90, liquidityProjection, shortfall, coverage, projectMix,
     modelSix, bySix, sixToFour, sixToSubs, pickForClass, holdingsSix, geoBucket, GEO_BUCKETS, topHoldings, affiliateExposure, taxLots, eligibility,
     fitFor, subLabel, clsLabel, clsOf, impact, modelWeights, marketContext, scoreFor, suggestAmount,

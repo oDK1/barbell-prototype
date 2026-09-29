@@ -363,6 +363,29 @@
     return docs;
   }
 
+
+  /* A listing read as an offering, so the board and the marketplace can be
+     scored on one scale. Merit is the discount to the last mark — on a
+     secondary that is the whole argument — and the return is the uplift a
+     buyer books immediately by paying below NAV. */
+  function listingView(l, ctx, funds) {
+    const consideration = Math.round(l.size * l.askPct / 100);
+    const discount = 100 - l.askPct;
+    const toNav = l.askPct ? (100 / l.askPct - 1) * 100 : 0;
+    const asOffering = { ...l, fills: l.sub, liq: "Locked", retNum: toNav,
+      fit: Math.max(5, Math.min(95, Math.round(50 + discount * 2))) };
+    const sc = scoreFor(asOffering, ctx);
+    let sug = suggestAmount(asOffering, ctx, funds);
+    /* nobody can buy more than is on offer */
+    if (sug && sug.amount > consideration) sug = { amount: consideration, gap: sug.gap, basis: "the whole listing" };
+    return {
+      asOffering, sc, sug, consideration, discount, toNav,
+      why: discount > 0
+        ? "Acquires " + usd(l.size) + " of stated NAV for " + usd(consideration) + " — a " + pct(discount) + " discount to the last mark."
+        : "Priced " + pct(-discount) + " above the last mark — the ask is for access, not for value.",
+    };
+  }
+
   /* ----------------------------------------------------------- projection */
   /* A lognormal fan: the mean path plus the 10th and 90th percentiles, given
      the class weights, their expected returns, their volatilities and how
@@ -510,7 +533,7 @@
     usd, usdC, krwC, krwFull, pct, pp, sgn, sgnUsd, num, localPx, days, fmtDate, fmtTs, monthKey, monthLabel,
     staleness, provLabel, sum, total, byClass, bySub, gaps, unrealized, realizedYTD,
     liquidity90, liquidityProjection, shortfall, coverage, projectMix,
-    modelSix, bySix, sixToFour, sixToSubs, pickForClass, holdingsSix, geoBucket, GEO_BUCKETS, listingDocs, topHoldings, affiliateExposure, taxLots, eligibility,
+    modelSix, bySix, sixToFour, sixToSubs, pickForClass, holdingsSix, geoBucket, GEO_BUCKETS, listingDocs, listingView, topHoldings, affiliateExposure, taxLots, eligibility,
     fitFor, subLabel, clsLabel, clsOf, impact, modelWeights, marketContext, scoreFor, suggestAmount,
   };
 })();

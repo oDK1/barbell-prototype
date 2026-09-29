@@ -17,12 +17,14 @@
 
   function Board() {
     const st = S.useStore();
-    const [f, setF] = useState("");
     const [list, setList] = useState(null);
     const [buy, setBuy] = useState(null);
     const [allRows, setAllRows] = useState(false);
     const [allMine, setAllMine] = useState(false);
-    const rows = st.listings.filter((l) => !f || l.status === f);
+    /* the board is what can be bought — settled listings are history */
+    const rows = st.listings.filter((l) => l.status === "Open");
+    const ctx = u.marketContext(st.positions, st.mandate, st.realizedClosed);
+    const funds = u.total(st.positions.filter((p) => p.cls === "cash"));
     /* eligible first: the rows that can actually be acted on */
     const mine = st.positions.filter((p) => p.liq !== "Daily")
       .sort((a, b) => (u.eligibility(b).ok ? 1 : 0) - (u.eligibility(a).ok ? 1 : 0) || b.value - a.value);
@@ -37,10 +39,6 @@
             <div className="eyebrow">Secondary · members only</div>
             <h1 className="mt8">Secondary board</h1>
           </div>
-          <div className="btn-row">
-            <BB.ui.Seg options={[{ v: "", label: "All" }, { v: "Open", label: "Open" }, { v: "Settled", label: "Settled" }]}
-              value={f} onChange={setF} />
-          </div>
         </div>
 
         <div className="panel mt16">
@@ -50,41 +48,53 @@
               Sellers are blind identifiers · a listing stays open until someone takes the ask or the seller accepts a bid
             </span>
           </div>
+          <div className="tscroll">
           <table className="t">
             <thead>
               <tr>
-                <th style={{ minWidth: 260 }}>Instrument</th><th>Vintage</th><th className="n">Last NAV</th><th className="n">Size offered</th>
-                <th className="n">Ask</th><th className="n">Indicative</th><th>Seller</th><th className="n">Days listed</th><th>Status</th><th></th>
+                <th style={{ minWidth: 240 }}>Instrument</th><th>Fills</th><th className="n">Return</th><th>Liquidity</th>
+                <th className="n">Last NAV</th><th className="n">Size offered</th><th className="n">Suggested</th><th className="n">Fit</th>
+                <th className="hide-narrow" style={{ minWidth: 170 }}>Why</th><th></th>
               </tr>
             </thead>
             <tbody>
-              {shownRows.map((l) => (
-                <tr key={l.id} className="clickable" onClick={() => S.navigate("/secondary/" + l.id)}>
-                  <td>
-                    <div className="tname">{l.instrument}</div>
-                    <div className="tsub">{u.subLabel(l.sub)} · {l.manager}</div>
-                  </td>
-                  <td className="num">{l.vintage}</td>
-                  <td className="n num">{u.usd(l.nav)}</td>
-                  <td className="n num">{u.usd(l.size)}</td>
-                  <td className="n num" style={{ fontWeight: 600 }}>{u.pct(l.askPct)}</td>
-                  <td className="n num tri">{l.indicative[0]}–{l.indicative[1]}%</td>
-                  <td className="mono" style={{ fontSize: 11 }}>{l.seller}</td>
-                  <td className="n num">{l.days}</td>
-                  <td><StatusBadge s={l.status} /></td>
-                  <td className="right">
-                    {l.status !== "Settled" && !l.mine
-                      ? 
-                          <button className="btn sm" onClick={(e) => { e.stopPropagation(); setBuy(l); }}>
+              {shownRows.map((l) => {
+                const v = u.listingView(l, ctx, funds);
+                return (
+                  <tr key={l.id} className="clickable" onClick={() => S.navigate("/secondary/" + l.id)}>
+                    <td>
+                      <div className="tname">{l.instrument}</div>
+                      <div className="tsub">{l.manager} · vintage {l.vintage}</div>
+                    </td>
+                    <td>{u.subLabel(l.sub)}<div className="tsub hide-narrow">{u.clsLabel(l.cls)}</div></td>
+                    <td className="n num">{u.pct(v.toNav)}
+                      <div className="tsub">to last NAV</div></td>
+                    <td><span className="bdg plain">Locked</span></td>
+                    <td className="n num">{u.usd(l.nav)}</td>
+                    <td className="n num">{u.usd(l.size)}</td>
+                    <td className="n">
+                      {v.sug
+                        ? <><span className="num" style={{ fontWeight: 600 }}>{u.usdC(v.sug.amount)}</span>
+                          <div className="tsub">{v.sug.basis}</div></>
+                        : <span className="tri">—</span>}
+                    </td>
+                    <td className="n"><Fit score={v.sc.score} /></td>
+                    <td className="hide-narrow" style={{ maxWidth: 260 }}>
+                      <div className="tsub" style={{ fontSize: 11.5, color: "var(--g1)" }}>{v.why}</div>
+                    </td>
+                    <td className="right">
+                      {!l.mine
+                        ? <button className="btn sm" onClick={(e) => { e.stopPropagation(); setBuy(l); }}>
                             Buy at {u.pct(l.askPct)}
                           </button>
-                        
-                      : <span className="tri">›</span>}
-                  </td>
-                </tr>
-              ))}
+                        : <span className="tri">›</span>}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
+          </div>
           {rows.length > SHOW && (
             <button className="btn block" style={{ border: 0, borderTop: "1px solid var(--g3)", borderRadius: 0 }}
               onClick={() => setAllRows(!allRows)}>
@@ -160,14 +170,10 @@
        a deal can be compared. On a secondary board the price is the merit
        argument, so merit is the discount to the last mark. */
     const ctx = u.marketContext(st.positions, st.mandate, st.realizedClosed);
-    const asOffering = { ...l, fills: l.sub, liq: "Locked", retNum: 0,
-      fit: Math.max(5, Math.min(95, Math.round(50 + discount * 2))) };
-    const sc = u.scoreFor(asOffering, ctx);
+    const sc = u.listingView(l, ctx).sc;
     const gap = u.bySub(st.positions).find((x) => x.key === l.sub);
     const gapWord = (x) => u.num(Math.abs(x || 0), 1) + "pp " + ((x || 0) > 0 ? "below" : "above") + " the model";
-    const why = discount > 0
-      ? "Acquires " + u.usd(l.size) + " of stated NAV for " + u.usd(consideration) + " — a " + u.pct(discount) + " discount to the last mark."
-      : "Priced " + u.pct(-discount) + " above the last mark — the ask is for access, not for value.";
+    const why = u.listingView(l, ctx).why;
 
     const tabs = [{ k: "thesis", label: "Overview" }, { k: "terms", label: "Terms" },
       { k: "docs", label: "Documents", n: u.listingDocs(l).length }];

@@ -29,11 +29,6 @@
             <div style={{ fontSize: 26, fontWeight: 600 }}><Delta v={v - p.bench} pp /></div>
             <div className="tri" style={{ fontSize: 11 }}>after fees</div>
           </div>
-          <div style={{ borderLeft: "1px solid var(--g3)", paddingLeft: 28 }}>
-            <div className="lbl">of which FX</div>
-            <div style={{ fontSize: 26, fontWeight: 600 }}><Delta v={p.fx} pp /></div>
-            <div className="tri" style={{ fontSize: 11 }}>KRW base, broken out separately</div>
-          </div>
         </div>
       </Panel>
     );

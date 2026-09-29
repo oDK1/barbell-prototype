@@ -264,12 +264,6 @@
                   <span className="k">Realised year to date</span><span className="v">{u.usdC(ctx.tax.realized)}</span>
                   <span className="k">Harvestable loss</span>
                   <span className="v">{u.usdC(ctx.tax.harvestable)}{ctx.tax.harvestCount ? " · " + ctx.tax.harvestCount + " lots" : ""}</span>
-                  <span className="k">Inside 65 days of long-term</span><span className="v">{ctx.tax.nearLT} lots</span>
-                </div>
-                <div className="tri mt8" style={{ fontSize: 11 }}>
-                  {ctx.tax.realized > 250000
-                    ? "With gains already booked, offerings that defer to exit score above those paying taxable income now."
-                    : "Little realised so far, so income and deferral are scored alike."}
                 </div>
                 <button className="btn sm block mt8" onClick={() => S.navigate("/portfolio?tab=tax")}>Open the tax view</button>
               </Panel>

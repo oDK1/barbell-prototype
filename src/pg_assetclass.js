@@ -265,7 +265,6 @@
           <div className="cell"><div className="stat-l">Cost basis</div><div className="stat-v"><Money v={u.sum(all, (p) => p.cost)} compact /></div></div>
           <div className="cell"><div className="stat-l">Unrealised</div><div className="stat-v"><Delta v={u.unrealized(all)} usd /></div>
             <div className="stat-s">{u.sgn((u.unrealized(all) / u.sum(all, (p) => p.cost)) * 100)} on cost</div></div>
-          <div className="cell"><div className="stat-l">Realised YTD</div><div className="stat-v"><Money v={u.realizedYTD(all)} compact /></div></div>
           <div className="cell"><div className="stat-l">Daily-liquid share</div>
             <div className="stat-v">{u.pct((u.total(all.filter((p) => p.liq === "Daily")) / clsTotal) * 100)}</div>
             <div className="stat-s">{u.usdC(u.total(all.filter((p) => p.liq === "Daily")))} realisable</div></div>

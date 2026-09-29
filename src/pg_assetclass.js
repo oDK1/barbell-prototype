@@ -6,25 +6,18 @@
   const { Money, Delta, Panel, Seg, ProvBadge, SleeveBadge, Lock, Crumb, Fit } = BB.ui;
   const { Agent } = BB.agent;
 
-  /* YTD contribution of currency translation, by denomination. */
-  const FX_RET = { USD: 0, KRW: -1.2, JPY: -3.4, EUR: 0.8 };
-
   function PerfModule({ positions, clsKey }) {
     const [win, setWin] = useState("YTD");
-    const [hedged, setHedged] = useState(false);
     const p = D.performance[win];
-    const v = hedged ? p.hedged : p.port;
+    const v = p.port;
     return (
       <Panel title="Performance vs benchmark" sub={D.benchmark.label}
-        right={<>
-          <Seg options={[{ v: "MTD", label: "MTD" }, { v: "QTD", label: "QTD" }, { v: "YTD", label: "YTD" }, { v: "ITD", label: "Since inception" }]} value={win} onChange={setWin} />
-          <button className={"btn sm" + (hedged ? " p" : "")} onClick={() => setHedged(!hedged)}>KRW-hedged</button>
-        </>}>
+        right={<Seg options={[{ v: "MTD", label: "MTD" }, { v: "QTD", label: "QTD" }, { v: "YTD", label: "YTD" }, { v: "ITD", label: "Since inception" }]} value={win} onChange={setWin} />}>
         <div className="row" style={{ gap: 28 }}>
           <div>
             <div className="lbl">Time-weighted return</div>
             <div className="num" style={{ fontSize: 26, fontWeight: 600, letterSpacing: "-.02em" }}>{u.sgn(v)}</div>
-            <div className="tri" style={{ fontSize: 11 }}>{hedged ? "hedged to KRW" : "unhedged, USD base"}</div>
+            <div className="tri" style={{ fontSize: 11 }}>USD base</div>
           </div>
           <div>
             <div className="lbl">Benchmark</div>
@@ -44,7 +37,7 @@
         </div>
         <div className="note mt12">
           A Korean family running USD assets against a KRW base needs the decomposition, not the headline: of the{" "}
-          {u.sgn(p.port)} unhedged return, <b>{u.pp(p.fx)}</b> is currency translation and{" "}
+          {u.sgn(p.port)} total return, <b>{u.pp(p.fx)}</b> is currency translation and{" "}
           <b>{u.pp(p.port - p.fx)}</b> is the assets themselves.
         </div>
       </Panel>
@@ -141,7 +134,6 @@
             <th className="n">Value</th>
             <th className="n">Unrealised</th>
             <th className="n">Wt total</th>
-            <th className="n hide-narrow">FX</th>
             <th className="hide-narrow">Tags</th>
             <th></th>
           </tr>
@@ -150,7 +142,6 @@
           {rows.map((p) => {
             const listed = p.liq === "Daily";
             const el = u.eligibility(p);
-            const fx = FX_RET[p.ccy] || 0;
             return (
               <tr key={p.id}>
                 <td>
@@ -170,10 +161,6 @@
                 <td className="n"><Delta v={p.value - p.cost} usd />
                   <span className="krw">{u.sgn(((p.value - p.cost) / p.cost) * 100)}</span></td>
                 <td className="n num">{u.pct((p.value / total) * 100)}</td>
-                <td className="n hide-narrow">
-                  <span className="bdg plain">{p.ccy}</span>
-                  {fx !== 0 && <div className="krw"><Delta v={fx} pp /></div>}
-                </td>
                 <td className="hide-narrow">
                   <span className="chip">{p.sector}</span>
                   <span className="chip">{p.geo}</span>

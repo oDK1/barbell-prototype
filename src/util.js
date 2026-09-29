@@ -334,6 +334,19 @@
     });
   }
 
+
+  /* Three buckets for the marketplace's geography filter. Offerings carry a
+     specific country or region; this folds them into what a family actually
+     filters on. */
+  const ASIA = ["Korea", "Japan", "China", "Taiwan", "India", "Singapore", "Hong Kong", "Asia", "Asia-Pacific"];
+  function geoBucket(geo) {
+    if (!geo) return "ROW";
+    if (geo === "United States") return "United States";
+    if (ASIA.indexOf(geo) >= 0) return "Asia";
+    return "ROW";
+  }
+  const GEO_BUCKETS = ["United States", "Asia", "ROW"];
+
   /* ----------------------------------------------------------- projection */
   /* A lognormal fan: the mean path plus the 10th and 90th percentiles, given
      the class weights, their expected returns, their volatilities and how
@@ -481,7 +494,7 @@
     usd, usdC, krwC, krwFull, pct, pp, sgn, sgnUsd, num, localPx, days, fmtDate, fmtTs, monthKey, monthLabel,
     staleness, provLabel, sum, total, byClass, bySub, gaps, sleeveTotals, unrealized, realizedYTD,
     liquidity90, liquidityProjection, shortfall, coverage, projectMix,
-    modelSix, bySix, sixToFour, sixToSubs, pickForClass, holdingsSix, topHoldings, affiliateExposure, taxLots, eligibility,
+    modelSix, bySix, sixToFour, sixToSubs, pickForClass, holdingsSix, geoBucket, GEO_BUCKETS, topHoldings, affiliateExposure, taxLots, eligibility,
     fitFor, subLabel, clsLabel, clsOf, impact, modelWeights, marketContext, scoreFor, suggestAmount,
   };
 })();

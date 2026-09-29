@@ -80,10 +80,13 @@
 
     const pass = (m) => {
       if (gapFocus && m.fills !== gapFocus) return false;
-      if (f.cls && m.cls !== f.cls) return false;
+      if (f.cls) {
+        const mc = D.modelClasses.find((c) => c.key === f.cls);
+        if (!mc || mc.subs.indexOf(m.fills) < 0) return false;
+      }
       if (f.liq && m.liq !== f.liq) return false;
       if (f.sector && m.sector !== f.sector) return false;
-      if (f.geo && m.geo !== f.geo) return false;
+      if (f.geo && u.geoBucket(m.geo) !== f.geo) return false;
       if (f.ret && m.retNum < +f.ret) return false;
       if (q && !(m.name + " " + (m.ticker || "") + " " + m.sector).toLowerCase().includes(q.toLowerCase())) return false;
       return true;
@@ -101,7 +104,6 @@
       ? u.total(st.positions.filter((x) => x.cls === "cash"))
       : S.alphaCapacity();
     const sectors = Array.from(new Set(offered.map((m) => m.sector))).sort();
-    const geos = Array.from(new Set(offered.map((m) => m.geo))).sort();
 
     const open = (m) => S.navigate("/marketplace/" + m.id);
     const onAct = (m, amount) => setAct({ m, amount });
@@ -126,7 +128,7 @@
                   </div>
                   <div className="f-item"><label className="f"><span>Asset class</span>
                     <select value={f.cls} onChange={(e) => setF({ ...f, cls: e.target.value })}>
-                      <option value="">Any</option>{D.classes.map((c) => <option key={c.key} value={c.key}>{c.label}</option>)}
+                      <option value="">Any</option>{D.modelClasses.map((c) => <option key={c.key} value={c.key}>{c.label}</option>)}
                     </select></label></div>
                   <div className="f-item"><label className="f"><span>Liquidity</span>
                     <select value={f.liq} onChange={(e) => setF({ ...f, liq: e.target.value })}>
@@ -138,7 +140,7 @@
                     </select></label></div>
                   <div className="f-item"><label className="f"><span>Geography</span>
                     <select value={f.geo} onChange={(e) => setF({ ...f, geo: e.target.value })}>
-                      <option value="">Any</option>{geos.map((s) => <option key={s}>{s}</option>)}
+                      <option value="">Any</option>{u.GEO_BUCKETS.map((g) => <option key={g}>{g}</option>)}
                     </select></label></div>
                   <div className="f-item"><label className="f"><span>Target return</span>
                     <select value={f.ret} onChange={(e) => setF({ ...f, ret: e.target.value })}>

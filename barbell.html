@@ -2086,6 +2086,19 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     });
   }
 
+
+  /* Three buckets for the marketplace's geography filter. Offerings carry a
+     specific country or region; this folds them into what a family actually
+     filters on. */
+  const ASIA = ["Korea", "Japan", "China", "Taiwan", "India", "Singapore", "Hong Kong", "Asia", "Asia-Pacific"];
+  function geoBucket(geo) {
+    if (!geo) return "ROW";
+    if (geo === "United States") return "United States";
+    if (ASIA.indexOf(geo) >= 0) return "Asia";
+    return "ROW";
+  }
+  const GEO_BUCKETS = ["United States", "Asia", "ROW"];
+
   /* ----------------------------------------------------------- projection */
   /* A lognormal fan: the mean path plus the 10th and 90th percentiles, given
      the class weights, their expected returns, their volatilities and how
@@ -2233,7 +2246,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     usd, usdC, krwC, krwFull, pct, pp, sgn, sgnUsd, num, localPx, days, fmtDate, fmtTs, monthKey, monthLabel,
     staleness, provLabel, sum, total, byClass, bySub, gaps, sleeveTotals, unrealized, realizedYTD,
     liquidity90, liquidityProjection, shortfall, coverage, projectMix,
-    modelSix, bySix, sixToFour, sixToSubs, pickForClass, holdingsSix, topHoldings, affiliateExposure, taxLots, eligibility,
+    modelSix, bySix, sixToFour, sixToSubs, pickForClass, holdingsSix, geoBucket, GEO_BUCKETS, topHoldings, affiliateExposure, taxLots, eligibility,
     fitFor, subLabel, clsLabel, clsOf, impact, modelWeights, marketContext, scoreFor, suggestAmount,
   };
 })();
@@ -5407,10 +5420,13 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
     const pass = (m) => {
       if (gapFocus && m.fills !== gapFocus) return false;
-      if (f.cls && m.cls !== f.cls) return false;
+      if (f.cls) {
+        const mc = D.modelClasses.find((c) => c.key === f.cls);
+        if (!mc || mc.subs.indexOf(m.fills) < 0) return false;
+      }
       if (f.liq && m.liq !== f.liq) return false;
       if (f.sector && m.sector !== f.sector) return false;
-      if (f.geo && m.geo !== f.geo) return false;
+      if (f.geo && u.geoBucket(m.geo) !== f.geo) return false;
       if (f.ret && m.retNum < +f.ret) return false;
       if (q && !(m.name + " " + (m.ticker || "") + " " + m.sector).toLowerCase().includes(q.toLowerCase())) return false;
       return true;
@@ -5428,7 +5444,6 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       ? u.total(st.positions.filter((x) => x.cls === "cash"))
       : S.alphaCapacity();
     const sectors = Array.from(new Set(offered.map((m) => m.sector))).sort();
-    const geos = Array.from(new Set(offered.map((m) => m.geo))).sort();
 
     const open = (m) => S.navigate("/marketplace/" + m.id);
     const onAct = (m, amount) => setAct({ m, amount });
@@ -5453,7 +5468,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                   </div>
                   <div className="f-item"><label className="f"><span>Asset class</span>
                     <select value={f.cls} onChange={(e) => setF({ ...f, cls: e.target.value })}>
-                      <option value="">Any</option>{D.classes.map((c) => <option key={c.key} value={c.key}>{c.label}</option>)}
+                      <option value="">Any</option>{D.modelClasses.map((c) => <option key={c.key} value={c.key}>{c.label}</option>)}
                     </select></label></div>
                   <div className="f-item"><label className="f"><span>Liquidity</span>
                     <select value={f.liq} onChange={(e) => setF({ ...f, liq: e.target.value })}>
@@ -5465,7 +5480,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                     </select></label></div>
                   <div className="f-item"><label className="f"><span>Geography</span>
                     <select value={f.geo} onChange={(e) => setF({ ...f, geo: e.target.value })}>
-                      <option value="">Any</option>{geos.map((s) => <option key={s}>{s}</option>)}
+                      <option value="">Any</option>{u.GEO_BUCKETS.map((g) => <option key={g}>{g}</option>)}
                     </select></label></div>
                   <div className="f-item"><label className="f"><span>Target return</span>
                     <select value={f.ret} onChange={(e) => setF({ ...f, ret: e.target.value })}>

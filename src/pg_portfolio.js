@@ -77,82 +77,50 @@
 
   /* ------------------------------------------------------- allocation tab */
   function AllocationTab({ positions }) {
-    const [open, setOpen] = useState({});
-    const cls = u.byClass(positions);
-    const subs = u.bySub(positions);
     const t = u.total(positions);
-    const worst = [...cls].sort((a, b) => Math.abs(b.drift) - Math.abs(a.drift))[0];
-    const over = [...cls].sort((a, b) => b.drift - a.drift)[0];
-    const short2 = subs.filter((s) => s.drift < 0).sort((a, b) => a.drift - b.drift).slice(0, 2);
-    const mandateLabel = (D.mandates.find((m) => m.key === S.get().mandate) || D.mandates[1]).label;
-    const t2 = u.total(positions);
-    const model = u.modelWeights(t2, S.get().mandate);
+    const rows = u.holdingsSix(positions, S.get().mandate);
 
     return (
       <>
         <div className="panel mt16">
           <div className="panel-hd">
             <h3>Holdings by class</h3>
-            <span className="tri" style={{ fontSize: 11 }}>Click a class to expand · click a subcategory for positions</span>
+            <span className="tri" style={{ fontSize: 11 }}>Six classes · click one for the positions inside it</span>
           </div>
           <table className="t">
             <thead>
               <tr>
-                <th style={{ width: 300 }}>Class / subcategory</th>
+                <th style={{ width: 260 }}>Asset class</th>
                 <th className="n">Positions</th>
-                <th style={{ width: 160 }}>Weight vs target</th>
-                <th className="n">Current</th>
-                <th className="n">Target</th>
-                <th className="n">vs target</th>
+                <th style={{ width: 160 }}>Weight vs model</th>
+                <th className="n">Held</th>
+                <th className="n">Model</th>
+                <th className="n">vs model</th>
                 <th className="n">Value</th>
                 <th className="n">Unrealised</th>
                 <th></th>
               </tr>
             </thead>
             <tbody>
-              {cls.map((c) => {
-                const items = positions.filter((p) => p.cls === c.key);
-                const un = u.unrealized(items);
-                const isOpen = !!open[c.key];
-                return (
-                  <React.Fragment key={c.key}>
-                    <tr className="clickable" onClick={() => setOpen({ ...open, [c.key]: !isOpen })}
-                      style={{ background: isOpen ? "#FCFBF8" : undefined }}>
-                      <td>
-                        <span style={{ display: "inline-flex", gap: 8, alignItems: "center", fontWeight: 600 }}>
-                          <span style={{ width: 9, fontSize: 11, color: "var(--g1)" }}>{isOpen ? "▾" : "▸"}</span>
-                          <i className={"sw " + c.sw} style={{ width: 9, height: 9, display: "inline-block" }} />
-                          {c.label}
-                        </span>
-                      </td>
-                      <td className="n num tri">{c.count}</td>
-                      <td><MiniBar cur={c.wt} target={c.target} max={45} /></td>
-                      <td className="n num">{u.pct(c.wt)}</td>
-                      <td className="n num tri">{u.pct(c.target)}</td>
-                      <td className="n"><VsTarget v={c.drift} /></td>
-                      <td className="n"><Money v={c.value} /></td>
-                      <td className="n"><Delta v={un} usd /></td>
-                      <td className="right"><button className="btn sm" onClick={(e) => { e.stopPropagation(); S.navigate("/portfolio/" + c.key); }}>Open</button></td>
-                    </tr>
-                    {isOpen && subs.filter((s) => s.cls === c.key).map((s) => (
-                      <tr key={s.key} className="clickable" onClick={() => S.navigate("/portfolio/" + c.key + "?sub=" + s.key)}>
-                        <td style={{ paddingLeft: 34 }}>
-                          <div className="tname">{s.label}</div>
-                          {s.note && <div className="tsub">{s.note}</div>}
-                        </td>
-                        <td className="n num tri">{s.count}</td>
-                        <td><MiniBar cur={s.wt} target={s.target} max={30} /></td>
-                        <td className="n num">{u.pct(s.wt)}</td>
-                        <td className="n num tri">{u.pct(s.target)}</td>
-                        <td className="n"><VsTarget v={s.drift} /></td>
-                        <td className="n num">{u.usd(s.value)}</td>
-                        <td className="n"><Delta v={u.unrealized(positions.filter((p) => p.sub === s.key))} usd /></td>
-                        <td></td>
-                      </tr>
-                    ))}
-                  </React.Fragment>
-                );
-              })}
+              {rows.map((c) => (
+                <tr key={c.key} className="clickable" onClick={() => S.navigate(c.route)}>
+                  <td>
+                    <span style={{ display: "inline-flex", gap: 8, alignItems: "center", fontWeight: 600 }}>
+                      <i className="sw" style={{ width: 9, height: 9, display: "inline-block", background: c.color }} />
+                      {c.label}
+                    </span>
+                    <div className="tsub">{c.note}</div>
+                  </td>
+                  <td className="n num tri">{c.count}</td>
+                  <td><MiniBar cur={c.wt} target={c.model} max={45} /></td>
+                  <td className="n num">{u.pct(c.wt)}</td>
+                  <td className="n num tri">{u.pct(c.model)}</td>
+                  <td className="n"><VsTarget v={c.drift} /></td>
+                  <td className="n"><Money v={c.value} /></td>
+                  <td className="n"><Delta v={c.unrealized} usd /></td>
+                  <td className="right"><button className="btn sm" onClick={(e) => { e.stopPropagation(); S.navigate(c.route); }}>Open</button></td>
+                </tr>
+              ))}
             </tbody>
             <tfoot>
               <tr>

@@ -307,6 +307,27 @@
       .sort((a, b) => b.fit - a.fit)[0] || null;
   }
 
+
+  /* Holdings rolled into the six model classes, with the model for this book's
+     size and objective beside them. One row per class, no subcategory level. */
+  function holdingsSix(positions, goalKey) {
+    const t = total(positions);
+    const m = modelSix(t, goalKey);
+    return D.modelClasses.map((c) => {
+      const items = positions.filter((p) => c.subs.indexOf(p.sub) >= 0);
+      const v = total(items);
+      const wt = t ? (v / t) * 100 : 0;
+      /* every model class sits inside exactly one of the four book classes, so
+         a single-subcategory class can deep-link to it */
+      const parent = (D.subs.find((x) => x.key === c.subs[0]) || {}).cls;
+      return {
+        ...c, items, value: v, wt, count: items.length, unrealized: unrealized(items),
+        model: m.w[c.key], drift: wt - m.w[c.key], blocked: !!m.blocked[c.key],
+        route: "/portfolio/" + parent + (c.subs.length === 1 ? "?sub=" + c.subs[0] : ""),
+      };
+    });
+  }
+
   /* ----------------------------------------------------------- projection */
   /* A lognormal fan: the mean path plus the 10th and 90th percentiles, given
      the class weights, their expected returns, their volatilities and how
@@ -451,7 +472,7 @@
     usd, usdC, krwC, krwFull, pct, pp, sgn, sgnUsd, num, localPx, days, fmtDate, fmtTs, monthKey, monthLabel,
     staleness, provLabel, sum, total, byClass, bySub, gaps, sleeveTotals, unrealized, realizedYTD,
     liquidity90, liquidityProjection, shortfall, coverage, projectMix,
-    modelSix, bySix, sixToFour, sixToSubs, pickForClass, topHoldings, affiliateExposure, taxLots, eligibility,
+    modelSix, bySix, sixToFour, sixToSubs, pickForClass, holdingsSix, topHoldings, affiliateExposure, taxLots, eligibility,
     fitFor, subLabel, clsLabel, clsOf, impact, modelWeights, marketContext, scoreFor, suggestAmount,
   };
 })();

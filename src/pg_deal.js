@@ -118,11 +118,6 @@
                     <b>Hanwha Life holds an anchor position in this instrument, on the same terms.</b>
                   </div>
                   <div className="prose mt12">{m.anchor}</div>
-                  <div className="prose mt12">
-                    Barbell shows this because it is the trust argument. The platform is not selling inventory it declined
-                    to own: where an opportunity is Hanwha-originated, the institution's own balance sheet is in the same
-                    security, at the same price, with the same documentation. Where it is not, the badge is absent.
-                  </div>
                   <table className="t dense mt16">
                     <tbody>
                       <tr><td className="tri" style={{ width: 200 }}>Anchor investor</td><td className="tname">Hanwha Life Insurance</td></tr>

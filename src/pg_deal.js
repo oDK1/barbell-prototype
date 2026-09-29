@@ -52,7 +52,6 @@
         <div className="band mt16">
           <div className="cell"><div className="stat-l">{isListed ? "Yield / return" : "Target return"}</div><div className="stat-v sm">{m.ret}</div></div>
           <div className="cell"><div className="stat-l">Liquidity</div><div className="stat-v sm">{m.liq}</div><div className="stat-s">{m.term || "—"}</div></div>
-          <div className="cell"><div className="stat-l">Minimum</div><div className="stat-v sm"><Money v={m.min} compact /></div></div>
           <div className="cell"><div className="stat-l">Availability</div><div className="stat-v sm" style={{ fontSize: 14 }}>{m.avail}</div></div>
           <div className="cell"><div className="stat-l">Fit</div><div className="stat-v sm"><Fit score={sc.score} /></div>
             <div className="stat-s">{m.why}</div></div>
@@ -135,7 +134,6 @@
             <Panel title="Transaction" sub={isListed ? "Order ticket · same-day settlement" : "Subscription · closes " + (m.closing === "Quarterly close" ? "at the next quarterly close" : u.fmtDate(m.closing))}>
               <div className="kv">
                 <span className="k">Mechanic</span><span className="v">{isListed ? "Buy" : "Commit"}</span>
-                <span className="k">Minimum</span><span className="v">{u.usd(m.min)}</span>
                 <span className="k">Liquidity</span><span className="v">{m.liq}</span>
                 {m.expense !== undefined && <><span className="k">Expense ratio</span><span className="v">{u.pct(m.expense, 2)}</span></>}
                 {m.ytm !== undefined && <><span className="k">Yield to maturity</span><span className="v">{u.pct(m.ytm, 2)}</span></>}
@@ -208,7 +206,6 @@
             <div className="row" style={{ gap: 32 }}>
               <div><div className="lbl">Liquidity</div><div>{m.liq}</div></div>
               <div><div className="lbl">Target return</div><div style={{ filter: "blur(5px)", userSelect: "none" }}>{m.ret}</div></div>
-              <div><div className="lbl">Minimum</div><div style={{ filter: "blur(5px)", userSelect: "none" }}>{u.usd(m.min)}</div></div>
               <div><div className="lbl">Allocation remaining</div><div style={{ filter: "blur(5px)", userSelect: "none" }}>{m.avail}</div></div>
             </div>
             <div className="note mt16">

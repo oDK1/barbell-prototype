@@ -135,12 +135,11 @@
   /* ------------------------------------------------------- subscription */
   function CommitFlow({ deal, amount0, onClose }) {
     const st = S.useStore();
-    const [amount, setAmount] = useState(amount0 || deal.min);
+    const [amount, setAmount] = useState(amount0 || "");
     const [ack, setAck] = useState(false);
     const [rationale, setRationale] = useState("");
     /* Every commitment the Successor makes is a proposal. */
     const needsApproval = st.account === "successor";
-    const belowMin = amount < deal.min;
 
     const confirm = () => {
       const args = { deal, amount };
@@ -167,7 +166,7 @@
             </div>
             <div className="btn-row">
               <button className="btn" onClick={onClose}>Cancel</button>
-              <button className="btn p" disabled={!ack || belowMin} onClick={confirm}>
+              <button className="btn p" disabled={!ack || !amount} onClick={confirm}>
                 {needsApproval ? "Submit proposal to Principal" : "Confirm commitment"}
               </button>
             </div>
@@ -177,8 +176,7 @@
           <div style={{ flex: 1 }}>
             <div className="grid" style={{ gap: 12 }}>
               <label className="f"><span>Commitment amount (USD)</span>
-                <Amount value={amount} onChange={setAmount} min={deal.min} /></label>
-              {belowMin && <div className="note bad">Below the minimum of {u.usd(deal.min)}.</div>}
+                <Amount value={amount} onChange={setAmount} /></label>
               {needsApproval && (
                 <div className="note warn">
                   Commitments are settled by the Principal, so this submits a proposal rather than executing.
@@ -198,7 +196,6 @@
           <div style={{ width: 320 }}>
             <Impact subKey={deal.fills} amount={amount || 0} />
             <div className="kv mt12">
-              <span className="k">Minimum</span><span className="v">{u.usd(deal.min)}</span>
               <span className="k">Liquidity</span><span className="v">{deal.liq}{deal.term ? " · " + deal.term : ""}</span>
               <span className="k">Target return</span><span className="v">{deal.ret}</span>
               <span className="k">Availability</span><span className="v">{deal.avail}</span>
@@ -438,7 +435,6 @@
               <div><div className="lbl">Asset class</div><div>{u.subLabel(deal.fills)}</div></div>
               <div><div className="lbl">Liquidity</div><div>{deal.liq}</div></div>
               <div><div className="lbl">Target return</div><div style={{ filter: "blur(4px)", userSelect: "none" }}>{deal.ret}</div></div>
-              <div><div className="lbl">Minimum</div><div style={{ filter: "blur(4px)", userSelect: "none" }}>{u.usd(deal.min)}</div></div>
             </div>
             <div className="note mt12">Terms and allocation are visible to members. Request an introduction to continue.</div>
             <button className="btn p mt12" onClick={() => S.navigate("/invitation?deal=" + deal.id)}>Preview the invitation screen →</button>

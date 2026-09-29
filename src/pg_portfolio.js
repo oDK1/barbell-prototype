@@ -383,7 +383,7 @@
                                   <span className="sug-l">Suggested for {c.label.toLowerCase()}</span>
                                   <span className="sug-n">{deal.name}</span>
                                   <span className="sug-s">
-                                    {deal.ret && deal.ret !== "—" ? deal.ret + " · " : ""}{deal.liq} · minimum {u.usd(deal.min)}
+                                    {deal.ret && deal.ret !== "—" ? deal.ret + " · " : ""}{deal.liq}
                                     {deal.hanwha ? " · Hanwha-sourced" : ""} · {deal.why}
                                   </span>
                                   <span className="sug-go">Open in the marketplace →</span>

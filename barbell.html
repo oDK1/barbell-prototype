@@ -2220,19 +2220,19 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   }
 
   /* What it would take of this offering to bring its subcategory to the model.
-     If that is less than the offering will accept, the minimum is the answer. */
+     Offerings carry no minimum, so the gap — capped at fundable cash — is
+     the answer. */
   function suggestAmount(m, ctx, funds) {
     const gap = ((ctx.under[m.fills] || 0) / 100) * ctx.t;
     if (gap <= 0) return null;
-    let amount = Math.round(Math.max(gap, m.min) / 1e4) * 1e4;
-    let basis = m.min > gap ? "the minimum" : "to reach the model";
+    let amount = Math.round(gap / 1e4) * 1e4;
+    let basis = "to reach the model";
     /* a proposal nobody can fund is not a proposal */
     if (funds !== undefined && amount > funds) {
-      if (m.min > funds) return { amount: m.min, gap, basis: "above available cash", unfunded: true };
       amount = Math.floor(funds / 1e4) * 1e4;
       basis = "as far as cash goes";
     }
-    return { amount, gap, basis, atMinimum: m.min > gap };
+    return { amount, gap, basis };
   }
 
   /* -------------------------------------------------------- deal fit logic */
@@ -3363,12 +3363,11 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   /* ------------------------------------------------------- subscription */
   function CommitFlow({ deal, amount0, onClose }) {
     const st = S.useStore();
-    const [amount, setAmount] = useState(amount0 || deal.min);
+    const [amount, setAmount] = useState(amount0 || "");
     const [ack, setAck] = useState(false);
     const [rationale, setRationale] = useState("");
     /* Every commitment the Successor makes is a proposal. */
     const needsApproval = st.account === "successor";
-    const belowMin = amount < deal.min;
 
     const confirm = () => {
       const args = { deal, amount };
@@ -3395,7 +3394,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
             </div>
             <div className="btn-row">
               <button className="btn" onClick={onClose}>Cancel</button>
-              <button className="btn p" disabled={!ack || belowMin} onClick={confirm}>
+              <button className="btn p" disabled={!ack || !amount} onClick={confirm}>
                 {needsApproval ? "Submit proposal to Principal" : "Confirm commitment"}
               </button>
             </div>
@@ -3405,8 +3404,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
           <div style={{ flex: 1 }}>
             <div className="grid" style={{ gap: 12 }}>
               <label className="f"><span>Commitment amount (USD)</span>
-                <Amount value={amount} onChange={setAmount} min={deal.min} /></label>
-              {belowMin && <div className="note bad">Below the minimum of {u.usd(deal.min)}.</div>}
+                <Amount value={amount} onChange={setAmount} /></label>
               {needsApproval && (
                 <div className="note warn">
                   Commitments are settled by the Principal, so this submits a proposal rather than executing.
@@ -3426,7 +3424,6 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
           <div style={{ width: 320 }}>
             <Impact subKey={deal.fills} amount={amount || 0} />
             <div className="kv mt12">
-              <span className="k">Minimum</span><span className="v">{u.usd(deal.min)}</span>
               <span className="k">Liquidity</span><span className="v">{deal.liq}{deal.term ? " · " + deal.term : ""}</span>
               <span className="k">Target return</span><span className="v">{deal.ret}</span>
               <span className="k">Availability</span><span className="v">{deal.avail}</span>
@@ -3666,7 +3663,6 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
               <div><div className="lbl">Asset class</div><div>{u.subLabel(deal.fills)}</div></div>
               <div><div className="lbl">Liquidity</div><div>{deal.liq}</div></div>
               <div><div className="lbl">Target return</div><div style={{ filter: "blur(4px)", userSelect: "none" }}>{deal.ret}</div></div>
-              <div><div className="lbl">Minimum</div><div style={{ filter: "blur(4px)", userSelect: "none" }}>{u.usd(deal.min)}</div></div>
             </div>
             <div className="note mt12">Terms and allocation are visible to members. Request an introduction to continue.</div>
             <button className="btn p mt12" onClick={() => S.navigate("/invitation?deal=" + deal.id)}>Preview the invitation screen →</button>
@@ -4469,7 +4465,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                                   <span className="sug-l">Suggested for {c.label.toLowerCase()}</span>
                                   <span className="sug-n">{deal.name}</span>
                                   <span className="sug-s">
-                                    {deal.ret && deal.ret !== "—" ? deal.ret + " · " : ""}{deal.liq} · minimum {u.usd(deal.min)}
+                                    {deal.ret && deal.ret !== "—" ? deal.ret + " · " : ""}{deal.liq}
                                     {deal.hanwha ? " · Hanwha-sourced" : ""} · {deal.why}
                                   </span>
                                   <span className="sug-go">Open in the marketplace →</span>
@@ -5277,7 +5273,6 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
           <span className="bdg plain">{m.liq}</span>
           {m.term && m.term !== "—" && <div className="tsub hide-narrow">{m.term}</div>}
         </td>
-        <td className="n num">{u.usd(m.min)}</td>
         <td className="n">
           {sug
             ? <><span className="num" style={{ fontWeight: 600, opacity: sug.unfunded ? .5 : 1 }}>{u.usdC(sug.amount)}</span>
@@ -5305,7 +5300,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       <thead>
         <tr>
           <th>Opportunity</th><th>Fills</th><th className="n">Return</th><th>Liquidity</th>
-          <th className="n">Minimum</th><th className="n">Suggested</th><th className="n">Fit</th>
+          <th className="n">Suggested</th><th className="n">Fit</th>
           <th className="hide-narrow" style={{ minWidth: 170 }}>Why</th><th></th>
         </tr>
       </thead>
@@ -5577,7 +5572,6 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
         <div className="band mt16">
           <div className="cell"><div className="stat-l">{isListed ? "Yield / return" : "Target return"}</div><div className="stat-v sm">{m.ret}</div></div>
           <div className="cell"><div className="stat-l">Liquidity</div><div className="stat-v sm">{m.liq}</div><div className="stat-s">{m.term || "—"}</div></div>
-          <div className="cell"><div className="stat-l">Minimum</div><div className="stat-v sm"><Money v={m.min} compact /></div></div>
           <div className="cell"><div className="stat-l">Availability</div><div className="stat-v sm" style={{ fontSize: 14 }}>{m.avail}</div></div>
           <div className="cell"><div className="stat-l">Fit</div><div className="stat-v sm"><Fit score={sc.score} /></div>
             <div className="stat-s">{m.why}</div></div>
@@ -5660,7 +5654,6 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
             <Panel title="Transaction" sub={isListed ? "Order ticket · same-day settlement" : "Subscription · closes " + (m.closing === "Quarterly close" ? "at the next quarterly close" : u.fmtDate(m.closing))}>
               <div className="kv">
                 <span className="k">Mechanic</span><span className="v">{isListed ? "Buy" : "Commit"}</span>
-                <span className="k">Minimum</span><span className="v">{u.usd(m.min)}</span>
                 <span className="k">Liquidity</span><span className="v">{m.liq}</span>
                 {m.expense !== undefined && <><span className="k">Expense ratio</span><span className="v">{u.pct(m.expense, 2)}</span></>}
                 {m.ytm !== undefined && <><span className="k">Yield to maturity</span><span className="v">{u.pct(m.ytm, 2)}</span></>}
@@ -5733,7 +5726,6 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
             <div className="row" style={{ gap: 32 }}>
               <div><div className="lbl">Liquidity</div><div>{m.liq}</div></div>
               <div><div className="lbl">Target return</div><div style={{ filter: "blur(5px)", userSelect: "none" }}>{m.ret}</div></div>
-              <div><div className="lbl">Minimum</div><div style={{ filter: "blur(5px)", userSelect: "none" }}>{u.usd(m.min)}</div></div>
               <div><div className="lbl">Allocation remaining</div><div style={{ filter: "blur(5px)", userSelect: "none" }}>{m.avail}</div></div>
             </div>
             <div className="note mt16">
@@ -5763,7 +5755,8 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 (function () {
   const { useState } = React;
   const D = BB.data, u = BB.u, S = BB.store;
-  const { Money, Delta, Panel, Crumb, Lock } = BB.ui;
+  const { Money, Delta, Panel, Crumb, Tabs, Fit, MiniBar } = BB.ui;
+  const { Agent } = BB.agent;
 
   const STATUS_MEANS = {
     "Open": "Available. Take the ask, or bid below it.",
@@ -5909,9 +5902,28 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     const l = st.listings.find((x) => x.id === route.parts[1]);
     const [bid, setBid] = useState(false);
     const [buy, setBuy] = useState(false);
+    const [tab, setTab] = useState("thesis");
     if (!l) return <div className="wrap page"><div className="empty">Unknown listing.</div></div>;
     const bids = st.bids.filter((b) => b.listingId === l.id);
     const isSeller = !!l.mine;
+    const consideration = Math.round(l.size * l.askPct / 100);
+    const discount = 100 - l.askPct;
+
+    /* Scored on the same four grounds as a primary offering, so a listing and
+       a deal can be compared. On a secondary board the price is the merit
+       argument, so merit is the discount to the last mark. */
+    const ctx = u.marketContext(st.positions, st.mandate, st.realizedClosed);
+    const asOffering = { ...l, fills: l.sub, liq: "Locked", retNum: 0,
+      fit: Math.max(5, Math.min(95, Math.round(50 + discount * 2))) };
+    const sc = u.scoreFor(asOffering, ctx);
+    const gap = u.bySub(st.positions).find((x) => x.key === l.sub);
+    const gapWord = (x) => u.num(Math.abs(x || 0), 1) + "pp " + ((x || 0) > 0 ? "below" : "above") + " the model";
+    const why = discount > 0
+      ? "Acquires " + u.usd(l.size) + " of stated NAV for " + u.usd(consideration) + " — a " + u.pct(discount) + " discount to the last mark."
+      : "Priced " + u.pct(-discount) + " above the last mark — the ask is for access, not for value.";
+
+    const tabs = [{ k: "thesis", label: "Overview" }, { k: "terms", label: "Terms" },
+      { k: "docs", label: "Documents", n: u.listingDocs(l).length }];
 
     return (
       <div className="wrap page">
@@ -5929,11 +5941,9 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
           <div className="btn-row">
             {!isSeller && (
               <>
-                
-                  <button className="btn p lg" disabled={l.status === "Settled"} onClick={() => setBuy(true)}>
-                    Buy now at {u.pct(l.askPct)} · {u.usdC(Math.round(l.size * l.askPct / 100))}
-                  </button>
-                
+                <button className="btn p lg" disabled={l.status === "Settled"} onClick={() => setBuy(true)}>
+                  Buy now at {u.pct(l.askPct)} · {u.usdC(consideration)}
+                </button>
                 <button className="btn lg" disabled={l.status === "Settled"} onClick={() => setBid(true)}>Bid below the ask</button>
               </>
             )}
@@ -5951,41 +5961,81 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
             <div className="stat-s">as of 30 Jun 2026</div></div>
           <div className="cell"><div className="stat-l">Size offered</div><div className="stat-v"><Money v={l.size} compact /></div></div>
           <div className="cell"><div className="stat-l">Ask</div><div className="stat-v">{u.pct(l.askPct)}</div>
-            <div className="stat-s">{u.usd(Math.round(l.size * l.askPct / 100))} consideration</div></div>
+            <div className="stat-s">{u.usd(consideration)} consideration</div></div>
           <div className="cell"><div className="stat-l">Indicative fair range</div><div className="stat-v sm">{l.indicative[0]}–{l.indicative[1]}%</div>
             <div className="stat-s">platform estimate</div></div>
-          <div className="cell"><div className="stat-l">Days listed</div><div className="stat-v">{l.days}</div>
-            <div className="stat-s">{l.unfunded ? u.usd(l.unfunded) + " unfunded transfers with the interest" : "no unfunded commitment"}</div></div>
+          <div className="cell"><div className="stat-l">Fit</div><div className="stat-v sm"><Fit score={sc.score} /></div>
+            <div className="stat-s">{l.days} days listed</div></div>
         </div>
 
-        <div className="grid mt16" style={{ gridTemplateColumns: "1.4fr 1fr", alignItems: "start" }}>
-          <Panel title="Capital account history">
-            <table className="t dense">
-              <thead><tr><th>Date</th><th>Event</th><th className="n">Amount</th></tr></thead>
+        <div className="mt16">
+          <Agent where="Deal fit"
+            why={["Allocation " + sc.allocation + "/100 — " + u.subLabel(l.sub) + " sits " + gapWord(ctx.under[l.sub]),
+                  "Liquidity " + sc.liquidity + "/100 — a transferred interest is locked until the fund returns capital, against " +
+                    u.usdC(ctx.calls24) + " of calls over 24 months",
+                  "Tax " + sc.tax + "/100 — " + u.usd(ctx.tax.realized) + " realised year to date",
+                  "Merit " + sc.merit + "/100 — the discount to the last mark, which is the whole argument on a secondary",
+                  "Weighting: merit 35% · allocation 30% · liquidity 20% · tax 15%"]}
+            actions={<button className="btn sm" onClick={() => S.navigate("/secondary")}>Compare the board</button>}>
+            {why}
+            <table className="t dense mt12" style={{ maxWidth: 520 }}>
               <tbody>
-                {l.account.map((r, i) => (
-                  <tr key={i}>
-                    <td className="num">{u.fmtDate(r[0])}</td>
-                    <td className="tname">{r[1]}</td>
-                    <td className="n num">{r[2] < 0 ? "−" + u.usd(Math.abs(r[2])) : u.usd(r[2])}</td>
+                {[["Allocation", sc.allocation, u.subLabel(l.sub) + " " + gapWord(ctx.under[l.sub])],
+                  ["Liquidity", sc.liquidity, "locked" + (ctx.short ? " · cash breaks " + ctx.short.month : " · calls covered")],
+                  ["Tax", sc.tax, ["pe", "vc", "preipo"].indexOf(l.sub) >= 0 ? "gain deferred to exit" : "taxable as it arrives"],
+                  ["Instrument merit", sc.merit, discount > 0 ? u.pct(discount) + " below the last mark" : "above the last mark"]].map((r) => (
+                  <tr key={r[0]}>
+                    <td style={{ width: 140 }} className="tri">{r[0]}</td>
+                    <td style={{ width: 90 }}><Fit score={r[1]} /></td>
+                    <td className="tsub">{r[2]}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </Panel>
-          <div>
-            <Panel title="Seller's rationale">
-              <div className="prose" style={{ fontSize: 12.5 }}>{l.rationale || "No rationale given."}</div>
-              <hr className="hr" />
-              <div className="kv">
-                <span className="k">Transfer mechanics</span><span className="v">Ownership record updated on acceptance</span>
-                <span className="k">Settlement</span><span className="v">Same day</span>
-                <span className="k">GP consent</span><span className="v">Pre-cleared for platform transfers</span>
-              </div>
-            </Panel>
+          </Agent>
+        </div>
 
-            <div className="mt16">
-              <Panel title="Documents" sub="The transfer pack for this interest">
+        <div className="grid mt16" style={{ gridTemplateColumns: "1.6fr 1fr", alignItems: "start" }}>
+          <div className="panel">
+            <Tabs tabs={tabs} active={tab} onChange={setTab} />
+            <div className="panel-bd">
+              {tab === "thesis" && (
+                <div>
+                  <div className="prose">{l.rationale || "No rationale given by the seller."}</div>
+                  <h3 className="mt16" style={{ fontSize: 13 }}>Capital account history</h3>
+                  <table className="t dense mt8">
+                    <thead><tr><th>Date</th><th>Event</th><th className="n">Amount</th></tr></thead>
+                    <tbody>
+                      {l.account.map((r, i) => (
+                        <tr key={i}>
+                          <td className="num">{u.fmtDate(r[0])}</td>
+                          <td className="tname">{r[1]}</td>
+                          <td className="n num">{r[2] < 0 ? "−" + u.usd(Math.abs(r[2])) : u.usd(r[2])}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              {tab === "terms" && (
+                <table className="t dense">
+                  <tbody>
+                    {[["Instrument", l.instrument], ["Manager", l.manager], ["Vintage", l.vintage],
+                      ["Subcategory", u.subLabel(l.sub)], ["Last NAV", u.usd(l.nav) + " as of 30 Jun 2026"],
+                      ["Size offered", u.usd(l.size)], ["Ask", u.pct(l.askPct) + " of last NAV"],
+                      ["Consideration", u.usd(consideration)],
+                      ["Indicative fair range", l.indicative[0] + "–" + l.indicative[1] + "% of last NAV"],
+                      ["Unfunded commitment", l.unfunded ? u.usd(l.unfunded) + " transfers with the interest" : "None"],
+                      ["Transfer mechanics", "Ownership record updated on acceptance"],
+                      ["Settlement", "Same day"],
+                      ["GP consent", "Pre-cleared for platform transfers"],
+                      ["Seller", l.seller + " · blind identifier"]].map((r) => (
+                      <tr key={r[0]}><td className="tri" style={{ width: 220 }}>{r[0]}</td><td className="tname">{r[1]}</td></tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+              {tab === "docs" && (
                 <table className="t dense">
                   <tbody>{u.listingDocs(l).map((d) => (
                     <tr key={d[0]}>
@@ -5995,6 +6045,30 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                     </tr>
                   ))}</tbody>
                 </table>
+              )}
+            </div>
+          </div>
+
+          <div>
+            <Panel title="Transaction" sub="Secondary transfer · same-day settlement">
+              <div className="kv">
+                <span className="k">Mechanic</span><span className="v">Take the ask, or bid below it</span>
+                <span className="k">Ask</span><span className="v">{u.pct(l.askPct)} of last NAV</span>
+                <span className="k">You pay</span><span className="v">{u.usd(consideration)}</span>
+                <span className="k">Liquidity</span><span className="v">Locked until the fund returns capital</span>
+                {l.unfunded ? <><span className="k">Unfunded</span><span className="v">{u.usd(l.unfunded)}</span></> : null}
+                <span className="k">Days listed</span><span className="v">{l.days}</span>
+              </div>
+            </Panel>
+
+            <div className="mt16">
+              <Panel title="Allocation context">
+                <div className="kv">
+                  <span className="k">Subcategory</span><span className="v">{gap ? gap.label : u.subLabel(l.sub)}</span>
+                  <span className="k">Held today</span><span className="v">{u.pct(gap ? gap.wt : 0)}</span>
+                  <span className="k">Mandate target</span><span className="v">{u.pct(gap ? gap.target : 0)}</span>
+                </div>
+                {gap && <div className="mt12"><MiniBar cur={gap.wt} target={gap.target} max={Math.max(gap.wt, gap.target) * 1.4} /></div>}
               </Panel>
             </div>
           </div>

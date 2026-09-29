@@ -468,19 +468,19 @@
   }
 
   /* What it would take of this offering to bring its subcategory to the model.
-     If that is less than the offering will accept, the minimum is the answer. */
+     Offerings carry no minimum, so the gap — capped at fundable cash — is
+     the answer. */
   function suggestAmount(m, ctx, funds) {
     const gap = ((ctx.under[m.fills] || 0) / 100) * ctx.t;
     if (gap <= 0) return null;
-    let amount = Math.round(Math.max(gap, m.min) / 1e4) * 1e4;
-    let basis = m.min > gap ? "the minimum" : "to reach the model";
+    let amount = Math.round(gap / 1e4) * 1e4;
+    let basis = "to reach the model";
     /* a proposal nobody can fund is not a proposal */
     if (funds !== undefined && amount > funds) {
-      if (m.min > funds) return { amount: m.min, gap, basis: "above available cash", unfunded: true };
       amount = Math.floor(funds / 1e4) * 1e4;
       basis = "as far as cash goes";
     }
-    return { amount, gap, basis, atMinimum: m.min > gap };
+    return { amount, gap, basis };
   }
 
   /* -------------------------------------------------------- deal fit logic */

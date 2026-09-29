@@ -2,7 +2,8 @@
 (function () {
   const { useState } = React;
   const D = BB.data, u = BB.u, S = BB.store;
-  const { Money, Delta, Panel, Crumb, Lock } = BB.ui;
+  const { Money, Delta, Panel, Crumb, Tabs, Fit, MiniBar } = BB.ui;
+  const { Agent } = BB.agent;
 
   const STATUS_MEANS = {
     "Open": "Available. Take the ask, or bid below it.",
@@ -148,9 +149,28 @@
     const l = st.listings.find((x) => x.id === route.parts[1]);
     const [bid, setBid] = useState(false);
     const [buy, setBuy] = useState(false);
+    const [tab, setTab] = useState("thesis");
     if (!l) return <div className="wrap page"><div className="empty">Unknown listing.</div></div>;
     const bids = st.bids.filter((b) => b.listingId === l.id);
     const isSeller = !!l.mine;
+    const consideration = Math.round(l.size * l.askPct / 100);
+    const discount = 100 - l.askPct;
+
+    /* Scored on the same four grounds as a primary offering, so a listing and
+       a deal can be compared. On a secondary board the price is the merit
+       argument, so merit is the discount to the last mark. */
+    const ctx = u.marketContext(st.positions, st.mandate, st.realizedClosed);
+    const asOffering = { ...l, fills: l.sub, liq: "Locked", retNum: 0,
+      fit: Math.max(5, Math.min(95, Math.round(50 + discount * 2))) };
+    const sc = u.scoreFor(asOffering, ctx);
+    const gap = u.bySub(st.positions).find((x) => x.key === l.sub);
+    const gapWord = (x) => u.num(Math.abs(x || 0), 1) + "pp " + ((x || 0) > 0 ? "below" : "above") + " the model";
+    const why = discount > 0
+      ? "Acquires " + u.usd(l.size) + " of stated NAV for " + u.usd(consideration) + " — a " + u.pct(discount) + " discount to the last mark."
+      : "Priced " + u.pct(-discount) + " above the last mark — the ask is for access, not for value.";
+
+    const tabs = [{ k: "thesis", label: "Overview" }, { k: "terms", label: "Terms" },
+      { k: "docs", label: "Documents", n: u.listingDocs(l).length }];
 
     return (
       <div className="wrap page">
@@ -168,11 +188,9 @@
           <div className="btn-row">
             {!isSeller && (
               <>
-                
-                  <button className="btn p lg" disabled={l.status === "Settled"} onClick={() => setBuy(true)}>
-                    Buy now at {u.pct(l.askPct)} · {u.usdC(Math.round(l.size * l.askPct / 100))}
-                  </button>
-                
+                <button className="btn p lg" disabled={l.status === "Settled"} onClick={() => setBuy(true)}>
+                  Buy now at {u.pct(l.askPct)} · {u.usdC(consideration)}
+                </button>
                 <button className="btn lg" disabled={l.status === "Settled"} onClick={() => setBid(true)}>Bid below the ask</button>
               </>
             )}
@@ -190,41 +208,81 @@
             <div className="stat-s">as of 30 Jun 2026</div></div>
           <div className="cell"><div className="stat-l">Size offered</div><div className="stat-v"><Money v={l.size} compact /></div></div>
           <div className="cell"><div className="stat-l">Ask</div><div className="stat-v">{u.pct(l.askPct)}</div>
-            <div className="stat-s">{u.usd(Math.round(l.size * l.askPct / 100))} consideration</div></div>
+            <div className="stat-s">{u.usd(consideration)} consideration</div></div>
           <div className="cell"><div className="stat-l">Indicative fair range</div><div className="stat-v sm">{l.indicative[0]}–{l.indicative[1]}%</div>
             <div className="stat-s">platform estimate</div></div>
-          <div className="cell"><div className="stat-l">Days listed</div><div className="stat-v">{l.days}</div>
-            <div className="stat-s">{l.unfunded ? u.usd(l.unfunded) + " unfunded transfers with the interest" : "no unfunded commitment"}</div></div>
+          <div className="cell"><div className="stat-l">Fit</div><div className="stat-v sm"><Fit score={sc.score} /></div>
+            <div className="stat-s">{l.days} days listed</div></div>
         </div>
 
-        <div className="grid mt16" style={{ gridTemplateColumns: "1.4fr 1fr", alignItems: "start" }}>
-          <Panel title="Capital account history">
-            <table className="t dense">
-              <thead><tr><th>Date</th><th>Event</th><th className="n">Amount</th></tr></thead>
+        <div className="mt16">
+          <Agent where="Deal fit"
+            why={["Allocation " + sc.allocation + "/100 — " + u.subLabel(l.sub) + " sits " + gapWord(ctx.under[l.sub]),
+                  "Liquidity " + sc.liquidity + "/100 — a transferred interest is locked until the fund returns capital, against " +
+                    u.usdC(ctx.calls24) + " of calls over 24 months",
+                  "Tax " + sc.tax + "/100 — " + u.usd(ctx.tax.realized) + " realised year to date",
+                  "Merit " + sc.merit + "/100 — the discount to the last mark, which is the whole argument on a secondary",
+                  "Weighting: merit 35% · allocation 30% · liquidity 20% · tax 15%"]}
+            actions={<button className="btn sm" onClick={() => S.navigate("/secondary")}>Compare the board</button>}>
+            {why}
+            <table className="t dense mt12" style={{ maxWidth: 520 }}>
               <tbody>
-                {l.account.map((r, i) => (
-                  <tr key={i}>
-                    <td className="num">{u.fmtDate(r[0])}</td>
-                    <td className="tname">{r[1]}</td>
-                    <td className="n num">{r[2] < 0 ? "−" + u.usd(Math.abs(r[2])) : u.usd(r[2])}</td>
+                {[["Allocation", sc.allocation, u.subLabel(l.sub) + " " + gapWord(ctx.under[l.sub])],
+                  ["Liquidity", sc.liquidity, "locked" + (ctx.short ? " · cash breaks " + ctx.short.month : " · calls covered")],
+                  ["Tax", sc.tax, ["pe", "vc", "preipo"].indexOf(l.sub) >= 0 ? "gain deferred to exit" : "taxable as it arrives"],
+                  ["Instrument merit", sc.merit, discount > 0 ? u.pct(discount) + " below the last mark" : "above the last mark"]].map((r) => (
+                  <tr key={r[0]}>
+                    <td style={{ width: 140 }} className="tri">{r[0]}</td>
+                    <td style={{ width: 90 }}><Fit score={r[1]} /></td>
+                    <td className="tsub">{r[2]}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </Panel>
-          <div>
-            <Panel title="Seller's rationale">
-              <div className="prose" style={{ fontSize: 12.5 }}>{l.rationale || "No rationale given."}</div>
-              <hr className="hr" />
-              <div className="kv">
-                <span className="k">Transfer mechanics</span><span className="v">Ownership record updated on acceptance</span>
-                <span className="k">Settlement</span><span className="v">Same day</span>
-                <span className="k">GP consent</span><span className="v">Pre-cleared for platform transfers</span>
-              </div>
-            </Panel>
+          </Agent>
+        </div>
 
-            <div className="mt16">
-              <Panel title="Documents" sub="The transfer pack for this interest">
+        <div className="grid mt16" style={{ gridTemplateColumns: "1.6fr 1fr", alignItems: "start" }}>
+          <div className="panel">
+            <Tabs tabs={tabs} active={tab} onChange={setTab} />
+            <div className="panel-bd">
+              {tab === "thesis" && (
+                <div>
+                  <div className="prose">{l.rationale || "No rationale given by the seller."}</div>
+                  <h3 className="mt16" style={{ fontSize: 13 }}>Capital account history</h3>
+                  <table className="t dense mt8">
+                    <thead><tr><th>Date</th><th>Event</th><th className="n">Amount</th></tr></thead>
+                    <tbody>
+                      {l.account.map((r, i) => (
+                        <tr key={i}>
+                          <td className="num">{u.fmtDate(r[0])}</td>
+                          <td className="tname">{r[1]}</td>
+                          <td className="n num">{r[2] < 0 ? "−" + u.usd(Math.abs(r[2])) : u.usd(r[2])}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              {tab === "terms" && (
+                <table className="t dense">
+                  <tbody>
+                    {[["Instrument", l.instrument], ["Manager", l.manager], ["Vintage", l.vintage],
+                      ["Subcategory", u.subLabel(l.sub)], ["Last NAV", u.usd(l.nav) + " as of 30 Jun 2026"],
+                      ["Size offered", u.usd(l.size)], ["Ask", u.pct(l.askPct) + " of last NAV"],
+                      ["Consideration", u.usd(consideration)],
+                      ["Indicative fair range", l.indicative[0] + "–" + l.indicative[1] + "% of last NAV"],
+                      ["Unfunded commitment", l.unfunded ? u.usd(l.unfunded) + " transfers with the interest" : "None"],
+                      ["Transfer mechanics", "Ownership record updated on acceptance"],
+                      ["Settlement", "Same day"],
+                      ["GP consent", "Pre-cleared for platform transfers"],
+                      ["Seller", l.seller + " · blind identifier"]].map((r) => (
+                      <tr key={r[0]}><td className="tri" style={{ width: 220 }}>{r[0]}</td><td className="tname">{r[1]}</td></tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+              {tab === "docs" && (
                 <table className="t dense">
                   <tbody>{u.listingDocs(l).map((d) => (
                     <tr key={d[0]}>
@@ -234,6 +292,30 @@
                     </tr>
                   ))}</tbody>
                 </table>
+              )}
+            </div>
+          </div>
+
+          <div>
+            <Panel title="Transaction" sub="Secondary transfer · same-day settlement">
+              <div className="kv">
+                <span className="k">Mechanic</span><span className="v">Take the ask, or bid below it</span>
+                <span className="k">Ask</span><span className="v">{u.pct(l.askPct)} of last NAV</span>
+                <span className="k">You pay</span><span className="v">{u.usd(consideration)}</span>
+                <span className="k">Liquidity</span><span className="v">Locked until the fund returns capital</span>
+                {l.unfunded ? <><span className="k">Unfunded</span><span className="v">{u.usd(l.unfunded)}</span></> : null}
+                <span className="k">Days listed</span><span className="v">{l.days}</span>
+              </div>
+            </Panel>
+
+            <div className="mt16">
+              <Panel title="Allocation context">
+                <div className="kv">
+                  <span className="k">Subcategory</span><span className="v">{gap ? gap.label : u.subLabel(l.sub)}</span>
+                  <span className="k">Held today</span><span className="v">{u.pct(gap ? gap.wt : 0)}</span>
+                  <span className="k">Mandate target</span><span className="v">{u.pct(gap ? gap.target : 0)}</span>
+                </div>
+                {gap && <div className="mt12"><MiniBar cur={gap.wt} target={gap.target} max={Math.max(gap.wt, gap.target) * 1.4} /></div>}
               </Panel>
             </div>
           </div>

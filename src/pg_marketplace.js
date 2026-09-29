@@ -25,7 +25,6 @@
           <span className="bdg plain">{m.liq}</span>
           {m.term && m.term !== "—" && <div className="tsub hide-narrow">{m.term}</div>}
         </td>
-        <td className="n num">{u.usd(m.min)}</td>
         <td className="n">
           {sug
             ? <><span className="num" style={{ fontWeight: 600, opacity: sug.unfunded ? .5 : 1 }}>{u.usdC(sug.amount)}</span>
@@ -53,7 +52,7 @@
       <thead>
         <tr>
           <th>Opportunity</th><th>Fills</th><th className="n">Return</th><th>Liquidity</th>
-          <th className="n">Minimum</th><th className="n">Suggested</th><th className="n">Fit</th>
+          <th className="n">Suggested</th><th className="n">Fit</th>
           <th className="hide-narrow" style={{ minWidth: 170 }}>Why</th><th></th>
         </tr>
       </thead>

@@ -35,11 +35,6 @@
             <div className="tri" style={{ fontSize: 11 }}>KRW base, broken out separately</div>
           </div>
         </div>
-        <div className="note mt12">
-          A Korean family running USD assets against a KRW base needs the decomposition, not the headline: of the{" "}
-          {u.sgn(p.port)} total return, <b>{u.pp(p.fx)}</b> is currency translation and{" "}
-          <b>{u.pp(p.port - p.fx)}</b> is the assets themselves.
-        </div>
       </Panel>
     );
   }

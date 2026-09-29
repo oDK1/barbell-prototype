@@ -368,18 +368,15 @@
      scored on one scale. Merit is the discount to the last mark — on a
      secondary that is the whole argument — and the return is the uplift a
      buyer books immediately by paying below NAV. */
-  function listingView(l, ctx, funds) {
+  function listingView(l, ctx) {
     const consideration = Math.round(l.size * l.askPct / 100);
     const discount = 100 - l.askPct;
     const toNav = l.askPct ? (100 / l.askPct - 1) * 100 : 0;
     const asOffering = { ...l, fills: l.sub, liq: "Locked", retNum: toNav,
       fit: Math.max(5, Math.min(95, Math.round(50 + discount * 2))) };
     const sc = scoreFor(asOffering, ctx);
-    let sug = suggestAmount(asOffering, ctx, funds);
-    /* nobody can buy more than is on offer */
-    if (sug && sug.amount > consideration) sug = { amount: consideration, gap: sug.gap, basis: "the whole listing" };
     return {
-      asOffering, sc, sug, consideration, discount, toNav,
+      asOffering, sc, consideration, discount, toNav,
       why: discount > 0
         ? "Acquires " + usd(l.size) + " of stated NAV for " + usd(consideration) + " — a " + pct(discount) + " discount to the last mark."
         : "Priced " + pct(-discount) + " above the last mark — the ask is for access, not for value.",

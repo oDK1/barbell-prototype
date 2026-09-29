@@ -24,7 +24,6 @@
     /* the board is what can be bought — settled listings are history */
     const rows = st.listings.filter((l) => l.status === "Open");
     const ctx = u.marketContext(st.positions, st.mandate, st.realizedClosed);
-    const funds = u.total(st.positions.filter((p) => p.cls === "cash"));
     /* eligible first: the rows that can actually be acted on */
     const mine = st.positions.filter((p) => p.liq !== "Daily")
       .sort((a, b) => (u.eligibility(b).ok ? 1 : 0) - (u.eligibility(a).ok ? 1 : 0) || b.value - a.value);
@@ -53,13 +52,13 @@
             <thead>
               <tr>
                 <th style={{ minWidth: 240 }}>Instrument</th><th>Fills</th><th className="n">Return</th><th>Liquidity</th>
-                <th className="n">Last NAV</th><th className="n">Size offered</th><th className="n">Suggested</th><th className="n">Fit</th>
+                <th className="n">Last NAV</th><th className="n">Size offered</th><th className="n">Fit</th>
                 <th className="hide-narrow" style={{ minWidth: 170 }}>Why</th><th></th>
               </tr>
             </thead>
             <tbody>
               {shownRows.map((l) => {
-                const v = u.listingView(l, ctx, funds);
+                const v = u.listingView(l, ctx);
                 return (
                   <tr key={l.id} className="clickable" onClick={() => S.navigate("/secondary/" + l.id)}>
                     <td>
@@ -72,12 +71,6 @@
                     <td><span className="bdg plain">Locked</span></td>
                     <td className="n num">{u.usd(l.nav)}</td>
                     <td className="n num">{u.usd(l.size)}</td>
-                    <td className="n">
-                      {v.sug
-                        ? <><span className="num" style={{ fontWeight: 600 }}>{u.usdC(v.sug.amount)}</span>
-                          <div className="tsub">{v.sug.basis}</div></>
-                        : <span className="tri">—</span>}
-                    </td>
                     <td className="n"><Fit score={v.sc.score} /></td>
                     <td className="hide-narrow" style={{ maxWidth: 260 }}>
                       <div className="tsub" style={{ fontSize: 11.5, color: "var(--g1)" }}>{v.why}</div>

@@ -166,7 +166,6 @@
                     {listed ? (
                       <>
                         <Lock sleeve={p.sleeve}><button className="btn sm p" onClick={() => onTrade(p, "buy")}>Trade</button></Lock>
-                        <Lock sleeve={p.sleeve}><button className="btn sm" onClick={() => onTrade(p, "sell")}>Sell</button></Lock>
                         {/* Trading Core is the Principal's; proposing it is not. */}
                         {!S.canWrite(p.sleeve) && (
                           <button className="btn sm" onClick={() => onTrade(p, "buy")}>Propose</button>

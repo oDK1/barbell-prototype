@@ -324,11 +324,17 @@
       emit();
     },
 
+    /* Copying a link is not an invitation — nobody has been invited until the
+       link reaches a named recipient. A copy is logged, but it does not invent
+       an invitee or inflate the sent count. */
     share(dealName, to) {
-      state.referrals.sent += 1;
-      state.referrals.invites.unshift({ id: nextId("r"), to: to || "Copied link", deal: dealName, ts: D.TODAY, state: "Sent" });
-      log("Referral", "Shared " + dealName, "Invitation link generated. Terms and allocation remain gated.");
-      toast("Invitation link copied");
+      if (to) {
+        state.referrals.sent += 1;
+        state.referrals.invites.unshift({ id: nextId("r"), to, deal: dealName, ts: D.TODAY, state: "Sent" });
+      }
+      log("Referral", (to ? "Invited " + to + " to " : "Copied an invitation link for ") + dealName,
+        "Terms and allocation remain gated behind a membership request.");
+      toast(to ? "Invitation sent to " + to : "Invitation link copied");
       emit();
     },
     dismissToast() { state.toast = null; emit(); },

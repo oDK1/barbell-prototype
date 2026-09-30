@@ -483,10 +483,34 @@ label.f>span{display:block;font-size:10.5px;letter-spacing:.08em;text-transform:
   .band .cell { border-right: 0; border-bottom: 1px solid var(--g3); }
   .band .cell:last-child { border-bottom: 0; }
 
-  /* tables keep their columns and scroll sideways inside their panel */
+  /* a panel header stops competing with its own note for 350px */
+  .panel-hd { flex-direction: column; align-items: flex-start; gap: 6px; }
+  .panel-hd > .right, .panel-hd .btn-row { align-self: flex-start; text-align: left; }
+
+  /* tables keep their columns and scroll sideways inside their panel. 720px
+     rather than 620 so the first column is not crushed into three-line wraps;
+     it costs a little more swiping and reads far better. */
   .panel { overflow-x: auto; }
-  .panel > table.t, .modeltable > table.t, .tscroll > table.t { min-width: 620px; }
+  .panel > table.t, .modeltable > table.t, .tscroll > table.t { min-width: 720px; }
+  .t th:first-child, .t td:first-child { min-width: 170px; }
   .kv { grid-template-columns: 1fr; }
+
+  /* Swiping a wide table is useless if the row loses its name, so the first
+     column stays put. It needs its own background or the scrolling cells
+     show through it. */
+  .tscroll table.t th:first-child,
+  .tscroll table.t td:first-child,
+  .modeltable table.t th:first-child,
+  .modeltable table.t td:first-child,
+  .panel > table.t th:first-child,
+  .panel > table.t td:first-child {
+    position: sticky; left: 0; z-index: 1;
+    background: var(--paper); box-shadow: 1px 0 0 var(--g4);
+  }
+  .tscroll table.t thead th:first-child,
+  .modeltable table.t thead th:first-child,
+  .panel > table.t thead th:first-child { z-index: 2; background: #FCFBF8; }
+  .t tbody tr:hover td:first-child { background: #FCFBF8; }
 
   /* model portfolio: chart above, table below, both full width */
   .modelchart { width: auto !important; padding: 12px 0; }
@@ -509,7 +533,12 @@ label.f>span{display:block;font-size:10.5px;letter-spacing:.08em;text-transform:
   /* modals become sheets rather than 700px boxes off-screen */
   .modal { width: calc(100vw - 20px) !important; max-width: none !important; max-height: 88vh; }
 
-  h1 { font-size: 27px; }
+  /* long instrument names wrap between words, not through them */
+  h1 { font-size: 27px; overflow-wrap: break-word; }
+  h1, h2, h3, .tname { overflow-wrap: break-word; }
+  /* badge rows were excluded from the wrap rule above, so they ran off-screen */
+  .page .row.tight { flex-wrap: wrap; }
+  .crumb { flex-wrap: wrap; row-gap: 2px; }
   .filters .f-item { flex: 1 1 100%; min-width: 0; }
   .btn-row { flex-wrap: wrap; }
   .rowbtns { justify-content: flex-start; }

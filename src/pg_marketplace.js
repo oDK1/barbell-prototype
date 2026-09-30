@@ -186,11 +186,16 @@
               <table className="t dense">
                 <thead><tr><th>Class</th><th className="n">Now</th><th className="n">Model</th></tr></thead>
                 <tbody>
-                  {u.byClass(st.positions).map((c) => (
-                    <tr key={c.key}>
-                      <td><div className="tname" style={{ fontSize: 12 }}>{c.label}</div></td>
+                  {u.holdingsSix(st.positions, st.mandate).map((c) => (
+                    <tr key={c.key} style={c.blocked ? { opacity: .5 } : null}>
+                      <td>
+                        <span style={{ display: "inline-flex", gap: 7, alignItems: "center" }}>
+                          <i className="sw" style={{ width: 8, height: 8, display: "inline-block", background: c.color }} />
+                          <span className="tname" style={{ fontSize: 12 }}>{c.label}</span>
+                        </span>
+                      </td>
                       <td className="n num">{u.pct(c.wt)}</td>
-                      <td className="n num tri">{u.pct(model.classes[c.key])}</td>
+                      <td className="n num tri">{c.blocked ? "—" : u.pct(c.model)}</td>
                     </tr>
                   ))}
                 </tbody>

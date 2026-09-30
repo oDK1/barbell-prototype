@@ -200,6 +200,8 @@
     const sc = u.listingView(l, ctx).sc;
     const hist = u.tradeHistory(l.id, st.trades, l.askPct);
     const gap = u.bySub(st.positions).find((x) => x.key === l.sub);
+    const mc = u.impactSix(st.positions, l.sub, 0, st.mandate);
+    const mcDrift = mc && mc.target !== null ? mc.target - mc.before : 0;
     const gapWord = (x) => u.num(Math.abs(x || 0), 1) + "pp " + ((x || 0) > 0 ? "below" : "above") + " the model";
     const why = u.listingView(l, ctx).why;
 
@@ -251,7 +253,7 @@
 
         <div className="mt16">
           <Agent where="Deal fit"
-            why={["Allocation " + sc.allocation + "/100 — " + u.subLabel(l.sub) + " sits " + gapWord(ctx.under[l.sub]),
+            why={["Allocation " + sc.allocation + "/100 — " + (mc ? mc.c.label : "") + " sits " + gapWord(mcDrift),
                   "Liquidity " + sc.liquidity + "/100 — a transferred interest is locked until the fund returns capital, against " +
                     u.usdC(ctx.calls24) + " of calls over 24 months",
                   "Tax " + sc.tax + "/100 — " + u.usd(ctx.tax.realized) + " realised year to date",
@@ -261,7 +263,7 @@
             {why}
             <table className="t dense mt12" style={{ maxWidth: 520 }}>
               <tbody>
-                {[["Allocation", sc.allocation, u.subLabel(l.sub) + " " + gapWord(ctx.under[l.sub])],
+                {[["Allocation", sc.allocation, (mc ? mc.c.label : "") + " " + gapWord(mcDrift)],
                   ["Liquidity", sc.liquidity, "locked" + (ctx.short ? " · cash breaks " + ctx.short.month : " · calls covered")],
                   ["Tax", sc.tax, ["pe", "vc", "preipo"].indexOf(l.sub) >= 0 ? "gain deferred to exit" : "taxable as it arrives"],
                   ["Instrument merit", sc.merit, discount > 0 ? u.pct(discount) + " below the last mark" : "above the last mark"]].map((r) => (
@@ -351,11 +353,15 @@
             <div className="mt16">
               <Panel title="Allocation context">
                 <div className="kv">
-                  <span className="k">Subcategory</span><span className="v">{gap ? gap.label : u.subLabel(l.sub)}</span>
-                  <span className="k">Held today</span><span className="v">{u.pct(gap ? gap.wt : 0)}</span>
-                  <span className="k">Mandate target</span><span className="v">{u.pct(gap ? gap.target : 0)}</span>
+                  <span className="k">Asset class</span><span className="v">{mc ? mc.c.label : "—"}</span>
+                  <span className="k">Held today</span><span className="v">{u.pct(mc ? mc.before : 0)}</span>
+                  <span className="k">Model</span>
+                  <span className="v">{mc && mc.target !== null ? u.pct(mc.target) : "not modelled at this size"}</span>
                 </div>
-                {gap && <div className="mt12"><MiniBar cur={gap.wt} target={gap.target} max={Math.max(gap.wt, gap.target) * 1.4} /></div>}
+                {mc && mc.target !== null && (
+                  <div className="mt12"><MiniBar cur={mc.before} target={mc.target}
+                    max={Math.max(mc.before, mc.target) * 1.4} /></div>
+                )}
               </Panel>
             </div>
           </div>

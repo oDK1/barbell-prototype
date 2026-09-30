@@ -582,7 +582,7 @@
 
     const val = (p, k) => {
       if (k === "name") return p.name.toLowerCase();
-      if (k === "cls") return u.clsLabel(p.cls);
+      if (k === "cls") return u.modelClassLabel(p.sub);
       if (k === "sub") return u.subLabel(p.sub);
       if (k === "prov") return u.provLabel(p);
       if (k === "liq") return p.liq;
@@ -591,7 +591,7 @@
       return p[k];
     };
     const rows = positions
-      .filter((p) => !cls || p.cls === cls)
+      .filter((p) => !cls || (u.modelClassOf(p.sub) || {}).key === cls)
       .filter((p) => !q || (p.name + " " + (p.ticker || "") + " " + (p.legacy || "") + " " +
         u.subLabel(p.sub) + " " + (p.manager || "") + " " + (p.sector || "")).toLowerCase().includes(q.toLowerCase()))
       .sort((a, b) => {
@@ -620,7 +620,7 @@
           </div>
           <div className="btn-row" onClick={(e) => e.stopPropagation()} style={{ display: show ? "flex" : "none" }}>
             <button className={"btn sm" + (cls ? "" : " p")} onClick={() => setCls("")}>All</button>
-            {D.classes.map((c) => (
+            {D.modelClasses.map((c) => (
               <button key={c.key} className={"btn sm" + (cls === c.key ? " p" : "")} onClick={() => setCls(c.key)}>{c.label}</button>
             ))}
             <div className="search" style={{ width: 210 }}>
@@ -651,7 +651,13 @@
                     <div className="tname">{p.name}</div>
                     <div className="tsub">{p.ticker ? <span className="mono">{p.ticker}</span> : p.grp}{p.vintage ? " · vintage " + p.vintage : ""}</div>
                   </td>
-                  <td>{u.clsLabel(p.cls)}</td>
+                  <td>
+                    <span style={{ display: "inline-flex", gap: 7, alignItems: "center", whiteSpace: "nowrap" }}>
+                      <i className="sw" style={{ width: 8, height: 8, display: "inline-block",
+                        background: (u.modelClassOf(p.sub) || {}).color }} />
+                      {u.modelClassLabel(p.sub)}
+                    </span>
+                  </td>
                   <td>{u.subLabel(p.sub)}</td>
                   <td><ProvBadge p={p} showDate={false} /></td>
                   <td><span className="bdg plain">{p.liq}</span></td>

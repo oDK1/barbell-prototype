@@ -1165,11 +1165,10 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     { key: "privdebt", label: "Private debt",     color: "#85AEBC", subs: ["pcred"],                     min: 500000,
       note: "Direct lending, senior secured" },
     { key: "real",     label: "Real assets",      color: "#9A7B2E", subs: ["re", "infra", "comm"],       min: 500000,
-      /* A preservation book takes its real assets listed — REITs and
-         infrastructure funds priced daily, held for inflation-linked income —
-         so no fund minimum applies. Under the other objectives the slot means
-         direct property and closed-end infrastructure, which does. */
-      minBy: { preservation: 0 },
+      /* The same $500,000 fund minimum under every objective. A 5% slot only
+         clears it at $10M, so real assets enter at that tier and not before —
+         a preservation book is no more able to diversify one building than a
+         growth book is. */
       note: "Property, infrastructure, commodities" },
     { key: "cash",     label: "Cash equivalents", color: "#A9A396", subs: ["mmf", "tbill", "dep", "fx"], min: 0,
       note: "MMF, T-bills, deposits, FX" },

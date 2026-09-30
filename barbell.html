@@ -2378,6 +2378,21 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   function clsOf(subKey) { const s = D.subs.find((x) => x.key === subKey); return s ? s.cls : null; }
 
   /* impact of a hypothetical transaction on the allocation */
+  /* What a commitment does to the one model class it lands in. The book's
+     total does not change — cash converts into the class — so the weight moves
+     against a constant denominator. */
+  function impactSix(ps, subKey, amount, goalKey) {
+    const c = modelClassOf(subKey);
+    if (!c) return null;
+    const held = bySix(ps);
+    const t = held.total || 1;
+    const before = held.pct[c.key];
+    const after = ((held.value[c.key] + amount) / t) * 100;
+    const model = modelSix(t, goalKey);
+    const target = model.blocked[c.key] ? null : model.w[c.key];
+    return { c, before, after, target, driftAfter: target === null ? null : after - target };
+  }
+
   function impact(ps, subKey, amount) {
     const before = bySub(ps).find((s) => s.key === subKey);
     const t = total(ps);
@@ -2395,7 +2410,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     usd, usdC, krwC, krwFull, pct, pp, sgn, sgnUsd, num, localPx, days, fmtDate, fmtTs, monthKey, monthLabel,
     staleness, provLabel, sum, total, byClass, bySub, gaps, unrealized, realizedYTD,
     liquidity90, liquidityProjection, shortfall, coverage, projectMix,
-    modelSix, bySix, sixToFour, sixToSubs, pickForClass, holdingsSix, geoBucket, GEO_BUCKETS, listingDocs, listingView, currentIRR, tradeHistory, modelClassOf, modelClassLabel, topHoldings, affiliateExposure, taxLots, eligibility,
+    modelSix, bySix, sixToFour, sixToSubs, pickForClass, holdingsSix, geoBucket, GEO_BUCKETS, listingDocs, listingView, currentIRR, tradeHistory, impactSix, modelClassOf, modelClassLabel, topHoldings, affiliateExposure, taxLots, eligibility,
     fitFor, subLabel, clsLabel, clsOf, impact, modelWeights, marketContext, scoreFor, suggestAmount,
   };
 })();
@@ -3447,30 +3462,35 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   function Impact({ subKey, amount }) {
     const st = S.get();
     if (!amount) return <div className="note">Enter an amount to see the allocation impact.</div>;
-    const i = u.impact(st.positions, subKey, amount);
+    /* One row: the model class this lands in. The subcategory beneath it is a
+       label, not a second allocation to reason about. */
+    const i = u.impactSix(st.positions, subKey, amount, st.mandate);
+    if (!i) return null;
     return (
       <div className="panel">
         <div className="panel-hd"><h3>Allocation impact</h3>
           <span className="tri" style={{ fontSize: 11 }}>for information</span></div>
         <table className="t dense">
-          <thead><tr><th></th><th className="n">Before</th><th className="n">After</th><th className="n">vs target</th></tr></thead>
+          <thead><tr><th></th><th className="n">Before</th><th className="n">After</th><th className="n">vs model</th></tr></thead>
           <tbody>
             <tr>
-              <td><div className="tname">{i.sub.label}</div><div className="tsub">target {u.pct(i.sub.target)}</div></td>
-              <td className="n num">{u.pct(i.sub.wt)}</td>
-              <td className="n num">{u.pct(i.subAfter)}</td>
-              <td className="n tri num">{(i.subDriftAfter > 0 ? "+" : "−") + Math.abs(i.subDriftAfter).toFixed(1) + "pp"}</td>
-            </tr>
-            <tr>
-              <td><div className="tname">{i.cls.label}</div><div className="tsub">target {u.pct(i.cls.target)}</div></td>
-              <td className="n num">{u.pct(i.cls.wt)}</td>
-              <td className="n num">{u.pct(i.clsAfter)}</td>
-              <td className="n tri num">{(i.clsDriftAfter > 0 ? "+" : "−") + Math.abs(i.clsDriftAfter).toFixed(1) + "pp"}</td>
+              <td>
+                <div className="tname">
+                  <span style={{ display: "inline-flex", gap: 7, alignItems: "center" }}>
+                    <i className="sw" style={{ width: 8, height: 8, display: "inline-block", background: i.c.color }} />
+                    {i.c.label}
+                  </span>
+                </div>
+                <div className="tsub">{i.target === null ? "not modelled at this size" : "model " + u.pct(i.target)} · via {u.subLabel(subKey)}</div>
+              </td>
+              <td className="n num">{u.pct(i.before)}</td>
+              <td className="n num">{u.pct(i.after)}</td>
+              <td className="n tri num">{i.driftAfter === null ? "—" : u.pp(i.driftAfter)}</td>
             </tr>
           </tbody>
         </table>
         <div className="why" style={{ borderTop: "1px solid var(--g3)" }}>
-          {i.sub.label} would move from {u.pct(i.sub.wt)} to {u.pct(i.subAfter)} of total assets.
+          {i.c.label} would move from {u.pct(i.before)} to {u.pct(i.after)} of total assets.
         </div>
       </div>
     );

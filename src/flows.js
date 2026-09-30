@@ -9,30 +9,35 @@
   function Impact({ subKey, amount }) {
     const st = S.get();
     if (!amount) return <div className="note">Enter an amount to see the allocation impact.</div>;
-    const i = u.impact(st.positions, subKey, amount);
+    /* One row: the model class this lands in. The subcategory beneath it is a
+       label, not a second allocation to reason about. */
+    const i = u.impactSix(st.positions, subKey, amount, st.mandate);
+    if (!i) return null;
     return (
       <div className="panel">
         <div className="panel-hd"><h3>Allocation impact</h3>
           <span className="tri" style={{ fontSize: 11 }}>for information</span></div>
         <table className="t dense">
-          <thead><tr><th></th><th className="n">Before</th><th className="n">After</th><th className="n">vs target</th></tr></thead>
+          <thead><tr><th></th><th className="n">Before</th><th className="n">After</th><th className="n">vs model</th></tr></thead>
           <tbody>
             <tr>
-              <td><div className="tname">{i.sub.label}</div><div className="tsub">target {u.pct(i.sub.target)}</div></td>
-              <td className="n num">{u.pct(i.sub.wt)}</td>
-              <td className="n num">{u.pct(i.subAfter)}</td>
-              <td className="n tri num">{(i.subDriftAfter > 0 ? "+" : "−") + Math.abs(i.subDriftAfter).toFixed(1) + "pp"}</td>
-            </tr>
-            <tr>
-              <td><div className="tname">{i.cls.label}</div><div className="tsub">target {u.pct(i.cls.target)}</div></td>
-              <td className="n num">{u.pct(i.cls.wt)}</td>
-              <td className="n num">{u.pct(i.clsAfter)}</td>
-              <td className="n tri num">{(i.clsDriftAfter > 0 ? "+" : "−") + Math.abs(i.clsDriftAfter).toFixed(1) + "pp"}</td>
+              <td>
+                <div className="tname">
+                  <span style={{ display: "inline-flex", gap: 7, alignItems: "center" }}>
+                    <i className="sw" style={{ width: 8, height: 8, display: "inline-block", background: i.c.color }} />
+                    {i.c.label}
+                  </span>
+                </div>
+                <div className="tsub">{i.target === null ? "not modelled at this size" : "model " + u.pct(i.target)} · via {u.subLabel(subKey)}</div>
+              </td>
+              <td className="n num">{u.pct(i.before)}</td>
+              <td className="n num">{u.pct(i.after)}</td>
+              <td className="n tri num">{i.driftAfter === null ? "—" : u.pp(i.driftAfter)}</td>
             </tr>
           </tbody>
         </table>
         <div className="why" style={{ borderTop: "1px solid var(--g3)" }}>
-          {i.sub.label} would move from {u.pct(i.sub.wt)} to {u.pct(i.subAfter)} of total assets.
+          {i.c.label} would move from {u.pct(i.before)} to {u.pct(i.after)} of total assets.
         </div>
       </div>
     );

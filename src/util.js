@@ -566,6 +566,21 @@
   function clsOf(subKey) { const s = D.subs.find((x) => x.key === subKey); return s ? s.cls : null; }
 
   /* impact of a hypothetical transaction on the allocation */
+  /* What a commitment does to the one model class it lands in. The book's
+     total does not change — cash converts into the class — so the weight moves
+     against a constant denominator. */
+  function impactSix(ps, subKey, amount, goalKey) {
+    const c = modelClassOf(subKey);
+    if (!c) return null;
+    const held = bySix(ps);
+    const t = held.total || 1;
+    const before = held.pct[c.key];
+    const after = ((held.value[c.key] + amount) / t) * 100;
+    const model = modelSix(t, goalKey);
+    const target = model.blocked[c.key] ? null : model.w[c.key];
+    return { c, before, after, target, driftAfter: target === null ? null : after - target };
+  }
+
   function impact(ps, subKey, amount) {
     const before = bySub(ps).find((s) => s.key === subKey);
     const t = total(ps);
@@ -583,7 +598,7 @@
     usd, usdC, krwC, krwFull, pct, pp, sgn, sgnUsd, num, localPx, days, fmtDate, fmtTs, monthKey, monthLabel,
     staleness, provLabel, sum, total, byClass, bySub, gaps, unrealized, realizedYTD,
     liquidity90, liquidityProjection, shortfall, coverage, projectMix,
-    modelSix, bySix, sixToFour, sixToSubs, pickForClass, holdingsSix, geoBucket, GEO_BUCKETS, listingDocs, listingView, currentIRR, tradeHistory, modelClassOf, modelClassLabel, topHoldings, affiliateExposure, taxLots, eligibility,
+    modelSix, bySix, sixToFour, sixToSubs, pickForClass, holdingsSix, geoBucket, GEO_BUCKETS, listingDocs, listingView, currentIRR, tradeHistory, impactSix, modelClassOf, modelClassLabel, topHoldings, affiliateExposure, taxLots, eligibility,
     fitFor, subLabel, clsLabel, clsOf, impact, modelWeights, marketContext, scoreFor, suggestAmount,
   };
 })();

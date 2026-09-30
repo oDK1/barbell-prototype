@@ -213,12 +213,8 @@
                 <h2>{x.label}</h2>
                 {sel === x.key && <span className="bdg hanwha"><i className="pt" />Selected</span>}
               </div>
-              <div className="num mt8" style={{ fontSize: 18, fontWeight: 600 }}>
-                {u.pct(((D.modelMatrix[x.key] || {})[10] || {}).pubeq
-                  + ((D.modelMatrix[x.key] || {})[10] || {}).priveq
-                  + ((D.modelMatrix[x.key] || {})[10] || {}).real, 0)}
-              </div>
-              <div className="tri" style={{ fontSize: 11 }}>in equity and real assets</div>
+              <div className="num mt8" style={{ fontSize: 18, fontWeight: 600 }}>{x.core}/{x.alpha}</div>
+              <div className="tri" style={{ fontSize: 11 }}>Core / Alpha</div>
               <div className="sub mt8" style={{ fontSize: 12, lineHeight: 1.5 }}>{x.line}</div>
             </button>
           ))}

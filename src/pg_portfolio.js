@@ -292,7 +292,7 @@
               ) : (
                 <div className="lever-note">
                   <span style={{ flex: 1 }}>
-                    The family's mandate · <b>{mandate.label}</b>
+                    The family's mandate · <b>{mandate.core} / {mandate.alpha}</b> Core / Alpha
                     {confirmed ? " · confirmed " + u.fmtDate(confirmed.ts) : ""}
                   </span>
                   

@@ -101,5 +101,66 @@
     };
   }
 
-  BB.agent = { Agent, runQuery, askMarket };
+
+  /* Questions a buyer actually asks of a secondary board. Rows arrive already
+     carrying their view — score, IRR to date, discount, consideration — so the
+     agent filters and ranks on the same numbers the table shows. */
+  function askSecondary(q, rows, ctx) {
+    const t = (q || "").toLowerCase();
+    if (!t.trim()) return null;
+    const has = (re) => re.test(t);
+    const byScore = (a, b) => b.v.sc.score - a.v.sc.score;
+
+    if (has(/rebalanc|model|allocat|gap|underweight/)) {
+      const under = Object.keys(ctx.under).filter((k) => ctx.under[k] > 0.2);
+      const hit = rows.filter((r) => under.indexOf(r.l.sub) >= 0).sort(byScore);
+      return { label: "Fills a gap against the model", rows: hit,
+        note: "Listings in the subcategories the book is under the model in." };
+    }
+    if (has(/cheapest|biggest discount|deepest/)) {
+      return { label: "Deepest discounts to the last mark",
+        rows: rows.filter((r) => r.v.discount > 0).sort((a, b) => b.v.discount - a.v.discount),
+        note: "A discount is the price of the seller's hurry — check the mark's age before reading it as value." };
+    }
+    if (has(/best (return|performer|irr)|strongest|top perform/)) {
+      return { label: "Best IRR to date",
+        rows: rows.filter((r) => r.v.irr).sort((a, b) => b.v.irr.irr - a.v.irr.irr),
+        note: "Annualised in the seller's hands, to the manager's own mark." };
+    }
+
+    const tests = [
+      [/discount|below nav|cheap|bargain/, "Below the last mark", (r) => r.v.discount > 0],
+      [/premium|above nav/, "Above the last mark", (r) => r.v.discount < 0],
+      [/performing|winner|positive|profitab/, "Positive IRR to date", (r) => r.v.irr && r.v.irr.irr > 0],
+      [/struggl|loser|negative|underwater|marked down/, "Negative IRR to date", (r) => r.v.irr && r.v.irr.irr < 0],
+      [/unfunded|commitment|drawdown/, "Carries an unfunded commitment", (r) => !!r.l.unfunded],
+      [/fully funded|no unfunded|no further/, "No unfunded commitment", (r) => !r.l.unfunded],
+      [/venture|vc/, "Venture capital", (r) => r.l.sub === "vc"],
+      [/pre-?ipo|late stage/, "Pre-IPO", (r) => r.l.sub === "preipo"],
+      [/buyout|private equity|pe\b/, "Private equity", (r) => r.l.sub === "pe"],
+      [/credit|lending|debt|loan/, "Private debt", (r) => r.l.sub === "pcred"],
+      [/property|real estate|infrastructure|data ?cent|retail|logistic/, "Real assets", (r) => r.l.cls === "real"],
+      [/korea|krw|domestic|seoul|songdo/, "Korea", (r) => /korea|seoul|songdo|daol|woori|hanwha|koramco/i.test(r.l.instrument + " " + r.l.manager)],
+      [/recent|fresh|new listing|just listed/, "Listed in the last month", (r) => r.l.days <= 30],
+      [/stale|sitting|old listing|been on/, "On the board over a month", (r) => r.l.days > 30],
+      [/traded before|history|cleared|prior/, "Has traded here before", (r) => r.v.hist && r.v.hist.rows.length > 0],
+    ];
+    const hits = tests.filter((x) => has(x[0]));
+
+    const size = /(\$|under |below |less than )\s?([\d.]+)\s?(k|m|million)?/.exec(t);
+    let cap = null;
+    if (size && /under|below|less/.test(t)) {
+      const n = parseFloat(size[2]);
+      cap = /m|million/.test(size[3] || "") ? n * 1e6 : n >= 1000 ? n : n * 1000;
+    }
+    if (!hits.length && !cap) return null;
+
+    return {
+      label: hits.map((x) => x[1]).concat(cap ? ["under " + (cap >= 1e6 ? "$" + cap / 1e6 + "M" : "$" + cap / 1000 + "K") + " to buy"] : []).join(" · "),
+      rows: rows.filter((r) => hits.every((x) => x[2](r)) && (!cap || r.v.consideration <= cap)).sort(byScore),
+      note: "Ranked as the board is — merit, allocation, liquidity, tax.",
+    };
+  }
+
+  BB.agent = { Agent, runQuery, askMarket, askSecondary };
 })();

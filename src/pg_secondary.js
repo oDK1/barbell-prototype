@@ -2,8 +2,8 @@
 (function () {
   const { useState } = React;
   const D = BB.data, u = BB.u, S = BB.store;
-  const { Money, Delta, Panel, Crumb, Tabs, Fit, MiniBar } = BB.ui;
-  const { Agent } = BB.agent;
+  const { Money, Delta, Panel, Crumb, Tabs, Fit, MiniBar, AgentBar } = BB.ui;
+  const { Agent, askSecondary } = BB.agent;
 
   const STATUS_MEANS = {
     "Open": "Available. Take the ask, or bid below it.",
@@ -15,15 +15,29 @@
     </span>;
   }
 
-  function Board() {
+  function Board({ route }) {
     const st = S.useStore();
     const [list, setList] = useState(null);
     const [buy, setBuy] = useState(null);
     const [allRows, setAllRows] = useState(false);
     const [allMine, setAllMine] = useState(false);
+    const [ask, setAsk] = useState("");
+    const [asked, setAsked] = useState(null);
     /* the board is what can be bought — settled listings are history */
-    const rows = st.listings.filter((l) => l.status === "Open");
     const ctx = u.marketContext(st.positions, st.mandate, st.realizedClosed);
+    const open = st.listings.filter((l) => l.status === "Open");
+    /* every row carries its own view so the table and the agent agree */
+    const viewed = open.map((l) => ({ l, v: { ...u.listingView(l, ctx), hist: u.tradeHistory(l.id, st.trades) } }));
+    const rows = (asked && asked.rows.length ? asked.rows : viewed).map((r) => r.l);
+    const viewOf = {};
+    viewed.forEach((r) => { viewOf[r.l.id] = r.v; });
+    /* a question asked from a listing page arrives here */
+    const wantAsk = route && route.query && route.query.ask;
+    React.useEffect(() => {
+      if (!wantAsk) return;
+      setAsk(wantAsk);
+      setAsked(askSecondary(wantAsk, viewed, ctx));
+    }, [wantAsk]);
     /* eligible first: the rows that can actually be acted on */
     const mine = st.positions.filter((p) => p.liq !== "Daily")
       .sort((a, b) => (u.eligibility(b).ok ? 1 : 0) - (u.eligibility(a).ok ? 1 : 0) || b.value - a.value);
@@ -32,7 +46,7 @@
     const shownMine = allMine ? mine : mine.slice(0, SHOW_MINE);
 
     return (
-      <div className="wrap page">
+      <div className="wrap page hasagent">
         <div className="between">
           <div>
             <div className="eyebrow">Secondary · members only</div>
@@ -58,7 +72,7 @@
             </thead>
             <tbody>
               {shownRows.map((l) => {
-                const v = u.listingView(l, ctx);
+                const v = viewOf[l.id];
                 return (
                   <tr key={l.id} className="clickable" onClick={() => S.navigate("/secondary/" + l.id)}>
                     <td>
@@ -147,6 +161,19 @@
           “List on secondary” only on the illiquid ones.
         </div>
 
+        <AgentBar label="Secondary Agent" note={asked && (asked.rows.length
+          ? <><b>{asked.label}</b> — {asked.rows.length} shown below. {asked.note}</>
+          : <>Nothing on the board matches that. The marketplace carries{" "}
+            <button className="link" onClick={() => S.navigate("/marketplace")}>primary offerings</button> in the same subcategories.</>)}>
+          <div className="search" style={{ flex: 1 }}>
+            <input type="text" value={ask} placeholder="Ask: biggest discounts · what fills a gap? · venture, under $500K · performing"
+              onChange={(e) => setAsk(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && setAsked(askSecondary(ask, viewed, ctx))} />
+          </div>
+          <button className="btn sm" onClick={() => setAsked(askSecondary(ask, viewed, ctx))}>Ask</button>
+          {asked && <button className="btn sm q" onClick={() => { setAsked(null); setAsk(""); }}>Clear</button>}
+        </AgentBar>
+
         {list && <BB.flows.ListingFlow p={list} onClose={() => setList(null)} />}
         {buy && <BB.flows.BuyNowFlow listing={buy} onClose={() => setBuy(null)} />}
       </div>
@@ -159,6 +186,7 @@
     const [bid, setBid] = useState(false);
     const [buy, setBuy] = useState(false);
     const [tab, setTab] = useState("thesis");
+    const [ask, setAsk] = useState("");
     if (!l) return <div className="wrap page"><div className="empty">Unknown listing.</div></div>;
     const bids = st.bids.filter((b) => b.listingId === l.id);
     const isSeller = !!l.mine;
@@ -179,7 +207,7 @@
       { k: "docs", label: "Documents", n: u.listingDocs(l).length }];
 
     return (
-      <div className="wrap page">
+      <div className="wrap page hasagent">
         <Crumb items={[{ label: "Secondary", to: "/secondary" }, { label: l.instrument }]} />
         <div className="between">
           <div>
@@ -407,6 +435,17 @@ Two ways in: take the ask and it settles immediately, or bid below it and wait f
             from the queue above. A bid does not reserve anything — the listing stays open meanwhile.
           </div>
         </div>
+
+        {/* the agent follows you into a listing; the answer is the board */}
+        <AgentBar label="Secondary Agent">
+          <div className="search" style={{ flex: 1 }}>
+            <input type="text" value={ask} placeholder="Ask: biggest discounts · what fills a gap? · venture, under $500K · performing"
+              onChange={(e) => setAsk(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && ask && S.navigate("/secondary?ask=" + encodeURIComponent(ask))} />
+          </div>
+          <button className="btn sm" disabled={!ask}
+            onClick={() => S.navigate("/secondary?ask=" + encodeURIComponent(ask))}>Ask</button>
+        </AgentBar>
 
         {bid && <BB.flows.BidFlow listing={l} onClose={() => setBid(false)} />}
         {buy && <BB.flows.BuyNowFlow listing={l} onClose={() => setBuy(false)} />}

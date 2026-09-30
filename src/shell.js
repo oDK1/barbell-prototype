@@ -119,7 +119,7 @@
     else if (p.startsWith("/portfolio/")) view = <P.AssetClass route={route} />;
     else if (p === "/marketplace") view = <P.Marketplace route={route} />;
     else if (p.startsWith("/marketplace/")) view = <P.Deal route={route} />;
-    else if (p === "/secondary") view = <P.Secondary />;
+    else if (p === "/secondary") view = <P.Secondary route={route} />;
     else if (p.startsWith("/secondary/")) view = <P.Listing route={route} />;
     else if (p === "/approvals") view = <P.Approvals />;
     else if (p === "/activity") view = <P.Activity />;

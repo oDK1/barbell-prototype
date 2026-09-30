@@ -155,12 +155,6 @@
           )}
         </div>
 
-        <div className="note mt16">
-          Listed instruments never appear here. An ETF or a Treasury line carries ordinary market liquidity and sells
-          through the order ticket in the portfolio — which is why the portfolio shows “Sell” on those rows and
-          “List on secondary” only on the illiquid ones.
-        </div>
-
         <AgentBar label="Secondary Agent" note={asked && (asked.rows.length
           ? <><b>{asked.label}</b> — {asked.rows.length} shown below. {asked.note}</>
           : <>Nothing on the board matches that. The marketplace carries{" "}

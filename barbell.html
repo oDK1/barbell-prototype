@@ -583,6 +583,37 @@ table.t td.val .krw{font-weight:400}
 .btn.harvest{border-color:var(--amber);color:var(--amber);font-weight:600}
 .btn.harvest:hover{background:var(--amber);border-color:var(--amber);color:#fff}
 
+/* ---------- risk / return buckets (DW [P]) ---------- */
+.buckets{display:grid;gap:12px}
+.bk{border:1px solid var(--g3);background:var(--paper);border-left:3px solid var(--g3)}
+.bk:nth-child(1){border-left-color:#1B2A4A}
+.bk:nth-child(2){border-left-color:#9A7B2E}
+.bk.bk-reserve{border-left-color:var(--g2);background:#FCFBF8}
+.bk-hd{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:13px 15px 9px;cursor:pointer}
+.bk-id{display:flex;gap:11px;align-items:flex-start}
+.bk-id>i{width:10px;height:10px;margin-top:5px;flex-shrink:0;display:block}
+.bk-name{font-size:15px;font-weight:600;letter-spacing:-.01em}
+.bk-role{font-size:11.5px;color:var(--g2);margin-top:2px}
+.bk-num{text-align:right;white-space:nowrap}
+.bk-wt{font-size:22px;font-weight:600;letter-spacing:-.02em;line-height:1.1}
+.bk-num .tri{font-size:11px}
+.bk-bar{position:relative;height:7px;background:var(--g4);margin:0 15px}
+.bk-bar>i{position:absolute;left:0;top:0;bottom:0;display:block}
+.bk-bar>b{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink)}
+.bk-ft{display:flex;align-items:center;gap:14px;padding:8px 15px 11px;font-size:11px}
+.bk-ft .spacer{flex:1}
+.bk-in{border-top:1px solid var(--g3)}
+.improve{padding:11px 15px;border-top:1px solid var(--g4)}
+.imp-t{font-size:12.5px;font-weight:600;color:var(--ink)}
+.imp-d{font-size:11.5px;color:var(--g1);line-height:1.55;margin-top:3px;max-width:90ch}
+
+/* ---------- advisory lenses ---------- */
+.lens-q{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:10px}
+.lens-l{display:flex;gap:10px;font-size:12.5px;line-height:1.6;color:var(--ink-2);padding:7px 0;border-top:1px solid var(--g4);max-width:96ch}
+.lens-l:first-of-type{border-top:0}
+.lens-n{flex-shrink:0;width:18px;height:18px;border-radius:50%;background:var(--navy-wash);color:var(--navy);
+  font-size:10.5px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;margin-top:2px}
+
 </style>
 </head>
 <body>
@@ -1192,6 +1223,46 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       type: "select", options: ["KRW — ₩1.08B ≈ $780,000", "USD — $1,080,000,000", "USD — $1,080,000"],
       answer: "KRW — ₩1.08B ≈ $780,000" },
   ];
+
+
+  /* ===================================================== risk / return buckets
+     DW [P]: organise the product by risk and return, not by asset class.
+
+     Bucket 1 and Bucket 2 are his. `reserve` is a PROPOSAL: his two buckets
+     describe capital that is invested, and a 42-position book still holds
+     sovereigns, IG and cash that are neither compounding at 7–20% nor
+     conviction. Treating them as a working balance rather than forcing them
+     into a bucket keeps both buckets honest. Open question for DW.
+
+     The mapping from subcategory to bucket is also a proposal: DW gave
+     illustrative examples, not a taxonomy. Role, not instrument type, decides
+     — diversified compounding vs concentrated upside. */
+  const buckets = [
+    { key: "engine", label: "Engine", color: "#1B2A4A",
+      role: "Compounding capital",
+      band: "7–20% target",
+      note: "Diversified, repeatable return. Absolute-return and yield strategies that do not depend on being right about one thing.",
+      subs: ["pubeq", "pcred", "struct", "re", "infra"] },
+    { key: "conviction", label: "Conviction", color: "#9A7B2E",
+      role: "Upside you choose",
+      band: "High return, mid risk",
+      note: "Concentrated positions taken on the family's own view. Judged on the thesis, not on a benchmark.",
+      subs: ["pe", "vc", "preipo", "comm"] },
+    { key: "reserve", label: "Reserve", color: "#A9A396",
+      role: "Spendable, committed",
+      band: "Liquidity, not return",
+      note: "Capital calls, spending and the floor beneath them. Sized by obligations, not by a target return.",
+      subs: ["sov", "ig", "mmf", "tbill", "dep", "fx"], proposal: true },
+  ];
+
+  /* Illustrative bucket splits behind each posture. DW [P]: the split is
+     personal — 99/1 is his example — so these are starting points a client
+     moves, not fixed models. */
+  const bucketPresets = {
+    preservation: { engine: 70, conviction: 5,  reserve: 25 },
+    balanced:     { engine: 78, conviction: 12, reserve: 10 },
+    growth:       { engine: 68, conviction: 25, reserve: 7 },
+  };
 
   /* ------------------------------------------------- six-class model framework */
   /* The model is stated in six classes, equity and debt each split public /
@@ -1818,7 +1889,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     KRW, TODAY, family, accounts, classes, subs, positions,
     uploadFiles, ingestSteps, exceptions, mandates, survey, modelPortfolios,
     capitalCalls, distributions, benchmark, performance, attribution, modelGoals, ALT_SUBS,
-    modelClasses, modelMatrix, modelExcuses, expectedReturn, expectedVol, classCorr, idiosyncraticVol,
+    modelClasses, modelMatrix, modelExcuses, buckets, bucketPresets, expectedReturn, expectedVol, classCorr, idiosyncraticVol,
     market, secondary, secondaryTrades, bidsSeed, approvalsSeed, activitySeed, opsLedger, referrals, liquidityAssumptions,
   };
 })();
@@ -2260,6 +2331,57 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     return { rows, last, vsLast: askPct === undefined ? null : askPct - last.pricePct };
   }
 
+
+  /* ------------------------------------------------- risk / return buckets */
+  function bucketOf(subKey) { return D.buckets.find((b) => b.subs.indexOf(subKey) >= 0) || null; }
+  function bucketLabel(subKey) { const b = bucketOf(subKey); return b ? b.label : "—"; }
+
+  /* The book split by what capital is for, with the six classes kept one level
+     down as disclosure rather than as the organising idea. */
+  function byBucket(ps, goalKey) {
+    const t = total(ps);
+    const preset = D.bucketPresets[goalKey] || D.bucketPresets.balanced;
+    return D.buckets.map((b) => {
+      const items = ps.filter((p) => b.subs.indexOf(p.sub) >= 0);
+      const v = total(items);
+      const wt = t ? (v / t) * 100 : 0;
+      const target = preset[b.key] || 0;
+      return {
+        ...b, items, value: v, wt, target, drift: wt - target, count: items.length,
+        unrealized: unrealized(items),
+        classes: D.modelClasses
+          .filter((c) => c.subs.some((k) => b.subs.indexOf(k) >= 0))
+          .map((c) => {
+            const inBoth = ps.filter((p) => c.subs.indexOf(p.sub) >= 0 && b.subs.indexOf(p.sub) >= 0);
+            const cv = total(inBoth);
+            return { key: c.key, label: c.label, color: c.color, value: cv, wt: t ? (cv / t) * 100 : 0, count: inBoth.length };
+          }).filter((c) => c.count > 0),
+      };
+    });
+  }
+
+  /* How concentrated a bucket is, and across how many uncorrelated exposures.
+     DW [P]: always show how the portfolio could be improved, and diversifying
+     across geography and sector is the example he gave. */
+  function spread(ps, subs) {
+    const items = ps.filter((p) => !subs || subs.indexOf(p.sub) >= 0);
+    const t = total(items) || 1;
+    const by = (k) => {
+      const m = {};
+      items.forEach((p) => { const v = p[k] || "—"; m[v] = (m[v] || 0) + p.value; });
+      return Object.keys(m).map((v) => ({ v, wt: (m[v] / t) * 100 })).sort((a, b) => b.wt - a.wt);
+    };
+    const geos = by("geo"), sectors = by("sector");
+    /* Herfindahl on position weights: 1 is one holding, near 0 is many equal ones. */
+    const hhi = items.reduce((a, p) => a + Math.pow(p.value / t, 2), 0);
+    return {
+      n: items.length, geos, sectors, hhi,
+      effective: hhi ? 1 / hhi : 0,
+      topGeo: geos[0] || null, topSector: sectors[0] || null,
+      largest: items.slice().sort((a, b) => b.value - a.value)[0] || null,
+    };
+  }
+
   /* ----------------------------------------------------------- projection */
   /* A lognormal fan: the mean path plus the 10th and 90th percentiles, given
      the class weights, their expected returns, their volatilities and how
@@ -2425,7 +2547,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     usd, usdC, krwC, krwFull, pct, pp, sgn, sgnUsd, num, localPx, days, fmtDate, fmtTs, monthKey, monthLabel,
     staleness, provLabel, sum, total, byClass, bySub, gaps, unrealized, realizedYTD,
     liquidity90, liquidityProjection, shortfall, coverage, projectMix,
-    modelSix, bySix, sixToFour, sixToSubs, pickForClass, holdingsSix, geoBucket, GEO_BUCKETS, listingDocs, listingView, currentIRR, tradeHistory, impactSix, modelClassOf, modelClassLabel, topHoldings, affiliateExposure, taxLots, eligibility,
+    modelSix, bySix, sixToFour, sixToSubs, pickForClass, holdingsSix, geoBucket, GEO_BUCKETS, listingDocs, listingView, currentIRR, tradeHistory, impactSix, modelClassOf, modelClassLabel, bucketOf, bucketLabel, byBucket, spread, topHoldings, affiliateExposure, taxLots, eligibility,
     fitFor, subLabel, clsLabel, clsOf, impact, modelWeights, marketContext, scoreFor, suggestAmount,
   };
 })();
@@ -2769,6 +2891,12 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       log("Referral", (to ? "Invited " + to + " to " : "Copied an invitation link for ") + dealName,
         "Terms and allocation remain gated behind a membership request.");
       toast(to ? "Invitation sent to " + to : "Invitation link copied");
+      emit();
+    },
+    requestConsult(desk) {
+      log("Advisory", "Requested a consult — " + desk,
+        "Read-only access to the reconciled book. The specialist advises; they cannot act on the account.");
+      toast("Consult requested — " + desk);
       emit();
     },
     dismissToast() { state.toast = null; emit(); },
@@ -4399,63 +4527,132 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     );
   }
 
+  /* DW [P]: the product should always show how the portfolio could be
+     improved, including wider diversification across uncorrelated exposures.
+     Tokenised fractional sizing is what makes that reachable at small ticket
+     sizes — the sizing line below says so explicitly. END-STATE. */
+  function ImprovePanel({ positions }) {
+    const st = S.useStore();
+    const all = u.spread(positions);
+    const conviction = D.buckets.find((b) => b.key === "conviction");
+    const cs = u.spread(positions, conviction.subs);
+    const aff = u.affiliateExposure(positions);
+    const t = u.total(positions);
+
+    const ideas = [];
+    if (aff.wt > 5) ideas.push({
+      t: "One company carries " + u.pct(aff.wt) + " of the book",
+      d: aff.items.map((i) => i.name).join(", ") + ". The family's wealth and its income move together. Nothing here is uncorrelated with it.",
+      to: "/portfolio/equity?group=pubeq", cta: "See the holding",
+    });
+    if (all.topGeo && all.topGeo.wt > 40) ideas.push({
+      t: all.topGeo.v + " is " + u.pct(all.topGeo.wt) + " of everything",
+      d: "Geography is the cheapest uncorrelated exposure to add. Fractional tokenised sizing means a position no longer has to clear a fund minimum to be worth taking.",
+      to: "/marketplace?ask=" + encodeURIComponent("outside " + all.topGeo.v), cta: "Find exposure elsewhere",
+    });
+    if (cs.effective < 6) ideas.push({
+      t: "Conviction rests on " + cs.effective.toFixed(1) + " effective holdings",
+      d: "A conviction sleeve is meant to be concentrated, but " + (cs.largest ? cs.largest.name + " alone is " + u.pct((cs.largest.value / t) * 100) + " of the book" : "it is narrow") + ". Splitting one ticket across several theses costs nothing once positions are fractional.",
+      to: "/marketplace?ask=" + encodeURIComponent("venture"), cta: "Widen the sleeve",
+    });
+    if (all.topSector && all.topSector.wt > 25) ideas.push({
+      t: all.topSector.v + " runs through " + u.pct(all.topSector.wt) + " of the book",
+      d: "Sector concentration survives any asset-class split — it does not show up in an allocation table.",
+      to: "/marketplace", cta: "Open the marketplace",
+    });
+
+    return (
+      <div className="panel mt16">
+        <div className="panel-hd">
+          <div>
+            <h3>How this could be better</h3>
+            <div className="tri" style={{ fontSize: 11.5, marginTop: 2 }}>
+              Concentration the allocation does not show · {all.effective.toFixed(1)} effective holdings across {all.n}
+            </div>
+          </div>
+          <span className="tri" style={{ fontSize: 11 }}>Observations. Every decision is the family's.</span>
+        </div>
+        {ideas.length === 0
+          ? <div className="empty">No concentration worth flagging.</div>
+          : ideas.map((x, i) => (
+            <div key={i} className="improve">
+              <div className="imp-t">{x.t}</div>
+              <div className="imp-d">{x.d}</div>
+              <button className="btn sm mt8" onClick={() => S.navigate(x.to)}>{x.cta} →</button>
+            </div>
+          ))}
+      </div>
+    );
+  }
+
   /* ------------------------------------------------------- allocation tab */
   function AllocationTab({ positions, openSignal }) {
     const t = u.total(positions);
-    const rows = u.holdingsSix(positions, S.get().mandate);
+    const [bOpen, setBOpen] = useState({});
 
     return (
       <>
-        <div className="panel mt16">
-          <div className="panel-hd">
-            <h3>Holdings by class</h3>
-            <span className="tri" style={{ fontSize: 11 }}>Six classes · click one for the positions inside it</span>
-          </div>
-          <table className="t">
-            <thead>
-              <tr>
-                <th style={{ width: 260 }}>Asset class</th>
-                <th className="n">Positions</th>
-                <th style={{ width: 160 }}>Weight vs model</th>
-                <th className="n">Held</th>
-                <th className="n">Model</th>
-                <th className="n">vs model</th>
-                <th className="n">Value</th>
-                <th className="n">Unrealised</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((c) => (
-                <tr key={c.key} className="clickable" onClick={() => S.navigate(c.route)}>
-                  <td>
-                    <span style={{ display: "inline-flex", gap: 8, alignItems: "center", fontWeight: 600 }}>
-                      <i className="sw" style={{ width: 9, height: 9, display: "inline-block", background: c.color }} />
-                      {c.label}
-                    </span>
-                    <div className="tsub">{c.note}</div>
-                  </td>
-                  <td className="n num tri">{c.count}</td>
-                  <td><MiniBar cur={c.wt} target={c.model} max={45} /></td>
-                  <td className="n num">{u.pct(c.wt)}</td>
-                  <td className="n num tri">{u.pct(c.model)}</td>
-                  <td className="n"><VsTarget v={c.drift} /></td>
-                  <td className="n"><Money v={c.value} /></td>
-                  <td className="n"><Delta v={c.unrealized} usd /></td>
-                  <td className="right"><button className="btn sm" onClick={(e) => { e.stopPropagation(); S.navigate(c.route); }}>Open</button></td>
-                </tr>
-              ))}
-            </tbody>
-            <tfoot>
-              <tr>
-                <td>Total</td><td className="n num">{positions.length}</td><td></td>
-                <td className="n num">100.0%</td><td className="n num tri">100.0%</td><td></td>
-                <td className="n"><Money v={t} /></td>
-                <td className="n"><Delta v={u.unrealized(positions)} usd /></td><td></td>
-              </tr>
-            </tfoot>
-          </table>
+        {/* DW [P]: organised by risk and return, not by asset class. The six
+            classes survive one level down as disclosure — what is inside a
+            bucket — rather than as the organising idea. END-STATE. */}
+        <div className="buckets mt16">
+          {u.byBucket(positions, S.get().mandate).map((b) => {
+            const sp = u.spread(positions, b.subs);
+            const open = !!bOpen[b.key];
+            return (
+              <div key={b.key} className={"bk" + (b.key === "reserve" ? " bk-reserve" : "")}>
+                <div className="bk-hd clickable" onClick={() => setBOpen({ ...bOpen, [b.key]: !open })}>
+                  <div className="bk-id">
+                    <i style={{ background: b.color }} />
+                    <div>
+                      <div className="bk-name">{b.label}{b.proposal && <span className="bdg plain" style={{ marginLeft: 7 }}>proposal</span>}</div>
+                      <div className="bk-role">{b.role} · {b.band}</div>
+                    </div>
+                  </div>
+                  <div className="bk-num">
+                    <div className="num bk-wt">{u.pct(b.wt)}</div>
+                    <div className="tri num">{u.usdC(b.value)} · target {u.pct(b.target)}</div>
+                  </div>
+                </div>
+                <div className="bk-bar"><i style={{ width: Math.min(100, b.wt) + "%", background: b.color }} />
+                  <b style={{ left: Math.min(100, b.target) + "%" }} /></div>
+                <div className="bk-ft">
+                  <span className="tri">{b.count} positions · {sp.effective.toFixed(1)} effective holdings</span>
+                  <span className="tri">
+                    {sp.topGeo ? sp.topGeo.v + " " + u.pct(sp.topGeo.wt) : "—"}
+                    {sp.topSector ? " · " + sp.topSector.v + " " + u.pct(sp.topSector.wt) : ""}
+                  </span>
+                  <span className="spacer" />
+                  <button className="link g" onClick={(e) => { e.stopPropagation(); setBOpen({ ...bOpen, [b.key]: !open }); }}>
+                    {open ? "Hide what is inside" : "What is inside"}
+                  </button>
+                </div>
+                {open && (
+                  <div className="bk-in">
+                    <table className="t dense">
+                      <thead><tr><th>Asset class</th><th className="n">Positions</th><th className="n">Weight</th><th className="n">Value</th></tr></thead>
+                      <tbody>
+                        {b.classes.map((c) => (
+                          <tr key={c.key} className="clickable"
+                            onClick={() => S.navigate("/portfolio/" + (u.modelClassOf(D.modelClasses.find((x) => x.key === c.key).subs[0]) ? D.subs.find((x) => x.key === D.modelClasses.find((y) => y.key === c.key).subs[0]).cls : "equity") + "?group=" + c.key)}>
+                            <td><span style={{ display: "inline-flex", gap: 7, alignItems: "center" }}>
+                              <i className="sw" style={{ width: 8, height: 8, display: "inline-block", background: c.color }} />{c.label}</span></td>
+                            <td className="n num tri">{c.count}</td>
+                            <td className="n num">{u.pct(c.wt)}</td>
+                            <td className="n num">{u.usd(c.value)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
+
+        {/* DW [P]: always show how the portfolio could be improved. END-STATE. */}
+        <ImprovePanel positions={positions} />
 
         <QueryBar positions={positions} />
 
@@ -5909,6 +6106,11 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
           <div>
             <Panel title="Transaction" sub={isListed ? "Order ticket · same-day settlement" : "Subscription · closes " + (m.closing === "Quarterly close" ? "at the next quarterly close" : u.fmtDate(m.closing))}>
               <div className="kv">
+                {/* DW [D]: tokenised from day one — which is what removes the
+                    minimum and makes fractional diversification possible. */}
+                <span className="k">Held through</span><span className="v">SPV · tokenised at issue</span>
+                <span className="k">Sizing</span><span className="v">Fractional — any amount</span>
+                <span className="k">Transferable</span><span className="v">Day one, on the secondary board</span>
                 <span className="k">Mechanic</span><span className="v">{isListed ? "Buy" : "Commit"}</span>
                 <span className="k">Liquidity</span><span className="v">{m.liq}</span>
                 {m.expense !== undefined && <><span className="k">Expense ratio</span><span className="v">{u.pct(m.expense, 2)}</span></>}
@@ -6344,8 +6546,15 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
           </div>
 
           <div>
-            <Panel title="Transaction" sub="Secondary transfer · same-day settlement">
+            <Panel title="Transaction" sub="Tokenised transfer · same-day settlement">
               <div className="kv">
+                {/* DW [D]: positions are tokenised from day one, held in an SPV
+                    and transferable among clients on a tokenised rail. The
+                    fundamentals are unchanged; liquidity and transferability
+                    are what move. END-STATE. */}
+                <span className="k">Held through</span><span className="v">SPV · token {l.id.toUpperCase()}-{l.vintage}</span>
+                <span className="k">Settlement</span>
+                <span className="v">Same day <span className="tri">· 30–60 days off-platform</span></span>
                 <span className="k">Mechanic</span><span className="v">Take the ask, or bid below it</span>
                 <span className="k">Ask</span><span className="v">{u.pct(l.askPct)} of last NAV</span>
                 <span className="k">You pay</span><span className="v">{u.usd(consideration)}</span>
@@ -6354,6 +6563,10 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 <span className="k">Liquidity</span><span className="v">Locked until the fund returns capital</span>
                 {l.unfunded ? <><span className="k">Unfunded</span><span className="v">{u.usd(l.unfunded)}</span></> : null}
                 <span className="k">Days listed</span><span className="v">{l.days}</span>
+              </div>
+              <div className="why" style={{ borderTop: "1px solid var(--g3)" }}>
+                Transfer moves the token, not the underlying. The GP's register is updated on settlement;
+                the fund, its terms and its NAV are unchanged by the transfer.
               </div>
             </Panel>
 
@@ -6469,6 +6682,184 @@ Two ways in: take the ask and it settles immediately, or bid below it and wait f
   BB.pages = BB.pages || {};
   BB.pages.Secondary = Board;
   BB.pages.Listing = Listing;
+})();
+
+</script>
+<script type="text/babel" data-presets="react" data-file="src/pg_advisory.js">
+/* /advisory — the AI and human layer DW asked for in item 4.
+   [D] AI and blockchain are separate design dimensions, so nothing on this
+   screen depends on tokenisation.
+   [P] Professional-grade analysis on top of the agent: a risk review of the
+   onboarded book, and perspectives modelled on named investors' approaches.
+   [P] Hybrid human and AI advisory, paid per consult.
+
+   TENSION, flagged not resolved: a risk review that recommends, and a paid
+   specialist who advises, sit close to the discretionary line this product
+   says it does not cross. Everything here is written as observation and
+   option; the client still acts. See the open questions. */
+(function () {
+  const { useState } = React;
+  const D = BB.data, u = BB.u, S = BB.store;
+  const { Panel, Crumb, Fit, AgentBar } = BB.ui;
+
+  /* Lenses are a way of reading the same book, not a claim about what anyone
+     would actually say. Labelled as modelled approaches throughout. */
+  const LENSES = [
+    { key: "macro", who: "Macro-directional", after: "after Druckenmiller",
+      q: "Where is the book exposed if the regime changes?",
+      read: (ps) => {
+        const sp = u.spread(ps);
+        const liq = u.liquidity90(ps);
+        return [
+          "Concentration is the position, and " + (sp.topGeo ? sp.topGeo.v + " at " + u.pct(sp.topGeo.wt) : "the largest geography") + " is the position this book has taken, whether or not it was chosen.",
+          "A regime change is survivable only if it can be acted on. " + u.usdC(liq.within90) + " is reachable inside 90 days against " + u.usdC(u.total(ps)) + " of assets.",
+          "Nothing here expresses a view on rates. Duration sits in the reserve by default rather than by decision.",
+        ];
+      } },
+    { key: "parity", who: "Risk-balanced", after: "after Dalio",
+      q: "Is risk spread, or just capital?",
+      read: (ps) => {
+        const b = u.byBucket(ps, S.get().mandate);
+        const eng = b.find((x) => x.key === "engine"), con = b.find((x) => x.key === "conviction");
+        const sp = u.spread(ps);
+        return [
+          "Capital is split " + u.pct(eng.wt) + " / " + u.pct(con.wt) + " between compounding and conviction. Risk is not — the conviction sleeve carries far more of the variance than its weight suggests.",
+          sp.effective.toFixed(1) + " effective holdings across " + sp.n + " positions. The gap between those two numbers is concentration that the allocation does not show.",
+          "Uncorrelated is a property of pairs, not of labels. Two private credit funds lending to the same borrowers are one position.",
+        ];
+      } },
+    { key: "tail", who: "Tail-risk", after: "black-swan exposure, DW [P]",
+      q: "What has not been considered?",
+      read: (ps) => {
+        const aff = u.affiliateExposure(ps);
+        const short = u.shortfall(ps);
+        const locked = u.total(ps.filter((p) => p.liq === "Locked"));
+        return [
+          aff.wt > 0
+            ? "The family's income and " + u.pct(aff.wt) + " of its wealth depend on the same balance sheet. In the event that matters, both move together."
+            : "No affiliate concentration.",
+          short
+            ? "Projected cash breaks in " + short.month + ". A forced sale in a bad month is the loss, not the drawdown that caused it."
+            : "Projected cash holds across the window.",
+          u.pct((locked / u.total(ps)) * 100) + " of the book cannot be sold at any price inside a quarter. That is the real constraint under stress, not volatility.",
+        ];
+      } },
+  ];
+
+  /* Illustrative. DW's ~$100 is a placeholder and is labelled as one. */
+  const DESKS = [
+    { key: "fi", name: "Fixed income", who: "Hanwha Life — credit and duration",
+      on: "Private credit terms, security packages, where a yield is actually coming from." },
+    { key: "macro", name: "Macro", who: "Hanwha Securities — strategy",
+      on: "Currency exposure against a KRW base, rate regimes, what a scenario does to the book." },
+    { key: "tech", name: "Technology and AI", who: "Hanwha — growth and venture",
+      on: "Diligence on a startup round, sector concentration, whether a thesis is already owned elsewhere." },
+  ];
+
+  function Advisory() {
+    const st = S.useStore();
+    const ps = st.positions;
+    const [lens, setLens] = useState("macro");
+    const [book, setBook] = useState(null);
+    const L = LENSES.find((x) => x.key === lens);
+
+    return (
+      <div className="wrap page hasagent">
+        <div className="between">
+          <div>
+            <div className="eyebrow">Advisory</div>
+            <h1 className="mt8">Analysis and advice</h1>
+          </div>
+        </div>
+
+        {/* ---- AI: risk review and lenses. END-STATE. ---- */}
+        <div className="panel mt16">
+          <div className="panel-hd">
+            <div>
+              <h3>Read this book another way</h3>
+              <div className="tri" style={{ fontSize: 11.5, marginTop: 2 }}>
+                Modelled approaches, not quotations. Nobody named has seen this portfolio.
+              </div>
+            </div>
+            <BB.ui.Seg options={LENSES.map((x) => ({ v: x.key, label: x.who }))} value={lens} onChange={setLens} />
+          </div>
+          <div className="panel-bd">
+            <div className="lens-q">{L.q} <span className="tri">· {L.after}</span></div>
+            {L.read(ps).map((line, i) => (
+              <div key={i} className="lens-l"><span className="lens-n">{i + 1}</span><span>{line}</span></div>
+            ))}
+            <div className="note mt12" style={{ fontSize: 11.5 }}>
+              Observations on the reconciled book. Barbell does not manage a mandate and does not decide anything here.
+            </div>
+          </div>
+        </div>
+
+        {/* ---- Paid human consults. END-STATE; Phase 1 is a request, not a booking. ---- */}
+        <div className="panel mt16">
+          <div className="panel-hd">
+            <div>
+              <h3>Talk to a specialist</h3>
+              <div className="tri" style={{ fontSize: 11.5, marginTop: 2 }}>
+                Hanwha desks, booked by the hour. Pricing illustrative.
+              </div>
+            </div>
+            <span className="tri" style={{ fontSize: 11 }}>$100 per consult · DW's figure, placeholder</span>
+          </div>
+          <table className="t">
+            <thead><tr><th style={{ minWidth: 150 }}>Desk</th><th>Who</th><th>What they are useful for</th><th></th></tr></thead>
+            <tbody>
+              {DESKS.map((d) => (
+                <tr key={d.key}>
+                  <td><div className="tname">{d.name}</div></td>
+                  <td className="tsub">{d.who}</td>
+                  <td className="tsub" style={{ maxWidth: 420 }}>{d.on}</td>
+                  <td className="right">
+                    <button className="btn sm p" onClick={() => { setBook(d); }}>Request a consult</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="why" style={{ borderTop: "1px solid var(--g3)" }}>
+            A specialist gives you their reading. They do not place orders and cannot act on the account.
+          </div>
+        </div>
+
+        {book && (
+          <BB.ui.Modal title="Request a consult" sub={book.name + " · " + book.who} onClose={() => setBook(null)}
+            footer={<>
+              <div className="tri" style={{ fontSize: 11.5 }}>Billed per consult. Illustrative in this prototype.</div>
+              <div className="btn-row">
+                <button className="btn" onClick={() => setBook(null)}>Cancel</button>
+                <button className="btn p" onClick={() => {
+                  S.actions.requestConsult(book.name);
+                  setBook(null);
+                }}>Request</button>
+              </div>
+            </>}>
+            <div className="kv mb16">
+              <span className="k">Desk</span><span className="v">{book.name}</span>
+              <span className="k">Fee</span><span className="v">$100 · illustrative</span>
+              <span className="k">Shared with the specialist</span><span className="v">The reconciled book, read-only</span>
+              <span className="k">Authority</span><span className="v">None — advice only</span>
+            </div>
+            <div className="note">{book.on}</div>
+          </BB.ui.Modal>
+        )}
+
+        <AgentBar label="Advisory Agent">
+          <div className="search" style={{ flex: 1 }}>
+            <input type="text" placeholder="Ask: what is my black-swan exposure? · what am I not seeing?"
+              onKeyDown={(e) => e.key === "Enter" && S.toast("The lenses above answer this in the prototype.")} />
+          </div>
+          <button className="btn sm" onClick={() => S.toast("The lenses above answer this in the prototype.")}>Ask</button>
+        </AgentBar>
+      </div>
+    );
+  }
+
+  BB.pages = BB.pages || {};
+  BB.pages.Advisory = Advisory;
 })();
 
 </script>
@@ -6789,6 +7180,7 @@ Two ways in: take the ask and it settles immediately, or bid below it and wait f
       { to: "/portfolio", label: "Portfolio", match: (p) => p.startsWith("/portfolio") },
       { to: "/marketplace", label: "Marketplace", match: (p) => p.startsWith("/marketplace") },
       { to: "/secondary", label: "Secondary", match: (p) => p.startsWith("/secondary") },
+      { to: "/advisory", label: "Advisory", match: (p) => p.startsWith("/advisory") },
       { to: "/approvals", label: st.account === "principal" ? "Approvals" : "Proposals", match: (p) => p.startsWith("/approvals"), n: pending },
       { to: "/activity", label: "Activity", match: (p) => p.startsWith("/activity") },
     ];
@@ -6852,6 +7244,7 @@ Two ways in: take the ask and it settles immediately, or bid below it and wait f
     else if (p === "/secondary") view = <P.Secondary route={route} />;
     else if (p.startsWith("/secondary/")) view = <P.Listing route={route} />;
     else if (p === "/approvals") view = <P.Approvals />;
+    else if (p === "/advisory") view = <P.Advisory />;
     else if (p === "/activity") view = <P.Activity />;
     else if (p === "/ops") view = <P.Ops />;
     else if (p === "/invitation") view = <P.Invitation route={route} />;

@@ -291,6 +291,46 @@
       answer: "KRW — ₩1.08B ≈ $780,000" },
   ];
 
+
+  /* ===================================================== risk / return buckets
+     DW [P]: organise the product by risk and return, not by asset class.
+
+     Bucket 1 and Bucket 2 are his. `reserve` is a PROPOSAL: his two buckets
+     describe capital that is invested, and a 42-position book still holds
+     sovereigns, IG and cash that are neither compounding at 7–20% nor
+     conviction. Treating them as a working balance rather than forcing them
+     into a bucket keeps both buckets honest. Open question for DW.
+
+     The mapping from subcategory to bucket is also a proposal: DW gave
+     illustrative examples, not a taxonomy. Role, not instrument type, decides
+     — diversified compounding vs concentrated upside. */
+  const buckets = [
+    { key: "engine", label: "Engine", color: "#1B2A4A",
+      role: "Compounding capital",
+      band: "7–20% target",
+      note: "Diversified, repeatable return. Absolute-return and yield strategies that do not depend on being right about one thing.",
+      subs: ["pubeq", "pcred", "struct", "re", "infra"] },
+    { key: "conviction", label: "Conviction", color: "#9A7B2E",
+      role: "Upside you choose",
+      band: "High return, mid risk",
+      note: "Concentrated positions taken on the family's own view. Judged on the thesis, not on a benchmark.",
+      subs: ["pe", "vc", "preipo", "comm"] },
+    { key: "reserve", label: "Reserve", color: "#A9A396",
+      role: "Spendable, committed",
+      band: "Liquidity, not return",
+      note: "Capital calls, spending and the floor beneath them. Sized by obligations, not by a target return.",
+      subs: ["sov", "ig", "mmf", "tbill", "dep", "fx"], proposal: true },
+  ];
+
+  /* Illustrative bucket splits behind each posture. DW [P]: the split is
+     personal — 99/1 is his example — so these are starting points a client
+     moves, not fixed models. */
+  const bucketPresets = {
+    preservation: { engine: 70, conviction: 5,  reserve: 25 },
+    balanced:     { engine: 78, conviction: 12, reserve: 10 },
+    growth:       { engine: 68, conviction: 25, reserve: 7 },
+  };
+
   /* ------------------------------------------------- six-class model framework */
   /* The model is stated in six classes, equity and debt each split public /
      private, so the implementation question ("through what vehicle?") sits
@@ -916,7 +956,7 @@
     KRW, TODAY, family, accounts, classes, subs, positions,
     uploadFiles, ingestSteps, exceptions, mandates, survey, modelPortfolios,
     capitalCalls, distributions, benchmark, performance, attribution, modelGoals, ALT_SUBS,
-    modelClasses, modelMatrix, modelExcuses, expectedReturn, expectedVol, classCorr, idiosyncraticVol,
+    modelClasses, modelMatrix, modelExcuses, buckets, bucketPresets, expectedReturn, expectedVol, classCorr, idiosyncraticVol,
     market, secondary, secondaryTrades, bidsSeed, approvalsSeed, activitySeed, opsLedger, referrals, liquidityAssumptions,
   };
 })();

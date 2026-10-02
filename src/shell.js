@@ -59,6 +59,7 @@
       { to: "/portfolio", label: "Portfolio", match: (p) => p.startsWith("/portfolio") },
       { to: "/marketplace", label: "Marketplace", match: (p) => p.startsWith("/marketplace") },
       { to: "/secondary", label: "Secondary", match: (p) => p.startsWith("/secondary") },
+      { to: "/advisory", label: "Advisory", match: (p) => p.startsWith("/advisory") },
       { to: "/approvals", label: st.account === "principal" ? "Approvals" : "Proposals", match: (p) => p.startsWith("/approvals"), n: pending },
       { to: "/activity", label: "Activity", match: (p) => p.startsWith("/activity") },
     ];
@@ -122,6 +123,7 @@
     else if (p === "/secondary") view = <P.Secondary route={route} />;
     else if (p.startsWith("/secondary/")) view = <P.Listing route={route} />;
     else if (p === "/approvals") view = <P.Approvals />;
+    else if (p === "/advisory") view = <P.Advisory />;
     else if (p === "/activity") view = <P.Activity />;
     else if (p === "/ops") view = <P.Ops />;
     else if (p === "/invitation") view = <P.Invitation route={route} />;

@@ -136,6 +136,11 @@
           <div>
             <Panel title="Transaction" sub={isListed ? "Order ticket · same-day settlement" : "Subscription · closes " + (m.closing === "Quarterly close" ? "at the next quarterly close" : u.fmtDate(m.closing))}>
               <div className="kv">
+                {/* DW [D]: tokenised from day one — which is what removes the
+                    minimum and makes fractional diversification possible. */}
+                <span className="k">Held through</span><span className="v">SPV · tokenised at issue</span>
+                <span className="k">Sizing</span><span className="v">Fractional — any amount</span>
+                <span className="k">Transferable</span><span className="v">Day one, on the secondary board</span>
                 <span className="k">Mechanic</span><span className="v">{isListed ? "Buy" : "Commit"}</span>
                 <span className="k">Liquidity</span><span className="v">{m.liq}</span>
                 {m.expense !== undefined && <><span className="k">Expense ratio</span><span className="v">{u.pct(m.expense, 2)}</span></>}

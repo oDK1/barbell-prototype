@@ -75,63 +75,132 @@
     );
   }
 
+  /* DW [P]: the product should always show how the portfolio could be
+     improved, including wider diversification across uncorrelated exposures.
+     Tokenised fractional sizing is what makes that reachable at small ticket
+     sizes — the sizing line below says so explicitly. END-STATE. */
+  function ImprovePanel({ positions }) {
+    const st = S.useStore();
+    const all = u.spread(positions);
+    const conviction = D.buckets.find((b) => b.key === "conviction");
+    const cs = u.spread(positions, conviction.subs);
+    const aff = u.affiliateExposure(positions);
+    const t = u.total(positions);
+
+    const ideas = [];
+    if (aff.wt > 5) ideas.push({
+      t: "One company carries " + u.pct(aff.wt) + " of the book",
+      d: aff.items.map((i) => i.name).join(", ") + ". The family's wealth and its income move together. Nothing here is uncorrelated with it.",
+      to: "/portfolio/equity?group=pubeq", cta: "See the holding",
+    });
+    if (all.topGeo && all.topGeo.wt > 40) ideas.push({
+      t: all.topGeo.v + " is " + u.pct(all.topGeo.wt) + " of everything",
+      d: "Geography is the cheapest uncorrelated exposure to add. Fractional tokenised sizing means a position no longer has to clear a fund minimum to be worth taking.",
+      to: "/marketplace?ask=" + encodeURIComponent("outside " + all.topGeo.v), cta: "Find exposure elsewhere",
+    });
+    if (cs.effective < 6) ideas.push({
+      t: "Conviction rests on " + cs.effective.toFixed(1) + " effective holdings",
+      d: "A conviction sleeve is meant to be concentrated, but " + (cs.largest ? cs.largest.name + " alone is " + u.pct((cs.largest.value / t) * 100) + " of the book" : "it is narrow") + ". Splitting one ticket across several theses costs nothing once positions are fractional.",
+      to: "/marketplace?ask=" + encodeURIComponent("venture"), cta: "Widen the sleeve",
+    });
+    if (all.topSector && all.topSector.wt > 25) ideas.push({
+      t: all.topSector.v + " runs through " + u.pct(all.topSector.wt) + " of the book",
+      d: "Sector concentration survives any asset-class split — it does not show up in an allocation table.",
+      to: "/marketplace", cta: "Open the marketplace",
+    });
+
+    return (
+      <div className="panel mt16">
+        <div className="panel-hd">
+          <div>
+            <h3>How this could be better</h3>
+            <div className="tri" style={{ fontSize: 11.5, marginTop: 2 }}>
+              Concentration the allocation does not show · {all.effective.toFixed(1)} effective holdings across {all.n}
+            </div>
+          </div>
+          <span className="tri" style={{ fontSize: 11 }}>Observations. Every decision is the family's.</span>
+        </div>
+        {ideas.length === 0
+          ? <div className="empty">No concentration worth flagging.</div>
+          : ideas.map((x, i) => (
+            <div key={i} className="improve">
+              <div className="imp-t">{x.t}</div>
+              <div className="imp-d">{x.d}</div>
+              <button className="btn sm mt8" onClick={() => S.navigate(x.to)}>{x.cta} →</button>
+            </div>
+          ))}
+      </div>
+    );
+  }
+
   /* ------------------------------------------------------- allocation tab */
   function AllocationTab({ positions, openSignal }) {
     const t = u.total(positions);
-    const rows = u.holdingsSix(positions, S.get().mandate);
+    const [bOpen, setBOpen] = useState({});
 
     return (
       <>
-        <div className="panel mt16">
-          <div className="panel-hd">
-            <h3>Holdings by class</h3>
-            <span className="tri" style={{ fontSize: 11 }}>Six classes · click one for the positions inside it</span>
-          </div>
-          <table className="t">
-            <thead>
-              <tr>
-                <th style={{ width: 260 }}>Asset class</th>
-                <th className="n">Positions</th>
-                <th style={{ width: 160 }}>Weight vs model</th>
-                <th className="n">Held</th>
-                <th className="n">Model</th>
-                <th className="n">vs model</th>
-                <th className="n">Value</th>
-                <th className="n">Unrealised</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((c) => (
-                <tr key={c.key} className="clickable" onClick={() => S.navigate(c.route)}>
-                  <td>
-                    <span style={{ display: "inline-flex", gap: 8, alignItems: "center", fontWeight: 600 }}>
-                      <i className="sw" style={{ width: 9, height: 9, display: "inline-block", background: c.color }} />
-                      {c.label}
-                    </span>
-                    <div className="tsub">{c.note}</div>
-                  </td>
-                  <td className="n num tri">{c.count}</td>
-                  <td><MiniBar cur={c.wt} target={c.model} max={45} /></td>
-                  <td className="n num">{u.pct(c.wt)}</td>
-                  <td className="n num tri">{u.pct(c.model)}</td>
-                  <td className="n"><VsTarget v={c.drift} /></td>
-                  <td className="n"><Money v={c.value} /></td>
-                  <td className="n"><Delta v={c.unrealized} usd /></td>
-                  <td className="right"><button className="btn sm" onClick={(e) => { e.stopPropagation(); S.navigate(c.route); }}>Open</button></td>
-                </tr>
-              ))}
-            </tbody>
-            <tfoot>
-              <tr>
-                <td>Total</td><td className="n num">{positions.length}</td><td></td>
-                <td className="n num">100.0%</td><td className="n num tri">100.0%</td><td></td>
-                <td className="n"><Money v={t} /></td>
-                <td className="n"><Delta v={u.unrealized(positions)} usd /></td><td></td>
-              </tr>
-            </tfoot>
-          </table>
+        {/* DW [P]: organised by risk and return, not by asset class. The six
+            classes survive one level down as disclosure — what is inside a
+            bucket — rather than as the organising idea. END-STATE. */}
+        <div className="buckets mt16">
+          {u.byBucket(positions, S.get().mandate).map((b) => {
+            const sp = u.spread(positions, b.subs);
+            const open = !!bOpen[b.key];
+            return (
+              <div key={b.key} className={"bk" + (b.key === "reserve" ? " bk-reserve" : "")}>
+                <div className="bk-hd clickable" onClick={() => setBOpen({ ...bOpen, [b.key]: !open })}>
+                  <div className="bk-id">
+                    <i style={{ background: b.color }} />
+                    <div>
+                      <div className="bk-name">{b.label}{b.proposal && <span className="bdg plain" style={{ marginLeft: 7 }}>proposal</span>}</div>
+                      <div className="bk-role">{b.role} · {b.band}</div>
+                    </div>
+                  </div>
+                  <div className="bk-num">
+                    <div className="num bk-wt">{u.pct(b.wt)}</div>
+                    <div className="tri num">{u.usdC(b.value)} · target {u.pct(b.target)}</div>
+                  </div>
+                </div>
+                <div className="bk-bar"><i style={{ width: Math.min(100, b.wt) + "%", background: b.color }} />
+                  <b style={{ left: Math.min(100, b.target) + "%" }} /></div>
+                <div className="bk-ft">
+                  <span className="tri">{b.count} positions · {sp.effective.toFixed(1)} effective holdings</span>
+                  <span className="tri">
+                    {sp.topGeo ? sp.topGeo.v + " " + u.pct(sp.topGeo.wt) : "—"}
+                    {sp.topSector ? " · " + sp.topSector.v + " " + u.pct(sp.topSector.wt) : ""}
+                  </span>
+                  <span className="spacer" />
+                  <button className="link g" onClick={(e) => { e.stopPropagation(); setBOpen({ ...bOpen, [b.key]: !open }); }}>
+                    {open ? "Hide what is inside" : "What is inside"}
+                  </button>
+                </div>
+                {open && (
+                  <div className="bk-in">
+                    <table className="t dense">
+                      <thead><tr><th>Asset class</th><th className="n">Positions</th><th className="n">Weight</th><th className="n">Value</th></tr></thead>
+                      <tbody>
+                        {b.classes.map((c) => (
+                          <tr key={c.key} className="clickable"
+                            onClick={() => S.navigate("/portfolio/" + (u.modelClassOf(D.modelClasses.find((x) => x.key === c.key).subs[0]) ? D.subs.find((x) => x.key === D.modelClasses.find((y) => y.key === c.key).subs[0]).cls : "equity") + "?group=" + c.key)}>
+                            <td><span style={{ display: "inline-flex", gap: 7, alignItems: "center" }}>
+                              <i className="sw" style={{ width: 8, height: 8, display: "inline-block", background: c.color }} />{c.label}</span></td>
+                            <td className="n num tri">{c.count}</td>
+                            <td className="n num">{u.pct(c.wt)}</td>
+                            <td className="n num">{u.usd(c.value)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
+
+        {/* DW [P]: always show how the portfolio could be improved. END-STATE. */}
+        <ImprovePanel positions={positions} />
 
         <QueryBar positions={positions} />
 

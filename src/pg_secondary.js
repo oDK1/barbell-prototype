@@ -331,8 +331,15 @@
           </div>
 
           <div>
-            <Panel title="Transaction" sub="Secondary transfer · same-day settlement">
+            <Panel title="Transaction" sub="Tokenised transfer · same-day settlement">
               <div className="kv">
+                {/* DW [D]: positions are tokenised from day one, held in an SPV
+                    and transferable among clients on a tokenised rail. The
+                    fundamentals are unchanged; liquidity and transferability
+                    are what move. END-STATE. */}
+                <span className="k">Held through</span><span className="v">SPV · token {l.id.toUpperCase()}-{l.vintage}</span>
+                <span className="k">Settlement</span>
+                <span className="v">Same day <span className="tri">· 30–60 days off-platform</span></span>
                 <span className="k">Mechanic</span><span className="v">Take the ask, or bid below it</span>
                 <span className="k">Ask</span><span className="v">{u.pct(l.askPct)} of last NAV</span>
                 <span className="k">You pay</span><span className="v">{u.usd(consideration)}</span>
@@ -341,6 +348,10 @@
                 <span className="k">Liquidity</span><span className="v">Locked until the fund returns capital</span>
                 {l.unfunded ? <><span className="k">Unfunded</span><span className="v">{u.usd(l.unfunded)}</span></> : null}
                 <span className="k">Days listed</span><span className="v">{l.days}</span>
+              </div>
+              <div className="why" style={{ borderTop: "1px solid var(--g3)" }}>
+                Transfer moves the token, not the underlying. The GP's register is updated on settlement;
+                the fund, its terms and its NAV are unchanged by the transfer.
               </div>
             </Panel>
 

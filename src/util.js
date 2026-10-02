@@ -433,6 +433,57 @@
     return { rows, last, vsLast: askPct === undefined ? null : askPct - last.pricePct };
   }
 
+
+  /* ------------------------------------------------- risk / return buckets */
+  function bucketOf(subKey) { return D.buckets.find((b) => b.subs.indexOf(subKey) >= 0) || null; }
+  function bucketLabel(subKey) { const b = bucketOf(subKey); return b ? b.label : "—"; }
+
+  /* The book split by what capital is for, with the six classes kept one level
+     down as disclosure rather than as the organising idea. */
+  function byBucket(ps, goalKey) {
+    const t = total(ps);
+    const preset = D.bucketPresets[goalKey] || D.bucketPresets.balanced;
+    return D.buckets.map((b) => {
+      const items = ps.filter((p) => b.subs.indexOf(p.sub) >= 0);
+      const v = total(items);
+      const wt = t ? (v / t) * 100 : 0;
+      const target = preset[b.key] || 0;
+      return {
+        ...b, items, value: v, wt, target, drift: wt - target, count: items.length,
+        unrealized: unrealized(items),
+        classes: D.modelClasses
+          .filter((c) => c.subs.some((k) => b.subs.indexOf(k) >= 0))
+          .map((c) => {
+            const inBoth = ps.filter((p) => c.subs.indexOf(p.sub) >= 0 && b.subs.indexOf(p.sub) >= 0);
+            const cv = total(inBoth);
+            return { key: c.key, label: c.label, color: c.color, value: cv, wt: t ? (cv / t) * 100 : 0, count: inBoth.length };
+          }).filter((c) => c.count > 0),
+      };
+    });
+  }
+
+  /* How concentrated a bucket is, and across how many uncorrelated exposures.
+     DW [P]: always show how the portfolio could be improved, and diversifying
+     across geography and sector is the example he gave. */
+  function spread(ps, subs) {
+    const items = ps.filter((p) => !subs || subs.indexOf(p.sub) >= 0);
+    const t = total(items) || 1;
+    const by = (k) => {
+      const m = {};
+      items.forEach((p) => { const v = p[k] || "—"; m[v] = (m[v] || 0) + p.value; });
+      return Object.keys(m).map((v) => ({ v, wt: (m[v] / t) * 100 })).sort((a, b) => b.wt - a.wt);
+    };
+    const geos = by("geo"), sectors = by("sector");
+    /* Herfindahl on position weights: 1 is one holding, near 0 is many equal ones. */
+    const hhi = items.reduce((a, p) => a + Math.pow(p.value / t, 2), 0);
+    return {
+      n: items.length, geos, sectors, hhi,
+      effective: hhi ? 1 / hhi : 0,
+      topGeo: geos[0] || null, topSector: sectors[0] || null,
+      largest: items.slice().sort((a, b) => b.value - a.value)[0] || null,
+    };
+  }
+
   /* ----------------------------------------------------------- projection */
   /* A lognormal fan: the mean path plus the 10th and 90th percentiles, given
      the class weights, their expected returns, their volatilities and how
@@ -598,7 +649,7 @@
     usd, usdC, krwC, krwFull, pct, pp, sgn, sgnUsd, num, localPx, days, fmtDate, fmtTs, monthKey, monthLabel,
     staleness, provLabel, sum, total, byClass, bySub, gaps, unrealized, realizedYTD,
     liquidity90, liquidityProjection, shortfall, coverage, projectMix,
-    modelSix, bySix, sixToFour, sixToSubs, pickForClass, holdingsSix, geoBucket, GEO_BUCKETS, listingDocs, listingView, currentIRR, tradeHistory, impactSix, modelClassOf, modelClassLabel, topHoldings, affiliateExposure, taxLots, eligibility,
+    modelSix, bySix, sixToFour, sixToSubs, pickForClass, holdingsSix, geoBucket, GEO_BUCKETS, listingDocs, listingView, currentIRR, tradeHistory, impactSix, modelClassOf, modelClassLabel, bucketOf, bucketLabel, byBucket, spread, topHoldings, affiliateExposure, taxLots, eligibility,
     fitFor, subLabel, clsLabel, clsOf, impact, modelWeights, marketContext, scoreFor, suggestAmount,
   };
 })();

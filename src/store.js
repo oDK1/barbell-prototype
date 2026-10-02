@@ -337,6 +337,12 @@
       toast(to ? "Invitation sent to " + to : "Invitation link copied");
       emit();
     },
+    requestConsult(desk) {
+      log("Advisory", "Requested a consult — " + desk,
+        "Read-only access to the reconciled book. The specialist advises; they cannot act on the account.");
+      toast("Consult requested — " + desk);
+      emit();
+    },
     dismissToast() { state.toast = null; emit(); },
   };
 

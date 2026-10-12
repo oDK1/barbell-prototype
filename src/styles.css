@@ -733,3 +733,18 @@ tr.rung-below td{opacity:.62}
 tr.rung-cash td{background:#FCFBF8}
 .th.fixed{cursor:default;opacity:.8;border-style:dashed}
 .th.fixed:hover{border-color:var(--g3)}
+
+/* Trust fit: how far Hanwha's involvement actually closes the gap. Three
+   states, and "weak" is not hidden — it is the one that makes the other two
+   mean anything. */
+.trustfit{display:inline-flex;align-items:center;gap:6px;font-size:10px;letter-spacing:.06em;
+  text-transform:uppercase;font-weight:600;padding:2px 8px;border-radius:var(--r);border:1px solid}
+.trustfit i{width:7px;height:7px;border-radius:50%;display:inline-block}
+.trustfit.strong{color:#2F5D3A;border-color:#BBD3C0;background:#F2F7F3}
+.trustfit.strong i{background:#2F5D3A}
+.trustfit.partial{color:#6B5316;border-color:#E7D8A8;background:var(--amber-wash)}
+.trustfit.partial i{background:#9A7B2E}
+.trustfit.weak{color:var(--g1);border-color:var(--g3);background:var(--g4)}
+.trustfit.weak i{background:var(--g2)}
+.trustfit.sm{padding:1px 6px;font-size:9px;gap:5px}
+.trustfit.sm i{width:6px;height:6px}

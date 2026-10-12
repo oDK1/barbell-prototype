@@ -455,7 +455,14 @@
     "Data Centers": "gpu", "Infrastructure": "gpu", "Digital Assets": "gpu",
   };
   const THEME_BY_SUB = { vc: "venture", pe: "venture", preipo: "privtech", comm: "legacy" };
-  function offerBucket(m) { return bucketKeyOf({ sub: m.fills, bucket: m.bucket }); }
+  /* Themes only exist inside conviction, so an offering that names one is
+     conviction whatever its instrument happens to be — a behind-the-meter
+     power SPV is a view, not a yield product, even though it is infrastructure. */
+  function offerBucket(m) {
+    if (m.bucket) return m.bucket;
+    if (m.theme && m.theme !== "legacy") return "conviction";
+    return bucketKeyOf({ sub: m.fills });
+  }
   function offerRung(m) {
     const r = typeof m.retNum === "number" ? m.retNum : 0;
     if (r < D.SHELF_FLOOR) return null;

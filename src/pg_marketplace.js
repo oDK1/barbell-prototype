@@ -25,6 +25,7 @@
                   {(D.sourceTypes.find((x) => x.key === m.source) || {}).label}
                 </span>
               : m.hanwha && <span className="bdg hanwha"><i className="pt" />Hanwha-sourced</span>}
+            {m.trust && <span className={"trustfit sm " + m.trust}><i />{m.trust}</span>}
           </div>
         </td>
         {/* where this lands: a rung of the anchor shelf, or a conviction theme */}
@@ -76,7 +77,7 @@
 
   function Marketplace({ route }) {
     const st = S.useStore();
-    const [f, setF] = useState({ bucket: "", rung: "", theme: "", src: "", liq: "", sector: "", geo: "", ret: "" });
+    const [f, setF] = useState({ bucket: "", rung: "", theme: "", src: "", trust: "", liq: "", sector: "", geo: "", ret: "" });
     const [q, setQ] = useState("");
     const [act, setAct] = useState(null);
     const [ask, setAsk] = useState("");
@@ -100,6 +101,7 @@
       if (f.rung && u.offerRung(m) !== +f.rung) return false;
       if (f.theme && u.offerTheme(m) !== f.theme) return false;
       if (f.src && m.source !== f.src) return false;
+      if (f.trust && m.trust !== f.trust) return false;
       if (f.liq && m.liq !== f.liq) return false;
       if (f.sector && m.sector !== f.sector) return false;
       if (f.geo && u.geoBucket(m.geo) !== f.geo) return false;
@@ -167,6 +169,13 @@
                   <div className="f-item"><label className="f"><span>Source</span>
                     <select value={f.src} onChange={(e) => setF({ ...f, src: e.target.value })}>
                       <option value="">Any</option>{D.sourceTypes.map((c) => <option key={c.key} value={c.key}>{c.label}</option>)}
+                    </select></label></div>
+                  <div className="f-item"><label className="f"><span>Trust fit</span>
+                    <select value={f.trust} onChange={(e) => setF({ ...f, trust: e.target.value })}>
+                      <option value="">Any</option>
+                      <option value="strong">Strong</option>
+                      <option value="partial">Partial</option>
+                      <option value="weak">Weak</option>
                     </select></label></div>
                   <div className="f-item"><label className="f"><span>Liquidity</span>
                     <select value={f.liq} onChange={(e) => setF({ ...f, liq: e.target.value })}>

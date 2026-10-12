@@ -99,6 +99,14 @@
             <div className="hwrole mt16" style={{ borderLeftColor: stp ? stp.color : "var(--navy)" }}>
               <div className="hw-hd">
                 <span className="hw-k">{stp ? stp.label : "Hanwha-sourced"}</span>
+                {/* How far the group's name actually closes the gap. Saying
+                    "weak" where it is weak is the only thing that makes
+                    "strong" worth anything. */}
+                {m.trust && (
+                  <span className={"trustfit " + m.trust}>
+                    <i /> Trust fit · {m.trust}
+                  </span>
+                )}
                 <span className="spacer" />
                 <span className="tri" style={{ fontSize: 11 }}>Member allocation · {m.avail}</span>
               </div>
@@ -116,7 +124,11 @@
                     : <div className="tri mt8" style={{ fontSize: 11.5 }}>Reviewed by the originating desk.</div>}
                 </div>
               </div>
-              {stp && <div className="hw-ft tri">{stp.note}</div>}
+              {stp && <div className="hw-ft tri">
+                {stp.note}
+                {m.trust === "weak" && " On this one the group supplies or assembles, but does not stand behind the return — so its name does not close the gap here."}
+                {m.trust === "partial" && " On this one the group's involvement reduces the risk rather than removing it, and concentrates what remains on Hanwha."}
+              </div>}
             </div>
           );
         })()}

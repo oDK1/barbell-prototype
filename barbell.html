@@ -745,6 +745,21 @@ tr.rung-cash td{background:#FCFBF8}
 .th.fixed{cursor:default;opacity:.8;border-style:dashed}
 .th.fixed:hover{border-color:var(--g3)}
 
+/* Trust fit: how far Hanwha's involvement actually closes the gap. Three
+   states, and "weak" is not hidden — it is the one that makes the other two
+   mean anything. */
+.trustfit{display:inline-flex;align-items:center;gap:6px;font-size:10px;letter-spacing:.06em;
+  text-transform:uppercase;font-weight:600;padding:2px 8px;border-radius:var(--r);border:1px solid}
+.trustfit i{width:7px;height:7px;border-radius:50%;display:inline-block}
+.trustfit.strong{color:#2F5D3A;border-color:#BBD3C0;background:#F2F7F3}
+.trustfit.strong i{background:#2F5D3A}
+.trustfit.partial{color:#6B5316;border-color:#E7D8A8;background:var(--amber-wash)}
+.trustfit.partial i{background:#9A7B2E}
+.trustfit.weak{color:var(--g1);border-color:var(--g3);background:var(--g4)}
+.trustfit.weak i{background:var(--g2)}
+.trustfit.sm{padding:1px 6px;font-size:9px;gap:5px}
+.trustfit.sm i{width:6px;height:6px}
+
 </style>
 </head>
 <body>
@@ -1346,6 +1361,36 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     { id: "p42", name: "FX balance — EUR", cls: "cash", sub: "fx", grp: "FX",
       sleeve: "core", prov: "live", value: 92000, cost: 90000, ccy: "EUR", liq: "Daily", sector: "Cash", geo: "Europe",
       acquired: "2025-06-18", fxFlag: true, src: { file: "Holdings_Master_2026Q3.xlsx", cell: "Sheet2!D20" } },
+
+    /* ---- ANCHOR YIELD PRODUCTS (5) --------------------------------------
+       Bucket 1 candidates from the asset wishlist, held rather than offered,
+       so the book occupies the upper half of the shelf instead of leaving it
+       empty. Rungs 8 through 12. Every figure is invented. */
+    { id: "p43", name: "Korean Corporate Compute Offtake Note 2026-A", cls: "debt", sub: "struct", grp: "Structured",
+      prov: "hanwha", value: 1420000, cost: 1400000, ccy: "KRW", liq: "Quarterly", term: "4yr · quarterly put",
+      sector: "Structured", geo: "Korea", asOf: "2026-06-30", acquired: "2026-02-18", onBarbell: true, vintage: "2026",
+      yieldPct: 8.4, src: { file: "Holdings_Master_2026Q3.xlsx", cell: "Sheet1!B91" },
+      note: "Lends against aggregated compute-usage contracts from Korean corporates. Hanwha underwrites offtaker credit that outside lenders cannot assess." },
+    { id: "p44", name: "Qcells Residential Storage Programme — Texas", cls: "debt", sub: "struct", grp: "Structured",
+      prov: "hanwha", value: 1180000, cost: 1150000, ccy: "USD", liq: "Quarterly", term: "7yr amortising",
+      sector: "Energy", geo: "United States", asOf: "2026-06-30", acquired: "2026-01-29", onBarbell: true, vintage: "2026",
+      yieldPct: 9.2, src: { file: "Holdings_Master_2026Q3.xlsx", cell: "Sheet1!B92" },
+      note: "Receivables from residential solar-and-battery installations. Panels at cost from the group; batteries recoverable on default." },
+    { id: "p45", name: "Hanwha Compute Offtake Facility I", cls: "debt", sub: "pcred", grp: "Private Credit / Direct Lending",
+      prov: "hanwha", value: 1760000, cost: 1700000, ccy: "USD", liq: "Locked", term: "5yr · 2031 maturity",
+      sector: "Infrastructure", geo: "United States", asOf: "2026-06-30", acquired: "2025-11-12", onBarbell: true, vintage: "2025",
+      yieldPct: 9.6, src: { file: "PE_Capital_Calls_v7_FINAL.xlsx", cell: "Fund List!A21" },
+      note: "GPU financing secured on a Hanwha offtake. The lender underwrites Hanwha's credit, not the hardware." },
+    { id: "p46", name: "Hanwha Offtake-Backed Copper Facility", cls: "debt", sub: "pcred", grp: "Private Credit / Direct Lending",
+      prov: "hanwha", value: 1240000, cost: 1200000, ccy: "USD", liq: "Locked", term: "3yr",
+      sector: "Materials", geo: "ROW", asOf: "2026-06-30", acquired: "2026-04-07", onBarbell: true, vintage: "2026",
+      yieldPct: 10.9, src: { file: "PE_Capital_Calls_v7_FINAL.xlsx", cell: "Fund List!A22" },
+      note: "Pre-export financing against a Hanwha purchase commitment. The commitment replaces the operator's credibility and concentrates the risk on Hanwha." },
+    { id: "p47", name: "Kazakh Uranium Offtake Facility — Series 2", cls: "debt", sub: "pcred", grp: "Private Credit / Direct Lending",
+      prov: "hanwha", value: 1510000, cost: 1450000, ccy: "USD", liq: "Locked", term: "4yr",
+      sector: "Energy", geo: "ROW", asOf: "2026-06-30", acquired: "2025-09-23", onBarbell: true, vintage: "2025",
+      yieldPct: 11.8, src: { file: "PE_Capital_Calls_v7_FINAL.xlsx", cell: "Fund List!A23" },
+      note: "The reference case for the trust argument: an asset discounted because investors cannot verify the operator, priced on Hanwha's commitment instead." },
   ];
 
 
@@ -1423,28 +1468,42 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   /* ================================================= conviction exposures
      Bucket 2 is a menu of things to have a view about, not an asset class.
      The family picks the exposures it wants and the marketplace ranks against
-     them. `legacy` is not on the menu: it is where holdings land that the
-     family would not choose today, which is worth being able to see.
+     them.
 
-     The last three are flagged. None of them is a security, and how they
-     would list on the group's BD/ATS is unresolved. */
+     The menu is the one the user specified, widened where the asset wishlist
+     opens a category it did not cover — energy, health, real estate. Each
+     entry carries the wishlist's own argument for why Hanwha can reach it:
+     the asset is discounted because nobody can verify the operator, and the
+     group's name closes that gap.
+
+     `legacy` is not on the menu: it is where holdings land that the family
+     would not choose today, which is worth being able to see.
+
+     Three entries are flagged. None of them is a security, and how they would
+     list on the group's BD/ATS is unresolved. */
   const themes = [
     { key: "privtech", label: "Private leading tech companies", color: "#5A74A0",
-      note: "Late-stage private technology, before it lists." },
+      note: "Late-stage private technology before it lists. Secondaries and directs, where the block is large enough that the balance sheet matters." },
     { key: "pubtech", label: "Public leading tech companies", color: "#1B2A4A",
       note: "Listed technology held by name, because of the company — not as a slice of an index." },
     { key: "gpu", label: "GPU clusters and compute", color: "#3F7183",
-      note: "Compute capacity itself: clusters, the data centres around them, and the power underneath." },
+      note: "Owning the hardware rather than lending against it. Inference margins are high and the group's own demand underwrites utilisation." },
     { key: "venture", label: "Leading venture funds", color: "#85AEBC",
-      note: "Access to funds that are otherwise closed, through Hanwha's own LP positions." },
+      note: "Top-tier funds through Hanwha's LP positions, and emerging managers the group's diligence can vouch for before anyone else can." },
     { key: "hedge", label: "Leading hedge funds", color: "#6B7F8C",
       note: "Managers whose return is skill rather than market direction, at ticket sizes a family office cannot normally reach." },
-    { key: "artists", label: "Emerging artists", color: "#9A7B2E", flagged: true,
-      note: "Work by artists before the secondary market finds them." },
+    { key: "energy", label: "Energy and power", color: "#4E7A5E",
+      note: "Generation and storage built where the grid cannot keep up — behind-the-meter supply, and co-location with the load it serves." },
+    { key: "health", label: "Health and longevity", color: "#7A5E8C",
+      note: "Korean drug pipelines, metabolic and peptide therapies, and screening. Binary outcomes that foreign investors cannot assess alone." },
+    { key: "realestate", label: "Prime and tokenised real estate", color: "#8C6E4E",
+      note: "Prime residential in supply-constrained markets, at ticket sizes that fractional ownership opens up." },
+    { key: "artists", label: "Emerging artists and creators", color: "#9A7B2E", flagged: true,
+      note: "Work and royalty streams from artists and creators before a global audience reprices them." },
     { key: "teams", label: "Sports teams", color: "#A98C3E", flagged: true,
-      note: "Minority stakes in clubs and franchises." },
+      note: "Minority stakes in franchises and esports teams, where the value turns on broadcast rights the group already holds in Korea." },
     { key: "players", label: "Sports players", color: "#C0A765", flagged: true,
-      note: "Participations in future earnings of individual athletes." },
+      note: "Participations in the future earnings of athletes and professionals who reprice on reaching a larger market." },
     { key: "legacy", label: "Held before the platform", color: "#A9A396", fixed: true,
       note: "Concentrated positions the family already carries that do not match anything on the menu. Not chosen today — but a view all the same." },
   ];
@@ -1771,6 +1830,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       why: "Government-guaranteed KRW credit at a 91bp spread over the KTB curve, in exchange for holding to maturity.",
       sector: "Government", geo: "Korea", ccy: "KRW", manager: "Korea Housing Finance Corporation", closing: "2026-10-08",
       hanwha: true, anchor: "Hanwha Life holds ₩400B of the same programme across recent vintages.",
+      trust: "strong",
       source: "direct", role: "Hanwha Life anchored the programme and Hanwha Securities arranged the placement.",
       overview: "Senior tranche of a government-guaranteed residential mortgage securitisation. Sovereign-equivalent credit with a 91bp pickup over the on-the-run KTB, in exchange for holding to maturity. Fills the duration gap in the reporting currency without an FX overlay.",
       terms: [["Yield to maturity", "4.62%"], ["Guarantee", "Korea Housing Finance Corporation (government-backed)"], ["Term", "3 years, no early redemption"], ["Minimum", "₩700,000,000 (≈$500,000)"], ["Coupon", "Quarterly"], ["Closing", "8 October 2026"]],
@@ -1783,6 +1843,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       why: "Senior secured against contracted data centre cash flows, on the same security package as the Facility I position already held.",
       sector: "Infrastructure", geo: "United States", ccy: "USD", manager: "Northgate Capital Partners", closing: "2026-10-30",
       hanwha: true, anchor: "Hanwha Life holds $180M of the senior tranche on identical terms.",
+      trust: "partial",
       source: "direct", role: "Originated by Hanwha's infrastructure credit desk; the group took the senior tranche first.",
       overview: "Senior secured lending against a 220MW US hyperscale data center platform, 94% contracted to two investment-grade tenants on 12-year leases. First-lien on the operating entity, 55% LTV on an independent appraisal, cash sweep above 1.35x DSCR. The family already holds the Facility I position at $2.39M; this is the same borrower, same security package, one tranche later.",
       terms: [["Target return", "9.2% (SOFR + 475bps, 4.0% floor)"], ["Term", "5 years, no extension"], ["Security", "First lien, 55% LTV"], ["Minimum", "$1,000,000"], ["Distribution", "Quarterly cash"], ["Closing", "30 October 2026"], ["Fees", "1.0% management, no carry"]],
@@ -1794,6 +1855,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       why: "8.4% target with quarterly liquidity; the family holds Fund II and the reporting line is identical.",
       sector: "Diversified", geo: "United States", ccy: "USD", manager: "Meridian Credit", closing: "Quarterly close",
       hanwha: true, anchor: "Hanwha Life holds $150M in the same evergreen vehicle, redeemable on the same quarterly terms.",
+      trust: "strong",
       source: "fund", role: "Hanwha has been an LP in Meridian's credit vehicles since Fund I. The member tranche sits inside that relationship.",
       overview: "Diversified senior secured lending to sponsor-backed mid-market borrowers, 128 positions, average hold 1.4% of the fund. Evergreen structure with quarterly redemption at NAV subject to a 5% gate.",
       terms: [["Target return", "8.4% net"], ["Liquidity", "Quarterly, 90 days' notice, 5% gate"], ["Minimum", "$500,000"], ["Fees", "1.25% / 10% over 6%"], ["Leverage", "0.85x"]],
@@ -1809,6 +1871,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       why: "Engine-grade yield with a quarterly put — co-created, so the terms are Hanwha's own rather than a distributor's.",
       sector: "Structured", geo: "Korea", ccy: "KRW", manager: "Hanwha Securities", closing: "Quarterly close",
       hanwha: true, anchor: "Hanwha Life holds the ₩300B first-loss tranche beneath this note.",
+      trust: "strong",
       source: "cocreated", role: "Designed, priced and issued by Hanwha. The note did not exist before this platform asked for it.",
       dd: ["Structure designed and priced in-house", "Hanwha Life holds the first-loss tranche beneath members", "Underlying collateral pool reviewed quarterly by the group's credit committee", "Independent pricing agent appointed"],
       overview: "A participation note referencing a diversified pool of Korean mid-market receivables, with Hanwha Life holding a first-loss tranche beneath the member tranche. Built for this platform: the quarterly put and the absence of a minimum are both consequences of Hanwha taking the subordinate position.",
@@ -1820,6 +1883,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       why: "On-chain lending yield at daily liquidity, wrapped so it can be custodied and reported like any other line.",
       sector: "Digital Assets", geo: "United States", ccy: "USD", manager: "Aegis Digital (placeholder)", closing: "Continuous",
       hanwha: true, anchor: "Hanwha holds $25M in the same programme and carries the operational risk of the wrapper.",
+      trust: "partial",
       source: "defi", role: "Hanwha selected the venues, built the feeder vehicle and stands between members and the protocol.",
       dd: ["Protocol code audited by two independent firms", "Custody through a regulated Korean qualified custodian", "Counterparty and bridge risk reviewed by the group's digital asset desk", "Daily proof-of-reserve reconciliation", "Hanwha capital invested on identical terms"],
       overview: "Over-collateralised USD lending across a small set of audited on-chain venues, held through a Hanwha feeder so the family's exposure is a single reportable line rather than a wallet. Yield is variable and has ranged from 6.1% to 14.3% over the last twenty-four months.",
@@ -1832,11 +1896,167 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       why: "Bank deposit yield well above the Korean curve, spread across six jurisdictions rather than taken in one.",
       sector: "Financials", geo: "Asia", ccy: "USD", manager: "Hanwha Securities", closing: "Monthly close",
       hanwha: true, anchor: "Hanwha Life places $400M across the same bank panel each quarter.",
+      trust: "strong",
       source: "cocreated", role: "Hanwha assembled the bank panel, negotiated the rates and places member capital alongside its own.",
       dd: ["Each bank reviewed against the group's own counterparty limits", "Deposits spread across six jurisdictions, no bank above 25%", "Rates negotiated on the group's aggregate volume", "Reviewed quarterly by the group's treasury"],
       overview: "Term deposits placed across a panel of emerging-market banks, aggregated so that a family-office ticket earns the rate the group's volume commands. Currency risk is hedged to USD; the credit risk is the banks'.",
       terms: [["Target return", "9.1% net of hedging"], ["Liquidity", "Quarterly, 30 days' notice"], ["Concentration", "No single bank above 25%"], ["Sizing", "Fractional — any amount"], ["Hedging", "Fully hedged to USD"]],
       docs: [["Programme terms", "PDF · 22pp"], ["Bank panel and limits", "PDF · 9pp"]], qa: [] },
+
+    /* ---- DEAL IDEAS FROM THE ASSET WISHLIST -----------------------------
+       Each one is a candidate from the framework: an asset discounted because
+       investors cannot verify the operator, counterparty or jurisdiction, and
+       which Hanwha's name can reach. `trust` records how far the group's
+       involvement actually closes that gap — strong, partial or weak — rather
+       than implying it always does.
+
+       Names, counterparties, sizes and returns are invented. */
+
+    /* --- 1 · AI ------------------------------------------------------- */
+    { id: "m46", kind: "private", name: "Compute Offtake Facility II — Hanwha-backed GPU financing", fills: "pcred", cls: "debt",
+      ret: "9.8% target", retNum: 9.8, liq: "Locked", term: "5 years", min: 0, avail: "$6.1M of $120M remaining", fit: 93,
+      why: "Lenders underwrite the offtaker, not the hardware — so the question is Hanwha's credit, not whether the GPUs stay busy.",
+      sector: "Infrastructure", geo: "United States", ccy: "USD", manager: "Hanwha Asset Management", closing: "2026-11-14",
+      hanwha: true, anchor: "Hanwha provides the offtake and holds $400M of the senior tranche on identical terms.",
+      source: "direct", trust: "partial",
+      role: "Hanwha wrote the offtake against its own forward compute demand, then financed against it.",
+      dd: ["Offtake sized against the group's internal compute demand forecast", "First lien on the hardware and the operating entity", "Hanwha senior tranche committed on identical terms", "Independent residual-value study on file"],
+      overview: "Senior secured lending against GPU capacity whose revenue is contracted to Hanwha under a multi-year offtake. The financing exists because lenders will underwrite Hanwha's credit and will not underwrite a GPU. That is also the risk: the structure transfers it to Hanwha rather than removing it.",
+      terms: [["Target return", "9.8% (SOFR + 540bps)"], ["Term", "5 years"], ["Security", "First lien on hardware and opco"], ["Offtake", "Hanwha, 5 years, take-or-pay"], ["Sizing", "Fractional — any amount"], ["Closing", "14 November 2026"]],
+      docs: [["Information memorandum", "PDF · 58pp"], ["Offtake agreement (summary)", "PDF · 14pp"], ["Residual value study", "PDF · 31pp"]],
+      qa: [["What happens if the offtake is not renewed?", "The facility amortises against contracted revenue through year five; renewal risk sits beyond final maturity."],
+           ["Is this really diversified from Hanwha?", "No. The credit question here is the group's, and a family already holding Hanwha paper should size it accordingly."]] },
+
+    { id: "m47", kind: "private", name: "Korean Corporate Compute Offtake — Series B", fills: "struct", cls: "debt",
+      ret: "8.9% target", retNum: 8.9, liq: "Quarterly", term: "4yr · quarterly put", min: 0, avail: "₩140B tranche open", fit: 90,
+      why: "Aggregated usage contracts from Korean corporates — credits a foreign lender cannot price and Hanwha can.",
+      sector: "Structured", geo: "Korea", ccy: "KRW", manager: "Hanwha Securities", closing: "Quarterly close",
+      hanwha: true, anchor: "Hanwha Life holds the ₩260B subordinate tranche beneath members.",
+      source: "cocreated", trust: "strong",
+      role: "Hanwha aggregated the contracts, underwrote each offtaker, and takes the first loss.",
+      dd: ["Each offtaker reviewed against the group's own counterparty limits", "No single corporate above 15% of the pool", "Hanwha Life holds the subordinate tranche", "Usage metered and reconciled monthly"],
+      overview: "Lending against a diversified pool of compute-usage contracts written by Korean corporates. The pool prices better than its parts because Hanwha can assess borrowers that outside lenders have no way of reading — which is the whole argument, and the whole concentration.",
+      terms: [["Target return", "8.9% net"], ["Put", "Quarterly at par, 10 business days' notice"], ["Pool", "31 corporate offtakers, none above 15%"], ["Subordination", "Hanwha Life, ₩260B"], ["Sizing", "Fractional — any amount"]],
+      docs: [["Term sheet", "PDF · 12pp"], ["Pool composition and limits", "PDF · 19pp"], ["Issuer disclosure", "PDF · 46pp"]], qa: [] },
+
+    { id: "m48", kind: "private", name: "Hanwha GPU Cluster Co-Ownership SPV", fills: "vc", cls: "equity", theme: "gpu",
+      ret: "2.6x target", retNum: 24.0, liq: "Locked", term: "Exit-driven", min: 0, avail: "$3.4M of $40M", fit: 86,
+      why: "Owning the hardware rather than lending against it — the equity return, with the group's own demand underwriting utilisation.",
+      sector: "Data Centers", geo: "Korea", ccy: "USD", manager: "Hanwha Asset Management", closing: "2026-12-05",
+      hanwha: true, anchor: "Hanwha and Korean corporates contract for 71% of the cluster's capacity from day one.",
+      source: "direct", trust: "strong",
+      role: "Hanwha built the cluster, brought the demand, and co-owns it alongside members.",
+      dd: ["Utilisation underwritten by contracted Hanwha and Korean corporate demand", "Hardware refresh and residual value modelled to year six", "Power contracted for the full term", "Hanwha capital invested on identical terms"],
+      overview: "Direct ownership of an operating GPU cluster. Inference margins are high and the hardware pays back well inside its useful life, so the economics are equity-like rather than credit-like. Utilisation is the risk, and 71% of capacity is already contracted.",
+      terms: [["Target", "2.6x over six years"], ["Structure", "Co-ownership SPV"], ["Contracted capacity", "71% at close"], ["Sizing", "Fractional — any amount"], ["Fees", "0.5% / 10% over 8%"], ["Closing", "5 December 2026"]],
+      docs: [["SPV memorandum", "PDF · 34pp"], ["Capacity contracts (summary)", "PDF · 11pp"], ["Hardware and refresh model", "XLSX"], ["Power purchase agreement", "PDF · 27pp"]],
+      qa: [["What if utilisation falls?", "Below roughly 55% the vehicle stops covering its cost of capital. The contracted base is 71%."]] },
+
+    /* --- 2 · Energy --------------------------------------------------- */
+    { id: "m49", kind: "private", name: "Qcells Residential Storage Programme — Series 3", fills: "struct", cls: "debt",
+      ret: "9.4% target", retNum: 9.4, liq: "Quarterly", term: "7yr amortising", min: 0, avail: "Open", fit: 82,
+      why: "Receivables from solar-and-battery installations, with panels supplied at cost by the group and batteries recoverable on default.",
+      sector: "Energy", geo: "United States", ccy: "USD", manager: "Hanwha Qcells", closing: "Monthly close",
+      hanwha: true, anchor: "Hanwha Qcells manufactures the panels and holds the residual risk on recovered hardware.",
+      source: "cocreated", trust: "weak",
+      role: "Hanwha supplies the hardware at cost, services the receivables, and takes back the batteries if a homeowner defaults.",
+      dd: ["Panels supplied at manufacturing cost by the group", "Batteries physically recoverable and re-deployable", "Homeowner credit screened at origination", "Texas generation held as a price hedge"],
+      overview: "Amortising receivables from residential solar-and-storage installations in US markets where retail power has risen sharply. Pricing is at a discount to the prevailing utility rate rather than fixed, so the programme tracks the thing that is actually going up.",
+      terms: [["Target return", "9.4% net"], ["Term", "7 years, amortising"], ["Liquidity", "Quarterly, 60 days' notice"], ["Recovery", "Batteries recoverable; panels at cost"], ["Sizing", "Fractional — any amount"]],
+      docs: [["Programme memorandum", "PDF · 41pp"], ["Receivables performance 2024-26", "XLSX"], ["Recovery and redeployment policy", "PDF · 9pp"]],
+      qa: [["What is the weak point?", "Homeowner relocation. The obligation follows the property, and transfer at sale is the programme's main operational friction."]] },
+
+    { id: "m50", kind: "private", name: "Behind-the-Meter Power SPV — turbine and storage", fills: "infra", cls: "real", theme: "energy",
+      ret: "16.5% target IRR", retNum: 16.5, liq: "Locked", term: "2042 concession", min: 0, avail: "$5.0M of $75M", fit: 77,
+      why: "Generation built next to the load it serves, which is what gets a data centre past an interconnection queue.",
+      sector: "Energy", geo: "United States", ccy: "USD", manager: "Hanwha Asset Management", closing: "2027-01-20",
+      hanwha: true, anchor: "Hanwha Qcells supplies the solar; the group holds 35% of the equity.",
+      source: "direct", trust: "weak",
+      role: "Hanwha assembled the project and supplies the generation equipment, but cannot underwrite the offtake.",
+      dd: ["Equipment supplied by the group", "Site control and permitting complete", "Turbine delivery slot secured", "Offtake not yet contracted — stated as the open risk"],
+      overview: "Solar, gas turbine and storage built behind the meter for data-centre load, bypassing an interconnection queue measured in years. The constraint it solves is real. The offtake is not yet contracted, which is the honest weakness and the reason it is priced where it is.",
+      terms: [["Target", "16.5% IRR"], ["Term", "Concession to 2042"], ["Offtake", "Not contracted at close"], ["Sizing", "Fractional — any amount"], ["Closing", "20 January 2027"]],
+      docs: [["Project memorandum", "PDF · 52pp"], ["Permitting file", "PDF · 88pp"], ["Turbine supply agreement", "PDF · 23pp"]],
+      qa: [["Why is the trust fit weak?", "Because Hanwha supplies equipment here but does not stand behind the revenue. The group's name does not close this gap, and the page says so."]] },
+
+    /* --- 3 · Venture and private markets ------------------------------ */
+    { id: "m51", kind: "private", name: "Tokenised Venture Fund-of-Funds I", fills: "vc", cls: "equity", theme: "venture",
+      ret: "2.9x target net", retNum: 19.5, liq: "Quarterly after year 3", term: "12 years", min: 0, avail: "$8.2M of $250M", fit: 94,
+      why: "Twenty top-tier managers and thirty emerging ones in a single tokenised line, through LP positions a family office cannot open on its own.",
+      sector: "Diversified", geo: "United States", ccy: "USD", manager: "Hanwha Asset Management", closing: "Quarterly close",
+      hanwha: true, anchor: "Built on Hanwha's existing LP positions; the group commits alongside members at each close.",
+      source: "fund", trust: "partial",
+      role: "Hanwha contributes its own LP access and runs the manager diligence; the wrapper is the group's.",
+      dd: ["Built on the group's existing LP positions", "Emerging managers screened through the LP network's own data", "No single manager above 6% of the vehicle", "Quarterly transfer on the secondary board after year three"],
+      overview: "A tokenised fund-of-funds across roughly twenty established managers and thirty emerging ones. Top managers have compounded above 20% IRR for decades and have been closed to tickets this size; the access comes from the group's LP relationships rather than from a placement agent. Adverse manager selection is the live risk, and a sectoral bubble would hit every line at once.",
+      terms: [["Target", "2.9x net / 19.5% net IRR"], ["Term", "12 years"], ["Liquidity", "Secondary board after year 3"], ["Concentration", "No manager above 6%"], ["Sizing", "Fractional — any amount"], ["Fees", "0.8% / 5% over 8%"]],
+      docs: [["Vehicle memorandum", "PDF · 96pp"], ["Manager roster and diligence summary", "PDF · 44pp"], ["LP access letters", "PDF · 18pp"], ["Tokenisation and transfer mechanics", "PDF · 16pp"]],
+      qa: [["What does Hanwha add that a placement agent would not?", "The LP positions themselves. Several of these managers do not accept new LPs at all; the allocation is carved from commitments the group already holds."]] },
+
+    { id: "m52", kind: "private", name: "Emerging Manager Secondaries — Vintage 2021-23", fills: "vc", cls: "equity", theme: "venture",
+      ret: "2.4x target", retNum: 21.0, liq: "Locked", term: "Until wind-down", min: 0, avail: "$2.7M block", fit: 88,
+      why: "Thin public track records priced as unknowable risk — where the group's own data can tell one manager from another.",
+      sector: "Diversified", geo: "United States", ccy: "USD", manager: "Hanwha Asset Management", closing: "2026-11-28",
+      hanwha: true, anchor: "Hanwha takes the larger half of every block on identical terms.",
+      source: "direct", trust: "strong",
+      role: "Hanwha's diligence is the product here: the discount exists because other buyers cannot assess these managers.",
+      dd: ["Managers assessed against the LP network's own portfolio data", "Underlying company marks cross-checked against the group's other positions", "Blocks bought at a discount to the most recent manager mark", "Hanwha invests alongside at the same price"],
+      overview: "LP interests in 2021-23 vintage funds run by managers without a long public record, bought from LPs who need liquidity. The discount is a function of what other buyers cannot see, not of what the assets are worth — which is the clearest version of the trust argument on the platform.",
+      terms: [["Target", "2.4x"], ["Entry", "Weighted 18% discount to last manager mark"], ["Term", "Until wind-down, est. 2031"], ["Sizing", "Fractional — any amount"], ["Closing", "28 November 2026"]],
+      docs: [["Block summary", "PDF · 22pp"], ["Manager-by-manager diligence", "PDF · 61pp"], ["Transfer and consent pack", "PDF · 34pp"]], qa: [] },
+
+    /* --- 4 · Human premium -------------------------------------------- */
+    { id: "m53", kind: "private", name: "Korean Esports Franchise — minority stake", fills: "pe", cls: "equity", theme: "teams",
+      ret: "3.2x target", retNum: 23.0, liq: "Locked", term: "Exit-driven", min: 0, avail: "$1.6M of $18M", fit: 71,
+      why: "A team foreign investors have no way of valuing, in a market where the group holds the broadcast relationships.",
+      sector: "Media", geo: "Korea", ccy: "KRW", manager: "Hanwha Asset Management", closing: "2027-02-10",
+      hanwha: true, anchor: "Hanwha holds a controlling stake and the Korean broadcast relationships behind it.",
+      source: "direct", trust: "partial",
+      role: "Hanwha selected the team and stages the minority stakes; monetisation remains immature and the page says so.",
+      dd: ["Team selected and held by the group", "Broadcast and sponsorship relationships held in Korea", "Staged minority stakes rather than a single block", "Revenue model stress-tested against a flat sponsorship market"],
+      overview: "A minority stake in a Korean esports organisation. The argument is that monetisation is immature rather than absent, and that a foreign investor cannot tell a good roster from a bad one. Hanwha can. Whether that is worth the illiquidity is the family's call.",
+      terms: [["Target", "3.2x"], ["Structure", "Staged minority stake"], ["Term", "Exit-driven"], ["Sizing", "Fractional — any amount"], ["Closing", "10 February 2027"]],
+      docs: [["Investment memorandum", "PDF · 29pp"], ["Revenue and sponsorship model", "XLSX"], ["Roster and contract summary", "PDF · 12pp"]],
+      qa: [["Is this a security?", "The stake is an equity interest in a Korean operating company, so yes. The sports-adjacent participations elsewhere on the platform are a different question and are flagged as unresolved."]] },
+
+    { id: "m54", kind: "private", name: "K-Content Royalty Basket — 2026 vintage", fills: "preipo", cls: "equity", theme: "artists",
+      ret: "14.0% target", retNum: 14.0, liq: "Quarterly", term: "10yr", min: 0, avail: "Open", fit: 74,
+      why: "Verified royalty streams from Korean content, which reprice when a global audience finds them.",
+      sector: "Media", geo: "Korea", ccy: "KRW", manager: "Hanwha Asset Management", closing: "Quarterly close",
+      hanwha: true, anchor: "Hanwha verifies each royalty stream against distributor settlement data.",
+      source: "cocreated", trust: "partial",
+      role: "Hanwha assembled the basket and verifies the underlying royalties; it does not guarantee them.",
+      dd: ["Each royalty stream verified against distributor settlement data", "Basket of 40+ works, no single work above 8%", "Quarterly reconciliation against platform reporting", "Catalogue rights confirmed by Korean counsel"],
+      overview: "A basket of royalty streams from Korean music, film and television. Earnings step up sharply when a work reaches a worldwide audience, and the home market has historically priced these at a discount. AI-generated content eroding artist earnings is the structural risk and is not hedged.",
+      terms: [["Target return", "14.0%"], ["Term", "10 years"], ["Liquidity", "Quarterly, 90 days' notice"], ["Diversification", "40+ works, none above 8%"], ["Sizing", "Fractional — any amount"]],
+      docs: [["Basket memorandum", "PDF · 37pp"], ["Royalty verification methodology", "PDF · 15pp"], ["Historical settlement data", "XLSX"]], qa: [] },
+
+    /* --- 7 · Real estate ----------------------------------------------- */
+    { id: "m55", kind: "private", name: "Tokenised Prime Seoul Residential — Gangnam portfolio", fills: "re", cls: "real", theme: "realestate",
+      ret: "11.2% target IRR", retNum: 11.2, liq: "Quarterly after year 2", term: "8yr", min: 0, avail: "₩62B of ₩400B", fit: 83,
+      why: "Prime Seoul apartments at ticket sizes that have always excluded the buyers who want them most.",
+      sector: "Residential", geo: "Korea", ccy: "KRW", manager: "Hanwha Asset Management", closing: "Quarterly close",
+      hanwha: true, anchor: "Hanwha holds 30% of the portfolio and is the issuer of record for foreign buyers.",
+      source: "cocreated", trust: "partial",
+      role: "Hanwha is the trusted issuer that makes foreign ownership workable, and holds the regulatory relationships.",
+      dd: ["Title and ownership structure confirmed by Korean counsel", "Hanwha holds 30% of the portfolio on identical terms", "Rental income verified against lease registry", "Regulatory position documented with the relevant authority"],
+      overview: "Fractional ownership of a portfolio of prime Gangnam apartments. Supply is constrained, demand is not, and the ticket size has historically kept out exactly the buyers who want the exposure. Regulatory opposition to anything that looks like speculation is the principal risk.",
+      terms: [["Target", "11.2% IRR"], ["Term", "8 years"], ["Liquidity", "Secondary board after year 2"], ["Sizing", "Fractional — any amount"], ["Issuer", "Hanwha, for foreign holders of record"]],
+      docs: [["Portfolio memorandum", "PDF · 68pp"], ["Title and counsel opinion", "PDF · 42pp"], ["Lease registry extract", "XLSX"], ["Regulatory position paper", "PDF · 17pp"]],
+      qa: [["What is the regulatory risk exactly?", "Korean policy toward residential speculation changes, and a tokenised fractional structure is visible. The position paper sets out the current treatment; it is not a guarantee of future treatment."]] },
+
+    /* --- 5 · Health ----------------------------------------------------- */
+    { id: "m56", kind: "private", name: "Korean Drug Discovery Basket — Series 1", fills: "vc", cls: "equity", theme: "health",
+      ret: "3.6x target", retNum: 26.0, liq: "Locked", term: "Exit-driven", min: 0, avail: "$2.2M of $30M", fit: 69,
+      why: "Twelve Korean clinical programmes in one line — binary outcomes that no single foreign investor can assess alone.",
+      sector: "Healthcare", geo: "Korea", ccy: "USD", manager: "Hanwha Asset Management", closing: "2027-01-08",
+      hanwha: true, anchor: "Hanwha selects the programmes and invests alongside at the same valuation.",
+      source: "direct", trust: "partial",
+      role: "Hanwha's selection is the product; the clinical outcomes are nobody's to guarantee.",
+      dd: ["Twelve programmes, none above 14% of the basket", "Each reviewed by the group's healthcare specialists", "Staged funding tied to clinical milestones", "Hanwha invested at the same valuation"],
+      overview: "A basket of Korean clinical-stage programmes. AI has made candidate generation cheap and moved the value to testing and approval, which is where Korean capability is strong and foreign capital is thin. Outcomes are binary; the basket is the only defence and it is not a complete one.",
+      terms: [["Target", "3.6x"], ["Structure", "Basket of 12 programmes"], ["Funding", "Staged on clinical milestones"], ["Sizing", "Fractional — any amount"], ["Closing", "8 January 2027"]],
+      docs: [["Basket memorandum", "PDF · 48pp"], ["Programme-by-programme summaries", "PDF · 112pp"], ["Specialist review notes", "PDF · 26pp"]], qa: [] },
 
     { id: "m08", kind: "listed", name: "Invesco Senior Loan ETF", ticker: "BKLN", fills: "pcred", cls: "debt",
       ret: "7.60% yield", retNum: 7.6, liq: "Daily", term: "Open-ended", min: 1000, avail: "Continuous", fit: 76,
@@ -1868,6 +2088,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       why: "Second phase of an asset the family already owns, at the same entry basis as Hanwha Life.",
       sector: "Data Centers", geo: "Korea", ccy: "USD", manager: "Hanwha Asset Management", closing: "2026-11-14",
       hanwha: true, anchor: "Hanwha Life is the anchor investor at $220M, subscribed at the same price and terms as members.",
+      trust: "strong",
       source: "direct", role: "Developed and financed by Hanwha; the group remains the largest equity holder.",
       overview: "Second phase of the Songdo campus: 180MW of contracted capacity with a signed 15-year offtake from a global cloud operator. Phase I, which the family already holds at $2.34M, is 100% leased and distributing at a 7.4% cash yield.",
       terms: [["Target IRR", "13.5% gross / 11.8% net"], ["Cash yield", "6.2% from year 3"], ["Term", "8 years"], ["Minimum", "$750,000"], ["Fees", "1.5% / 15% over 8%"], ["Closing", "14 November 2026"]],
@@ -1879,6 +2100,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       why: "$300,000 minimum, quarterly cash from year one; Co-Invest I is marking at 1.08x.",
       sector: "Logistics", geo: "Korea", ccy: "KRW", manager: "Hanwha Asset Management", closing: "2026-12-05",
       hanwha: true, anchor: "Hanwha Life holds 40% of the REIT's equity alongside co-investors.",
+      trust: "strong",
       source: "cocreated", role: "Structured by Hanwha with the REIT manager so that member tickets could sit alongside the group's own 40%.",
       overview: "Cold-chain and last-mile logistics assets in the Seoul metropolitan area, 91% occupied on a weighted 6.2-year lease term. Distributions quarterly from year 1.",
       terms: [["Target IRR", "9.8%"], ["Cash yield", "5.9% from year 1"], ["Term", "6 years"], ["Minimum", "$300,000"], ["Fees", "1.2% / 12% over 7%"], ["Closing", "5 December 2026"]],
@@ -1931,6 +2153,8 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       why: "Access tranche in a fund that is otherwise closed; sits inside the Alpha sleeve's remaining capacity.",
       sector: "Technology", geo: "United States", ccy: "USD", manager: "Meridian Venture Partners", closing: "2026-10-15",
       hanwha: true, anchor: "Hanwha Life is the cornerstone LP in Fund XII at $60M; the member tranche is carved out of that commitment.",
+      theme: "venture",
+      trust: "strong",
       source: "fund", role: "Hanwha is the cornerstone LP. The access tranche exists because of that position and not otherwise.",
       overview: "Early-stage US venture fund, twelfth vintage. Funds VIII–X are marking at 4.2x, 3.1x and 2.4x net. The tranche exists because the GP reserved capacity for platform investors; the family could not access this fund directly at a $250K commitment.",
       terms: [["Target", "3.1x net / 22% net IRR"], ["Term", "10 years + 2 one-year extensions"], ["Minimum", "$250,000"], ["Fees", "2.0% / 20% over 8%"], ["Drawdown", "Over 4 years, ~25% per year"], ["Closing", "15 October 2026"]],
@@ -1942,6 +2166,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       why: "Averages into an existing Series F position at a 12% discount to the last primary round.",
       sector: "Aerospace", geo: "United States", ccy: "USD", manager: "Direct block", closing: "2026-10-22",
       hanwha: true, anchor: "Hanwha Life took $40M of the same secondary block at $186.00 — the price members pay.",
+      trust: "partial",
       source: "direct", role: "Sourced by Hanwha's pre-IPO desk from a selling employee holder; the group took the larger half of the block.",
       overview: "Secondary block in a large private aerospace manufacturer, sold by an early employee holder. Priced at $186/share against the Series G primary at $211. The family holds the Series F block at $820K, entered at $142.",
       terms: [["Price", "$186.00 per share"], ["Discount to last round", "11.8%"], ["Minimum", "$500,000"], ["Transfer", "Company right of first refusal, 30 days"], ["Closing", "22 October 2026"]],
@@ -1953,6 +2178,8 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       why: "Growth-stage AI infrastructure; the family holds SPV I, marked at 1.35x after 17 months.",
       sector: "Technology", geo: "United States", ccy: "USD", manager: "Helios Partners", closing: "2026-11-01",
       hanwha: true, anchor: "Hanwha Life holds $45M of the same Series D, subscribed alongside the SPV at the round price.",
+      theme: "gpu",
+      trust: "partial",
       source: "cocreated", role: "The SPV was formed by Hanwha to carry member capital into a round the group was already taking.",
       overview: "Single-asset SPV into the Series D of a GPU cloud operator with $310M of contracted revenue. Concentrated: one company, one round, no diversification.",
       terms: [["Target", "4.0x"], ["Structure", "Single-asset SPV"], ["Minimum", "$250,000"], ["Fees", "0% management / 10% carry"], ["Closing", "1 November 2026"]],
@@ -1963,6 +2190,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       why: "Core open-end property; the family holds Fund IV and the exposure would be duplicative.",
       sector: "Diversified RE", geo: "Asia-Pacific", ccy: "USD", manager: "Pacific Core", closing: "Quarterly close",
       hanwha: true, anchor: "Hanwha Life holds $210M in the fund and stands in the same quarterly redemption queue.",
+      trust: "weak",
       source: "fund", role: "Hanwha has stood in the same redemption queue as members since Fund III.",
       overview: "Core open-end Asia-Pacific property fund. Shown because the family holds Fund IV.",
       terms: [["Target return", "8.1% net"], ["Liquidity", "Quarterly queue"], ["Minimum", "$500,000"], ["Fees", "1.0% / no carry"]],
@@ -2634,7 +2862,14 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     "Data Centers": "gpu", "Infrastructure": "gpu", "Digital Assets": "gpu",
   };
   const THEME_BY_SUB = { vc: "venture", pe: "venture", preipo: "privtech", comm: "legacy" };
-  function offerBucket(m) { return bucketKeyOf({ sub: m.fills, bucket: m.bucket }); }
+  /* Themes only exist inside conviction, so an offering that names one is
+     conviction whatever its instrument happens to be — a behind-the-meter
+     power SPV is a view, not a yield product, even though it is infrastructure. */
+  function offerBucket(m) {
+    if (m.bucket) return m.bucket;
+    if (m.theme && m.theme !== "legacy") return "conviction";
+    return bucketKeyOf({ sub: m.fills });
+  }
   function offerRung(m) {
     const r = typeof m.retNum === "number" ? m.retNum : 0;
     if (r < D.SHELF_FLOOR) return null;
@@ -6399,6 +6634,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                   {(D.sourceTypes.find((x) => x.key === m.source) || {}).label}
                 </span>
               : m.hanwha && <span className="bdg hanwha"><i className="pt" />Hanwha-sourced</span>}
+            {m.trust && <span className={"trustfit sm " + m.trust}><i />{m.trust}</span>}
           </div>
         </td>
         {/* where this lands: a rung of the anchor shelf, or a conviction theme */}
@@ -6450,7 +6686,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
   function Marketplace({ route }) {
     const st = S.useStore();
-    const [f, setF] = useState({ bucket: "", rung: "", theme: "", src: "", liq: "", sector: "", geo: "", ret: "" });
+    const [f, setF] = useState({ bucket: "", rung: "", theme: "", src: "", trust: "", liq: "", sector: "", geo: "", ret: "" });
     const [q, setQ] = useState("");
     const [act, setAct] = useState(null);
     const [ask, setAsk] = useState("");
@@ -6474,6 +6710,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       if (f.rung && u.offerRung(m) !== +f.rung) return false;
       if (f.theme && u.offerTheme(m) !== f.theme) return false;
       if (f.src && m.source !== f.src) return false;
+      if (f.trust && m.trust !== f.trust) return false;
       if (f.liq && m.liq !== f.liq) return false;
       if (f.sector && m.sector !== f.sector) return false;
       if (f.geo && u.geoBucket(m.geo) !== f.geo) return false;
@@ -6541,6 +6778,13 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                   <div className="f-item"><label className="f"><span>Source</span>
                     <select value={f.src} onChange={(e) => setF({ ...f, src: e.target.value })}>
                       <option value="">Any</option>{D.sourceTypes.map((c) => <option key={c.key} value={c.key}>{c.label}</option>)}
+                    </select></label></div>
+                  <div className="f-item"><label className="f"><span>Trust fit</span>
+                    <select value={f.trust} onChange={(e) => setF({ ...f, trust: e.target.value })}>
+                      <option value="">Any</option>
+                      <option value="strong">Strong</option>
+                      <option value="partial">Partial</option>
+                      <option value="weak">Weak</option>
                     </select></label></div>
                   <div className="f-item"><label className="f"><span>Liquidity</span>
                     <select value={f.liq} onChange={(e) => setF({ ...f, liq: e.target.value })}>
@@ -6787,6 +7031,14 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
             <div className="hwrole mt16" style={{ borderLeftColor: stp ? stp.color : "var(--navy)" }}>
               <div className="hw-hd">
                 <span className="hw-k">{stp ? stp.label : "Hanwha-sourced"}</span>
+                {/* How far the group's name actually closes the gap. Saying
+                    "weak" where it is weak is the only thing that makes
+                    "strong" worth anything. */}
+                {m.trust && (
+                  <span className={"trustfit " + m.trust}>
+                    <i /> Trust fit · {m.trust}
+                  </span>
+                )}
                 <span className="spacer" />
                 <span className="tri" style={{ fontSize: 11 }}>Member allocation · {m.avail}</span>
               </div>
@@ -6804,7 +7056,11 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                     : <div className="tri mt8" style={{ fontSize: 11.5 }}>Reviewed by the originating desk.</div>}
                 </div>
               </div>
-              {stp && <div className="hw-ft tri">{stp.note}</div>}
+              {stp && <div className="hw-ft tri">
+                {stp.note}
+                {m.trust === "weak" && " On this one the group supplies or assembles, but does not stand behind the return — so its name does not close the gap here."}
+                {m.trust === "partial" && " On this one the group's involvement reduces the risk rather than removing it, and concentrates what remains on Hanwha."}
+              </div>}
             </div>
           );
         })()}

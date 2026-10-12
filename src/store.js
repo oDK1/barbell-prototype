@@ -29,10 +29,16 @@
     ops: clone(D.opsLedger),
     referrals: clone(D.referrals),
     mandate: "balanced",
-    /* DW [D]: one Engine / Conviction split replaces the nine model portfolios.
-       `split` is the number the family sets; `mandate` survives only as the
-       nearest posture label and to feed the marketplace scoring path. */
-    split: D.bucketPresets.balanced,
+    /* One control: `band` is the rung of the anchor shelf the family asks for,
+       5 to 15. Raising it raises the return asked of the anchor and, inversely,
+       shrinks it — `split` (the conviction share) follows unless the family
+       overrides it, which is how a 99/1 stays expressible. `themes` is what
+       Conviction is pointed at. `mandate` survives only as the nearest posture
+       label and to feed the marketplace's scoring path. */
+    band: D.RISK_BASE.band,
+    split: D.RISK_BASE.conviction,
+    splitPinned: false,
+    themes: D.themes.filter((t) => !t.flagged).map((t) => t.key),
     survey: {},
     uploads: clone(D.uploadFiles),
     exceptions: clone(D.exceptions).map((e) => ({ ...e, resolved: false, value: e.type === "input" ? e.suggestion : e.answer })),
@@ -88,6 +94,17 @@
   }
 
   /* --------------------------------------------------------------- actions */
+  /* The marketplace's scoring still reasons in postures, so keep the nearest
+     one in step with whatever the split has become. */
+  function syncPosture() {
+    let best = "balanced", d = Infinity;
+    Object.keys(D.bucketPresets).forEach((k) => {
+      const gap = Math.abs(D.bucketPresets[k] - state.split);
+      if (gap < d) { d = gap; best = k; }
+    });
+    state.mandate = best;
+  }
+
   const actions = {
     setAccount(a) { state.account = a; emit(); },
 
@@ -133,21 +150,36 @@
 
     /* The one model lever. Snaps `mandate` to the nearest posture so the
        marketplace's scoring, which still reasons in postures, stays coherent. */
+    /* The primary lever. Moves the anchor up or down the shelf and, unless the
+       family has pinned a split of its own, moves the split with it. */
+    setBand(b) {
+      const v = Math.max(D.SHELF_FLOOR, Math.min(D.SHELF_CEIL, Math.round(b)));
+      state.band = v;
+      if (!state.splitPinned) state.split = BB.u.splitForBand(v);
+      syncPosture();
+      emit();
+    },
+
+    toggleTheme(key) {
+      const i = state.themes.indexOf(key);
+      if (i >= 0) state.themes = state.themes.filter((k) => k !== key);
+      else state.themes = state.themes.concat([key]);
+      emit();
+    },
+
+    unpinSplit() { state.splitPinned = false; state.split = BB.u.splitForBand(state.band); syncPosture(); emit(); },
+
     setSplit(conv) {
       const v = Math.max(0, Math.min(100, Math.round(conv)));
       state.split = v;
-      let best = "balanced", d = Infinity;
-      Object.keys(D.bucketPresets).forEach((k) => {
-        const gap = Math.abs(D.bucketPresets[k] - v);
-        if (gap < d) { d = gap; best = k; }
-      });
-      state.mandate = best;
+      state.splitPinned = v !== BB.u.splitForBand(state.band);
+      syncPosture();
       emit();
     },
 
     commitSplit() {
-      const v = state.split;
-      log("Mandate", "Set the split — Engine " + (100 - v) + " / Conviction " + v, "principal");
+      log("Mandate", "Anchor " + state.band + "% target · " + (100 - state.split) + " / " + state.split
+        + " · " + state.themes.length + " themes", "principal");
       emit();
     },
 
@@ -156,6 +188,7 @@
       if (!m) return;
       state.mandate = key;
       state.split = D.bucketPresets[key] !== undefined ? D.bucketPresets[key] : state.split;
+      state.splitPinned = true;
       // rescale subcategory targets proportionally inside each class
       D.classes.forEach((c) => {
         const old = c.target, next = m.targets[c.key];

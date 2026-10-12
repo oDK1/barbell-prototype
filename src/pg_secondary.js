@@ -65,7 +65,7 @@
           <table className="t">
             <thead>
               <tr>
-                <th style={{ minWidth: 240 }}>Instrument</th><th>Fills</th><th className="n">Current IRR</th><th>Liquidity</th>
+                <th style={{ minWidth: 240 }}>Instrument</th><th>Where it lands</th><th className="n">Current IRR</th><th>Liquidity</th>
                 <th className="n">Last NAV</th><th className="n">Size offered</th><th className="n">Fit</th>
                 <th className="hide-narrow" style={{ minWidth: 170 }}>Why</th><th></th>
               </tr>
@@ -79,7 +79,17 @@
                       <div className="tname">{l.instrument}</div>
                       <div className="tsub">{l.manager} · vintage {l.vintage}</div>
                     </td>
-                    <td>{u.subLabel(l.sub)}<div className="tsub">{u.modelClassLabel(l.sub)}</div></td>
+                    {/* where the interest lands, not what asset class it is */}
+                    <td>{(() => {
+                      const pl = u.offerPlace({ fills: l.sub, retNum: v.irr ? v.irr.irr : null, sector: l.sector });
+                      return (<>
+                        <span style={{ display: "inline-flex", gap: 7, alignItems: "center" }}>
+                          <i className="sw" style={{ width: 8, height: 8, display: "inline-block", background: pl.color }} />
+                          <span className="tname" style={{ fontSize: 12 }}>{pl.label}</span>
+                        </span>
+                        <div className="tsub">{pl.detail}</div>
+                      </>);
+                    })()}</td>
                     <td className="n">
                       {v.irr
                         ? <span title={"Annualised from the interest's own capital account to the " + u.fmtDate(l.account[l.account.length - 1][0]) + " mark, which is the manager's own."}>
@@ -194,8 +204,11 @@
     const sc = u.listingView(l, ctx).sc;
     const hist = u.tradeHistory(l.id, st.trades, l.askPct);
     const gap = u.bySub(st.positions).find((x) => x.key === l.sub);
-    const mc = u.impactSix(st.positions, l.sub, 0, st.split);
-    const mcDrift = mc && mc.target !== null ? mc.target - mc.before : 0;
+    const liveIRR = u.currentIRR(l);
+    const place = u.offerPlace({ fills: l.sub, retNum: liveIRR ? liveIRR.irr : null, sector: l.sector });
+    const bRow = u.byBucket(st.positions, st.band, st.splitPinned ? st.split : null)
+      .find((b) => b.key === place.bucket);
+    const mcDrift = bRow ? bRow.target - bRow.wt : 0;
     const gapWord = (x) => u.num(Math.abs(x || 0), 1) + "pp " + ((x || 0) > 0 ? "below" : "above") + " the model";
     const why = u.listingView(l, ctx).why;
 
@@ -247,7 +260,7 @@
 
         <div className="mt16">
           <Agent where="Deal fit"
-            why={["Allocation " + sc.allocation + "/100 — " + (mc ? mc.c.label : "") + " sits " + gapWord(mcDrift),
+            why={["Allocation " + sc.allocation + "/100 — " + place.label + " sits " + gapWord(mcDrift),
                   "Liquidity " + sc.liquidity + "/100 — a transferred interest is locked until the fund returns capital, against " +
                     u.usdC(ctx.calls24) + " of calls over 24 months",
                   "Tax " + sc.tax + "/100 — " + u.usd(ctx.tax.realized) + " realised year to date",
@@ -257,7 +270,7 @@
             {why}
             <table className="t dense mt12" style={{ maxWidth: 520 }}>
               <tbody>
-                {[["Allocation", sc.allocation, (mc ? mc.c.label : "") + " " + gapWord(mcDrift)],
+                {[["Allocation", sc.allocation, place.label + " " + gapWord(mcDrift)],
                   ["Liquidity", sc.liquidity, "locked" + (ctx.short ? " · cash breaks " + ctx.short.month : " · calls covered")],
                   ["Tax", sc.tax, ["pe", "vc", "preipo"].indexOf(l.sub) >= 0 ? "gain deferred to exit" : "taxable as it arrives"],
                   ["Instrument merit", sc.merit, discount > 0 ? u.pct(discount) + " below the last mark" : "above the last mark"]].map((r) => (
@@ -358,14 +371,15 @@
             <div className="mt16">
               <Panel title="Allocation context">
                 <div className="kv">
-                  <span className="k">Asset class</span><span className="v">{mc ? mc.c.label : "—"}</span>
-                  <span className="k">Held today</span><span className="v">{u.pct(mc ? mc.before : 0)}</span>
-                  <span className="k">Model</span>
-                  <span className="v">{mc && mc.target !== null ? u.pct(mc.target) : "not modelled at this size"}</span>
+                  <span className="k">Bucket</span><span className="v">{place.label}</span>
+                  <span className="k">{place.bucket === "engine" ? "Rung" : "Theme"}</span>
+                  <span className="v">{place.detail}</span>
+                  <span className="k">{place.label} today</span><span className="v">{u.pct(bRow ? bRow.wt : 0)}</span>
+                  <span className="k">Asked for</span><span className="v">{u.pct(bRow ? bRow.target : 0)}</span>
                 </div>
-                {mc && mc.target !== null && (
-                  <div className="mt12"><MiniBar cur={mc.before} target={mc.target}
-                    max={Math.max(mc.before, mc.target) * 1.4} /></div>
+                {bRow && (
+                  <div className="mt12"><MiniBar cur={bRow.wt} target={bRow.target}
+                    max={Math.max(bRow.wt, bRow.target) * 1.4} /></div>
                 )}
               </Panel>
             </div>

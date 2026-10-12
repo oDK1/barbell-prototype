@@ -31,7 +31,7 @@
     { key: "parity", who: "Risk-balanced", after: "after Dalio",
       q: "Is risk spread, or just capital?",
       read: (ps) => {
-        const b = u.byBucket(ps, S.get().split);
+        const b = u.byBucket(ps, S.get().band, S.get().splitPinned ? S.get().split : null);
         const eng = b.find((x) => x.key === "engine"), con = b.find((x) => x.key === "conviction");
         const sp = u.spread(ps);
         return [

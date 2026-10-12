@@ -147,7 +147,7 @@
         <div className="btn-row mt16">
           {open.length > 0 && (
             <Lock>
-              {/* Clearing every exception leaves nothing to look at here, so carry on to the split. */}
+              {/* Clearing every exception leaves nothing to look at here, so carry on to the anchor. */}
               <button className="btn p lg"
                 onClick={() => { S.actions.resolveAllExceptions(); S.navigate("/onboarding/mandate"); }}>
                 Apply all {open.length} {open.length === 1 ? "suggestion" : "suggestions"} →
@@ -172,17 +172,21 @@
   /* ----------------------------------------------------------- 3. mandate */
   function Mandate() {
     const st = S.useStore();
-    /* DW [D]: the objective is one Engine / Conviction split, not a choice
-       between three published portfolios. The postures survive as named
-       points on the control — they are the family's own 95/5, 90/10, 80/20. */
-    const [sel, setSel] = useState(st.split);
+    /* One question at onboarding: what return is this capital asked for? The
+       anchor's rung carries the split with it, so a first customer sets one
+       number rather than an allocation. */
+    const [band, setBand] = useState(st.band);
+    const sel = u.splitForBand(band);
     const answered = D.survey.filter((q) => st.survey[q.id] !== undefined).length;
     const postureOf = (v) => {
       const k = Object.keys(D.bucketPresets).find((k2) => D.bucketPresets[k2] === v);
       return (k && D.mandates.find((x) => x.key === k)) || null;
     };
     const m = postureOf(sel);
-    const selLabel = m ? m.label : "Engine " + (100 - sel) + " / Conviction " + sel;
+    const fund = D.anchorShelf.find((f) => f.band === band) || D.anchorShelf[0];
+    const selLabel = m ? m.label : "Anchor " + band + "% · " + (100 - sel) + " / " + sel;
+    const lad = u.anchorLadder(st.positions, band);
+    const themeRows = u.byTheme(st.positions, st.themes);
     const t = u.total(st.positions);
     const listed = st.positions.filter((x) => x.liq === "Daily").length;
 
@@ -192,7 +196,7 @@
         {/* the authority note stays — it explains why the cards are locked for this account */}
         {st.account === "successor" && (
           <div className="sub mt8" style={{ maxWidth: "74ch" }}>
-            <b>The Principal settles this one</b> — you can move the split to see what it implies, but setting it is theirs.
+            <b>The Principal settles this one</b> — you can move the dial to see what it implies, but setting it is theirs.
           </div>
         )}
 
@@ -211,17 +215,18 @@
             </div>
             <hr className="hr" style={{ margin: "10px 0" }} />
             <div className="tri" style={{ fontSize: 11, lineHeight: 1.5 }}>
-              The split applies to this, and the model is drawn for a book this size.
+              The anchor is drawn against this, and the shelf is priced for a book this size.
             </div>
           </div>
 
-          {/* DW [D]: one question, asked once. END-STATE. */}
+          {/* One question, asked once. The shelf is the answer, and the split
+              falls out of it rather than being asked for separately. END-STATE. */}
           <div className="panel">
             <div className="panel-hd">
               <div>
-                <h3>How much of this is conviction?</h3>
+                <h3>What is this capital asked for?</h3>
                 <div className="tri" style={{ fontSize: 11.5, marginTop: 2 }}>
-                  Engine compounds. Conviction is the part you choose yourself.
+                  Pick the return the anchor targets. Everything else follows from it.
                 </div>
               </div>
               <span className="tri" style={{ fontSize: 11 }}>{selLabel}</span>
@@ -229,62 +234,115 @@
             <div className="splitlever" style={{ borderBottom: 0 }}>
               <div className="sl-hd">
                 <div className="sl-read">
-                  <span className="sl-a num">{100 - sel}</span>
-                  <span className="sl-sep">/</span>
-                  <span className="sl-b num">{sel}</span>
+                  <span className="sl-a num">{band}</span>
+                  <span className="sl-sep">%</span>
                 </div>
                 <div className="sl-leg">
-                  <span><i style={{ background: "#1B2A4A" }} />Engine · {u.usdC(((100 - sel) / 100) * t)}</span>
-                  <span><i style={{ background: "#9A7B2E" }} />Conviction · {u.usdC((sel / 100) * t)}</span>
+                  <span><b>{fund.name}</b> · {fund.liq} · vol {u.pct(fund.vol)}</span>
                 </div>
               </div>
               <div className="sl-track">
                 <div className="sl-chips">
-                  {[1, 5, 10, 20, 35].map((v) => {
-                    const pm = postureOf(v);
+                  {[5, 7, 9, 11, 13, 15].map((v) => {
+                    const f2 = (v - D.SHELF_FLOOR) / (D.SHELF_CEIL - D.SHELF_FLOOR);
+                    const pm = postureOf(u.splitForBand(v));
                     return (
-                      <button key={v} onClick={() => setSel(v)} className={sel === v ? "on" : ""}
-                        title={pm ? pm.line : "Set the split to " + (100 - v) + " / " + v}
-                        style={{ left: "calc(" + ((v / 40) * 100) + "% + " + ((0.5 - v / 40) * 16).toFixed(1) + "px)" }}>
-                        {(100 - v) + " / " + v}
+                      <button key={v} onClick={() => setBand(v)} className={band === v ? "on" : ""}
+                        title={pm ? pm.line : "Ask the anchor for " + v + "%"}
+                        style={{ left: "calc(" + (f2 * 100) + "% + " + ((0.5 - f2) * 16).toFixed(1) + "px)" }}>
+                        {v}%
                       </button>
                     );
                   })}
                 </div>
-                <input type="range" min="0" max="40" step="1" value={sel}
-                  onChange={(e) => setSel(+e.target.value)} />
+                <input type="range" min={D.SHELF_FLOOR} max={D.SHELF_CEIL} step="1" value={band}
+                  onChange={(e) => setBand(+e.target.value)} />
+              </div>
+              <div className="sl-inside tri">{fund.inside}</div>
+              <div className="sl-split">
+                <div className="ss-l">
+                  <span className="lbl">Which makes the book</span>
+                  <span className="ss-read num">
+                    <b style={{ color: "#1B2A4A" }}>{100 - sel}</b> / <b style={{ color: "#9A7B2E" }}>{sel}</b>
+                  </span>
+                  <span className="tri" style={{ fontSize: 11 }}>
+                    anchor {u.usdC(((100 - sel) / 100) * t)} · conviction {u.usdC((sel / 100) * t)}
+                  </span>
+                </div>
               </div>
               <div className="lever-note">
                 <span style={{ flex: 1 }}>
                   {m ? <><b>{m.label}</b> — {m.line}</>
-                     : <>A split of the family's own. Nothing on the platform requires it to match a published posture.</>}
+                     : <>A setting of the family's own. Asking for more makes the anchor smaller, not just busier.</>}
                 </span>
               </div>
             </div>
           </div>
         </div>
 
+        {/* and what conviction is pointed at */}
+        <div className="panel mt16">
+          <div className="panel-hd">
+            <div>
+              <h3>What do you want a view on?</h3>
+              <div className="tri" style={{ fontSize: 11.5, marginTop: 2 }}>
+                Picking a theme does not buy anything. It tells the marketplace what to rank first.
+              </div>
+            </div>
+            <span className="tri" style={{ fontSize: 11 }}>{st.themes.length} picked</span>
+          </div>
+          <div className="panel-bd">
+            <div className="themes">
+              {themeRows.map((th) => {
+                const on = st.themes.indexOf(th.key) >= 0;
+                return (
+                  <button key={th.key} className={"th" + (on ? " on" : "") + (th.count ? " held" : "")}
+                    onClick={() => S.actions.toggleTheme(th.key)} title={th.note}>
+                    <span className="th-hd">
+                      <i style={{ background: th.color, opacity: on ? 1 : .3 }} />
+                      <span className="th-n">{th.label}</span>
+                      {th.flagged && <span className="bdg plain">open question</span>}
+                    </span>
+                    <span className="th-v num">
+                      {th.count ? u.pct(th.wt) + " already held" : (on ? "picked, nothing held" : "not picked")}
+                    </span>
+                    <span className="th-note tri">{th.note}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
         <div className="grid mt16" style={{ gridTemplateColumns: "1fr 1fr" }}>
           <div className="panel">
-            <div className="panel-hd"><h3>Implied target allocation</h3><span className="tri" style={{ fontSize: 11 }}>{selLabel}</span></div>
+            <div className="panel-hd"><h3>What that asks of the book</h3>
+              <span className="tri" style={{ fontSize: 11 }}>{selLabel}</span></div>
             <div className="panel-bd tight">
               <table className="t">
-                <thead><tr><th>Asset class</th><th className="n">Target</th><th className="n">Current</th><th className="n">vs target</th></tr></thead>
+                <thead><tr><th>Bucket</th><th className="n">Asked for</th><th className="n">Today</th><th className="n">Gap</th></tr></thead>
                 <tbody>
-                  {u.holdingsSix(st.positions, sel).map((c) => (
-                    <tr key={c.key} style={c.blocked ? { opacity: .5 } : null}>
+                  {u.byBucket(st.positions, band, sel).map((b) => (
+                    <tr key={b.key}>
                       <td>
                         <span className="legend" style={{ display: "inline-flex", gap: 8, alignItems: "center" }}>
-                          <i className="sw" style={{ width: 9, height: 9, display: "inline-block", background: c.color }} />{c.label}
+                          <i className="sw" style={{ width: 9, height: 9, display: "inline-block", background: b.color }} />{b.label}
                         </span>
+                        <div className="tsub">{b.key === "engine" ? fund.name + " · " + fund.inside.slice(0, 54) + "…" : b.role}</div>
                       </td>
-                      <td className="n num">{c.blocked ? "—" : u.pct(c.model)}</td>
-                      <td className="n num">{u.pct(c.wt)}</td>
-                      <td className="n tri num">{c.blocked ? "—" : u.pp(c.wt - c.model)}</td>
+                      <td className="n num">{u.pct(b.target)}</td>
+                      <td className="n num">{u.pct(b.wt)}</td>
+                      <td className="n tri num">{u.pp(b.wt - b.target)}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
+              {lad.below.count > 0 && (
+                <div className="note mt12" style={{ fontSize: 11.5 }}>
+                  {u.usdC(lad.below.value)} of what was uploaded earns {u.pct(lad.below.earns)} — below {D.anchorShelf[0].name},
+                  the lowest fund on the shelf. It is not in the anchor yet.
+                </div>
+              )}
             </div>
           </div>
 
@@ -299,7 +357,7 @@
                   <span className="bdg plain">Optional</span>
                 </div>
                 <div className="tri" style={{ fontSize: 11.5, marginTop: 2 }}>
-                  The split is enough to start.
+                  The anchor setting is enough to start.
                 </div>
               </div>
               <div className="right" style={{ whiteSpace: "nowrap" }}>
@@ -352,14 +410,14 @@
 
         {/* what the chosen split would compound to, against the book as it stands */}
         <div className="panel mt16">
-          <GrowthFan positions={st.positions} modelClasses={u.sixToFour(u.modelSix(t, sel).w)}
+          <GrowthFan positions={st.positions} modelClasses={u.modelFour(band, sel)}
             modelLabel={selLabel} collapsible assumptions={false} />
         </div>
 
         <div className="btn-row mt16">
           <Lock>
-            <button className="btn p lg" onClick={() => { S.actions.setSplit(sel); S.actions.commitSplit(); S.navigate("/portfolio"); }}>
-              Confirm the split and open the portfolio →
+            <button className="btn p lg" onClick={() => { S.actions.setBand(band); S.actions.commitSplit(); S.navigate("/portfolio"); }}>
+              Confirm and open the portfolio →
             </button>
           </Lock>
           <button className="btn lg" onClick={() => S.navigate("/onboarding/reconcile")}>Back</button>

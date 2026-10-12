@@ -112,7 +112,9 @@
     const clsTotal = u.total(all);
     const subs = u.bySub(st.positions).filter((s) => s.cls === key && (!group || group.subs.indexOf(s.key) >= 0));
     const info = u.byClass(st.positions).find((c) => c.key === key);
-    const gRow = group ? u.holdingsSix(st.positions, st.split).find((r) => r.key === group.key) : null;
+    /* the six-class drilldown is gone from the product; a group reached by an
+       old link still renders, measured against the book rather than a model */
+    const gWt = group && t ? (u.total(all) / t) * 100 : 0;
 
     return (
       <div className="wrap page">
@@ -125,11 +127,9 @@
             <div className="sub mt8">{all.length} positions · {all.filter((p) => p.liq === "Daily").length} listed · {all.filter((p) => p.liq !== "Daily").length} private</div>
           </div>
           <div className="right">
-            <div className="stat-l">Weight vs model</div>
+            <div className="stat-l">Share of the book</div>
             <div className="stat-v sm">
-              {group
-                ? <>{u.pct(gRow.wt)} <span className="tri">/ {u.pct(gRow.model)} model</span></>
-                : <>{u.pct(info.wt)} <span className="tri">/ {u.pct(info.target)} target</span></>}
+              {group ? u.pct(gWt) : <>{u.pct(info.wt)} <span className="tri">/ {u.pct(info.target)} target</span></>}
             </div>
           </div>
         </div>

@@ -20,8 +20,10 @@
     const ctx = u.marketContext(st.positions, st.mandate, st.realizedClosed);
     const sc = u.scoreFor(m, ctx);
     /* stated in the six model classes, not the subcategory beneath them */
-    const mc = u.impactSix(st.positions, m.fills, 0, st.split);
-    const mcDrift = mc && mc.target !== null ? mc.target - mc.before : 0;
+    const place = u.offerPlace(m);
+    const bRow = u.byBucket(st.positions, st.band, st.splitPinned ? st.split : null)
+      .find((b) => b.key === place.bucket);
+    const mcDrift = bRow ? bRow.target - bRow.wt : 0;
     const gapWord = (x) => u.num(Math.abs(x), 1) + "pp " + (x > 0 ? "below" : "above") + " the model";
     const needsProposal = st.account === "successor" && !isListed;
 
@@ -62,7 +64,7 @@
 
         <div className="mt16">
           <Agent where="Deal fit"
-            why={["Allocation " + sc.allocation + "/100 — " + (mc ? mc.c.label : "") + " sits " + gapWord(mcDrift),
+            why={["Allocation " + sc.allocation + "/100 — " + place.label + " sits " + gapWord(mcDrift),
                   "Liquidity " + sc.liquidity + "/100 — " + m.liq + (m.term ? " · " + m.term : "") + " against " +
                     u.usdC(ctx.calls24) + " of calls over 24 months",
                   "Tax " + sc.tax + "/100 — " + u.usd(ctx.tax.realized) + " realised year to date",
@@ -72,7 +74,7 @@
             {m.why}
             <table className="t dense mt12" style={{ maxWidth: 520 }}>
               <tbody>
-                {[["Allocation", sc.allocation, (mc ? mc.c.label : "") + " " + gapWord(mcDrift)],
+                {[["Allocation", sc.allocation, place.label + " " + gapWord(mcDrift)],
                   ["Liquidity", sc.liquidity, m.liq + (ctx.short ? " · cash breaks " + ctx.short.month : " · calls covered")],
                   ["Tax", sc.tax, ["pe", "vc", "preipo"].indexOf(m.fills) >= 0 ? "gain deferred to exit" : "taxable as it arrives"],
                   ["Instrument merit", sc.merit, "terms, manager, security"]].map((r) => (
@@ -174,16 +176,26 @@
             </Panel>
 
             <div className="mt16">
+              {/* where this lands in the family's own structure — a rung of
+                  the anchor shelf or a conviction theme, never a class */}
               <Panel title="Allocation context">
                 <div className="kv">
-                  <span className="k">Asset class</span><span className="v">{mc ? mc.c.label : "—"}</span>
-                  <span className="k">Held today</span><span className="v">{u.pct(mc ? mc.before : 0)}</span>
-                  <span className="k">Model</span>
-                  <span className="v">{mc && mc.target !== null ? u.pct(mc.target) : "not modelled at this size"}</span>
+                  <span className="k">Bucket</span><span className="v">{place.label}</span>
+                  <span className="k">{place.bucket === "engine" ? "Rung" : "Theme"}</span>
+                  <span className="v">{place.detail}</span>
+                  <span className="k">{place.label} today</span><span className="v">{u.pct(bRow ? bRow.wt : 0)}</span>
+                  <span className="k">Asked for</span><span className="v">{u.pct(bRow ? bRow.target : 0)}</span>
                 </div>
-                {mc && mc.target !== null && (
-                  <div className="mt12"><BB.ui.MiniBar cur={mc.before} target={mc.target}
-                    max={Math.max(mc.before, mc.target) * 1.4} /></div>
+                {bRow && (
+                  <div className="mt12"><BB.ui.MiniBar cur={bRow.wt} target={bRow.target}
+                    max={Math.max(bRow.wt, bRow.target) * 1.4} /></div>
+                )}
+                {place.bucket === "conviction" && place.theme && (
+                  <div className="tri mt8" style={{ fontSize: 11, lineHeight: 1.5 }}>
+                    {st.themes.indexOf(place.theme.key) >= 0
+                      ? "A theme the family has picked."
+                      : "Not currently one of the family's themes."}
+                  </div>
                 )}
               </Panel>
             </div>

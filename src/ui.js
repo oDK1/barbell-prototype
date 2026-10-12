@@ -233,7 +233,7 @@
         done: st.ingestDone, block: null },
       { k: "reconcile", n: 2, label: "Reconcile", sub: "clear the exceptions", to: "/onboarding/reconcile",
         done: st.ingestDone && cleared, block: st.ingestDone ? null : "Read the files first" },
-      { k: "mandate", n: 3, label: "Mandate", sub: "set the split", to: "/onboarding/mandate",
+      { k: "mandate", n: 3, label: "Mandate", sub: "set the return", to: "/onboarding/mandate",
         done: false, block: cleared ? null : "Clear the exceptions first" },
     ];
     return (

@@ -445,30 +445,170 @@
   }
 
 
+  /* Where a marketplace offering would land. An offering is not owned, so it
+     has no bucket of its own: the subcategory decides, the stated target
+     return decides the rung, and the sector decides the theme. Themes are
+     matched on what the offering is about, not on its asset class. */
+  const THEME_BY_SECTOR = {
+    "Data Centers": "compute", "Infrastructure": "compute", "Digital Assets": "compute",
+    "Technology": "private", "Info Tech": "listed", "Comm Services": "listed",
+    "Aerospace": "frontier", "Fintech": "private",
+    "Precious Metals": "resources", "Materials": "resources", "Energy": "resources",
+    "Real Estate": "resources", "Diversified RE": "resources", "Logistics": "resources",
+  };
+  function offerBucket(m) { return bucketKeyOf({ sub: m.fills, bucket: m.bucket }); }
+  function offerRung(m) {
+    const r = typeof m.retNum === "number" ? m.retNum : 0;
+    if (r < D.SHELF_FLOOR) return null;
+    return Math.min(D.SHELF_CEIL, Math.round(r));
+  }
+  function offerTheme(m) {
+    if (m.theme) return m.theme;
+    const k = THEME_BY_SECTOR[m.sector];
+    return k || "private";
+  }
+  /* The one line a row needs: which bucket, and where inside it. */
+  function offerPlace(m) {
+    const b = offerBucket(m);
+    if (b === "conviction") {
+      const th = D.themes.find((x) => x.key === offerTheme(m));
+      return { bucket: "conviction", label: "Conviction", detail: th ? th.label : "—", color: "#9A7B2E", theme: th };
+    }
+    const r = offerRung(m);
+    const f = r === null ? null : D.anchorShelf.find((x) => x.band === r);
+    return {
+      bucket: "engine", label: "Anchor", color: "#1B2A4A", rung: r,
+      detail: f ? f.name + " · " + f.band + "%" : "below the shelf",
+    };
+  }
+
+  /* The four-class mix a rung and a split imply — used only to drive the
+     projection, which has to reason in classes to reach a volatility. It is
+     never shown as an allocation. A higher rung means the anchor reaches for
+     return through equity-like risk rather than through duration. */
+  function modelFour(band, conv) {
+    const b = Math.max(D.SHELF_FLOOR, Math.min(D.SHELF_CEIL, band)) - D.SHELF_FLOOR;
+    const a = (100 - conv) / 100;
+    return {
+      equity: a * (5 + b * 3) + conv,
+      debt:   a * (70 - b * 4),
+      real:   a * (15 + b * 1),
+      cash:   a * 10,
+    };
+  }
+
+  /* ------------------------------------------------- the anchor shelf ------ */
+  /* What a holding actually earns, so it can be placed on the shelf. A stated
+     yield is used where the instrument has one; otherwise the subcategory's
+     long-run expectation stands in. This is an expectation, not a promise,
+     and the screen says so. */
+  const SUB_RETURN = {
+    pubeq: 8.0, pe: 14.0, vc: 20.0, preipo: 16.0,
+    sov: 4.2, ig: 5.2, pcred: 9.0, struct: 7.0,
+    re: 8.0, infra: 9.0, comm: 5.0,
+    mmf: 3.5, tbill: 4.2, dep: 2.6, fx: 0.5,
+  };
+  /* For debt and cash the income is the return, so a stated yield is the whole
+     answer. For equity and real assets it is not: a building yielding 4.2% is
+     not a 4.2% asset, and treating it as one would push every property below
+     the shelf for the wrong reason. There the yield is added to a capital
+     return the subcategory is expected to deliver. */
+  const INCOME_ONLY = ["sov", "ig", "pcred", "struct", "mmf", "tbill", "dep", "fx"];
+  const GROWTH_ADD = { re: 3.5, infra: 3.0, comm: 5.0, pubeq: 8.0, pe: 14.0, vc: 20.0, preipo: 16.0 };
+  function posReturn(p) {
+    const y = typeof p.ytm === "number" && p.ytm > 0 ? p.ytm
+      : typeof p.yieldPct === "number" && p.yieldPct > 0 ? p.yieldPct : 0;
+    const fallback = SUB_RETURN[p.sub] !== undefined ? SUB_RETURN[p.sub] : 0;
+    if (INCOME_ONLY.indexOf(p.sub) >= 0) return y > 0 ? y : fallback;
+    return y > 0 ? y + (GROWTH_ADD[p.sub] || 0) : fallback;
+  }
+
+  /* Which rung a holding sits on, or null when it earns less than the shelf's
+     lowest fund — capital that is not in the anchor at all. */
+  function rungOf(p) {
+    const r = posReturn(p);
+    if (r < D.SHELF_FLOOR) return null;
+    return Math.min(D.SHELF_CEIL, Math.round(r));
+  }
+
+  /* Bucket membership is carried on the position. Marketplace offerings are
+     not owned by anybody, so they fall back to the subcategory mapping. */
+  function bucketKeyOf(p) {
+    if (p && p.bucket) return p.bucket;
+    const b = D.buckets.find((x) => x.subs.indexOf(p.sub || p.fills) >= 0);
+    return b ? b.key : "engine";
+  }
+  function inBucket(ps, key) { return ps.filter((p) => bucketKeyOf(p) === key); }
+
+  /* The conviction share the model recommends at a given rung. The three
+     postures the family already uses fall out of rungs 5, 7 and 11. */
+  function splitForBand(band) {
+    const b = Math.max(D.SHELF_FLOOR, Math.min(D.SHELF_CEIL, band));
+    return Math.round(5 + (b - D.SHELF_FLOOR) * 2.5);
+  }
+
+  /* The anchor laid out as the shelf it is: one row per rung the family
+     actually holds something on, plus the capital sitting below the lowest
+     fund. `target` marks the rung the family has chosen. */
+  function anchorLadder(ps, band) {
+    const eng = inBucket(ps, "engine");
+    const t = total(ps) || 1;
+    const ev = total(eng) || 1;
+    const rows = D.anchorShelf.map((f) => {
+      const items = eng.filter((p) => rungOf(p) === f.band);
+      const v = total(items);
+      return { ...f, items, value: v, count: items.length,
+        wt: (v / t) * 100, ofAnchor: (v / ev) * 100, chosen: f.band === band };
+    });
+    const below = eng.filter((p) => rungOf(p) === null);
+    const bv = total(below);
+    const earns = bv ? below.reduce((a, p) => a + posReturn(p) * p.value, 0) / bv : 0;
+    /* the anchor's blended expected return, as held */
+    const blended = ev ? eng.reduce((a, p) => a + posReturn(p) * p.value, 0) / ev : 0;
+    return {
+      rows, anchorValue: ev, blended,
+      below: { items: below, value: bv, count: below.length, wt: (bv / t) * 100, ofAnchor: (bv / ev) * 100, earns },
+    };
+  }
+
+  /* Conviction, grouped by the thing the family has a view about. */
+  function byTheme(ps, picked) {
+    const conv = inBucket(ps, "conviction");
+    const t = total(ps) || 1;
+    const cv = total(conv) || 1;
+    return D.themes.map((th) => {
+      const items = conv.filter((p) => p.theme === th.key);
+      const v = total(items);
+      const sp = spread(items.length ? items : [], null);
+      return { ...th, items, value: v, count: items.length,
+        wt: (v / t) * 100, ofConviction: (v / cv) * 100,
+        unrealized: unrealized(items),
+        picked: picked ? picked.indexOf(th.key) >= 0 : items.length > 0,
+        effective: sp.effective, largest: sp.largest };
+    });
+  }
+
   /* ------------------------------------------------- risk / return buckets */
   function bucketOf(subKey) { return D.buckets.find((b) => b.subs.indexOf(subKey) >= 0) || null; }
   function bucketLabel(subKey) { const b = bucketOf(subKey); return b ? b.label : "—"; }
 
-  /* The book split by what capital is for, with the six classes kept one level
-     down as disclosure rather than as the organising idea. */
-  function byBucket(ps, split) {
+  /* The book split by what capital is for. Membership comes off the position,
+     so a listed company held by name lands in Conviction while the same
+     exposure bought as an index slice stays in the Anchor. The disclosure one
+     level down is the shelf for the Anchor and the themes for Conviction —
+     never a list of asset classes. */
+  function byBucket(ps, band, convOverride) {
     const t = total(ps);
-    const conv = convPct(split);
+    const b0 = Math.max(D.SHELF_FLOOR, Math.min(D.SHELF_CEIL, band === undefined ? D.RISK_BASE.band : band));
+    const conv = convOverride === undefined || convOverride === null ? splitForBand(b0) : convOverride;
     return D.buckets.map((b) => {
-      const items = ps.filter((p) => b.subs.indexOf(p.sub) >= 0);
+      const items = inBucket(ps, b.key);
       const v = total(items);
       const wt = t ? (v / t) * 100 : 0;
       const target = b.key === "conviction" ? conv : 100 - conv;
       return {
         ...b, items, value: v, wt, target, drift: wt - target, count: items.length,
         unrealized: unrealized(items),
-        classes: D.modelClasses
-          .filter((c) => c.subs.some((k) => b.subs.indexOf(k) >= 0))
-          .map((c) => {
-            const inBoth = ps.filter((p) => c.subs.indexOf(p.sub) >= 0 && b.subs.indexOf(p.sub) >= 0);
-            const cv = total(inBoth);
-            return { key: c.key, label: c.label, color: c.color, value: cv, wt: t ? (cv / t) * 100 : 0, count: inBoth.length };
-          }).filter((c) => c.count > 0),
       };
     });
   }
@@ -695,7 +835,7 @@
     usd, usdC, krwC, krwFull, pct, pp, sgn, sgnUsd, num, localPx, days, fmtDate, fmtTs, monthKey, monthLabel,
     staleness, provLabel, sum, total, byClass, bySub, gaps, unrealized, realizedYTD,
     liquidity90, liquidityProjection, shortfall, coverage, projectMix,
-    modelSix, convPct, bySix, sixToFour, sixToSubs, pickForClass, holdingsSix, geoBucket, GEO_BUCKETS, listingDocs, listingView, currentIRR, tradeHistory, impactSix, impactBucket, modelClassOf, modelClassLabel, bucketOf, bucketLabel, byBucket, spread, engineDrag, topHoldings, affiliateExposure, taxLots, eligibility,
+    modelSix, convPct, bySix, sixToFour, sixToSubs, pickForClass, holdingsSix, geoBucket, GEO_BUCKETS, listingDocs, listingView, currentIRR, tradeHistory, impactSix, impactBucket, modelClassOf, modelClassLabel, bucketOf, bucketLabel, byBucket, spread, engineDrag, posReturn, rungOf, bucketKeyOf, inBucket, splitForBand, modelFour, anchorLadder, offerBucket, offerRung, offerTheme, offerPlace, byTheme, SUB_RETURN, topHoldings, affiliateExposure, taxLots, eligibility,
     fitFor, subLabel, clsLabel, clsOf, impact, modelWeights, marketContext, scoreFor, suggestAmount,
   };
 })();

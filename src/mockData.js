@@ -75,39 +75,48 @@
   const positions = [
     /* ---- EQUITY · Public (12) ------------------------------------------- */
     { id: "p01", name: "Hanmi Chemical Holdings Co., Ltd.", ticker: "004370.KS", cls: "equity", sub: "pubeq", grp: "KR listed",
+      bucket: "conviction", theme: "family",
       sleeve: "core", prov: "live", value: 4243219, cost: 2610000, qty: 29865, px: 196500, ccy: "KRW", pxUsd: 142.08, chg: 0.82,
       sector: "Materials", geo: "Korea", liq: "Daily", acquired: "2009-06-12", realizedYTD: 0, affiliate: true,
       src: { file: "Holdings_Master_2026Q3.xlsx", cell: "Sheet1!B14" },
       note: "Family operating company. Board seat held by the Principal." },
     { id: "p02", name: "Samsung Electronics Co., Ltd.", ticker: "005930.KS", cls: "equity", sub: "pubeq", grp: "KR listed",
+      bucket: "conviction", theme: "listed",
       sleeve: "core", prov: "live", value: 1979838, cost: 1452000, qty: 37250, px: 73500, ccy: "KRW", pxUsd: 53.15, chg: -0.41,
       sector: "Info Tech", geo: "Korea", liq: "Daily", acquired: "2016-03-02", realizedYTD: 84000,
       src: { file: "Holdings_Master_2026Q3.xlsx", cell: "Sheet1!B15" } },
     { id: "p03", name: "SK hynix Inc.", ticker: "000660.KS", cls: "equity", sub: "pubeq", grp: "KR listed",
+      bucket: "conviction", theme: "compute",
       sleeve: "core", prov: "live", value: 859908, cost: 498000, qty: 6090, px: 195300, ccy: "KRW", pxUsd: 141.20, chg: 1.94,
       sector: "Info Tech", geo: "Korea", liq: "Daily", acquired: "2021-11-08", realizedYTD: 0,
       src: { file: "Holdings_Master_2026Q3.xlsx", cell: "Sheet1!B16" } },
     { id: "p04", name: "NVIDIA Corporation", ticker: "NVDA", cls: "equity", sub: "pubeq", grp: "US listed",
+      bucket: "conviction", theme: "compute",
       sleeve: "core", prov: "live", value: 2140000, cost: 742000, qty: 10000, px: 214.00, ccy: "USD", pxUsd: 214.00, chg: 1.12,
       sector: "Info Tech", geo: "United States", liq: "Daily", acquired: "2022-10-14", realizedYTD: 312000,
       src: { file: "Holdings_Master_2026Q3.xlsx", cell: "Sheet1!B21" } },
     { id: "p05", name: "Microsoft Corporation", ticker: "MSFT", cls: "equity", sub: "pubeq", grp: "US listed",
+      bucket: "conviction", theme: "listed",
       sleeve: "core", prov: "live", value: 1619379, cost: 1104000, qty: 3330, px: 486.30, ccy: "USD", pxUsd: 486.30, chg: 0.34,
       sector: "Info Tech", geo: "United States", liq: "Daily", acquired: "2020-05-19", realizedYTD: 0,
       src: { file: "Holdings_Master_2026Q3.xlsx", cell: "Sheet1!B22" } },
     { id: "p06", name: "Apple Inc.", ticker: "AAPL", cls: "equity", sub: "pubeq", grp: "US listed",
+      bucket: "conviction", theme: "listed",
       sleeve: "core", prov: "live", value: 1180800, cost: 861000, qty: 4500, px: 262.40, ccy: "USD", pxUsd: 262.40, chg: -0.28,
       sector: "Info Tech", geo: "United States", liq: "Daily", acquired: "2019-08-07", realizedYTD: 0,
       src: { file: "Holdings_Master_2026Q3.xlsx", cell: "Sheet1!B23" } },
     { id: "p07", name: "Alphabet Inc. Class A", ticker: "GOOGL", cls: "equity", sub: "pubeq", grp: "US listed",
+      bucket: "conviction", theme: "listed",
       sleeve: "alpha", prov: "live", value: 690305, cost: 488000, qty: 3260, px: 211.75, ccy: "USD", pxUsd: 211.75, chg: 0.61,
       sector: "Comm Services", geo: "United States", liq: "Daily", acquired: "2024-02-21", realizedYTD: 0,
       src: { file: "Holdings_Master_2026Q3.xlsx", cell: "Sheet1!B24" } },
     { id: "p08", name: "Taiwan Semiconductor Mfg. (ADR)", ticker: "TSM", cls: "equity", sub: "pubeq", grp: "US listed",
+      bucket: "conviction", theme: "compute",
       sleeve: "core", prov: "live", value: 739475, cost: 412000, qty: 2750, px: 268.90, ccy: "USD", pxUsd: 268.90, chg: 1.47,
       sector: "Info Tech", geo: "Taiwan", liq: "Daily", acquired: "2023-01-30", realizedYTD: 0,
       src: { file: "Holdings_Master_2026Q3.xlsx", cell: "Sheet1!B25" } },
     { id: "p09", name: "Toyota Motor Corporation", legacy: "TOYOTA (JPY口座) — 東証", ticker: "7203.T", cls: "equity", sub: "pubeq", grp: "US listed",
+      bucket: "conviction", theme: "listed",
       sleeve: "core", prov: "live", value: 676800, cost: 585000, qty: 30000, px: 3320, ccy: "JPY", pxUsd: 22.56, chg: -0.62,
       sector: "Consumer Disc.", geo: "Japan", liq: "Daily", acquired: "2018-09-11", realizedYTD: 0, fxFlag: true,
       src: { file: "Holdings_Master_2026Q3.xlsx", cell: "Sheet2!D7" },
@@ -127,33 +136,40 @@
 
     /* ---- EQUITY · Private (7) ------------------------------------------- */
     { id: "p13", name: "Woori Industrial Buyout Co-Invest II", cls: "equity", sub: "pe", grp: "Buyout co-invest",
+      bucket: "conviction", theme: "private",
       sleeve: "core", prov: "hanwha", value: 1848698, cost: 1400000, ccy: "USD", liq: "Locked", term: "2029 wind-down",
       sector: "Industrials", geo: "Korea", asOf: "2026-06-30", acquired: "2022-05-18", onBarbell: true, vintage: "2022",
       src: { file: "PE_Capital_Calls_v7_FINAL.xlsx", cell: "Fund List!A4" },
       note: "Hanwha-originated. Capital account pushed from the platform." },
     { id: "p14", name: "Sunrise Growth Partners IV, L.P.", cls: "equity", sub: "pe", grp: "Growth",
+      bucket: "conviction", theme: "private",
       sleeve: "alpha", prov: "hanwha", value: 1220000, cost: 950000, ccy: "USD", liq: "Locked", term: "2031 term",
       sector: "Diversified", geo: "United States", asOf: "2026-06-30", acquired: "2023-09-01", onBarbell: true, vintage: "2023",
       src: { file: "PE_Capital_Calls_v7_FINAL.xlsx", cell: "Fund List!A5" } },
     { id: "p15", name: "Foundry Venture Partners VII, L.P.", cls: "equity", sub: "vc", grp: "Funds",
+      bucket: "conviction", theme: "private",
       sleeve: "alpha", prov: "hanwha", value: 1050000, cost: 900000, ccy: "USD", liq: "Locked", term: "2033 term",
       sector: "Technology", geo: "United States", asOf: "2026-06-30", acquired: "2024-03-14", onBarbell: true, vintage: "2024",
       unfunded: 1400000,
       src: { file: "PE_Capital_Calls_v7_FINAL.xlsx", cell: "Fund List!A6" } },
     { id: "p16", name: "Daol Ventures Korea Fund III", cls: "equity", sub: "vc", grp: "Funds",
+      bucket: "conviction", theme: "private",
       sleeve: "alpha", prov: "hanwha", value: 680000, cost: 600000, ccy: "USD", liq: "Locked", term: "2032 term",
       sector: "Technology", geo: "Korea", asOf: "2026-06-30", acquired: "2023-02-09", onBarbell: true, vintage: "2023",
       unfunded: 320000,
       src: { file: "PE_Capital_Calls_v7_FINAL.xlsx", cell: "Fund List!A7" } },
     { id: "p17", name: "Helios AI Infrastructure SPV I", cls: "equity", sub: "vc", grp: "Direct SPV",
+      bucket: "conviction", theme: "compute",
       sleeve: "alpha", prov: "hanwha", value: 540000, cost: 400000, ccy: "USD", liq: "Locked", term: "Exit-driven",
       sector: "Technology", geo: "United States", asOf: "2026-06-30", acquired: "2026-05-22", onBarbell: true, vintage: "2026",
       src: { file: "PE_Capital_Calls_v7_FINAL.xlsx", cell: "Fund List!A8" } },
     { id: "p18", name: "Aeris Aerospace — Series F secondary block", cls: "equity", sub: "preipo", grp: "Pre-IPO",
+      bucket: "conviction", theme: "frontier",
       sleeve: "alpha", prov: "hanwha", value: 820000, cost: 640000, ccy: "USD", liq: "Locked", term: "Until listing",
       sector: "Aerospace", geo: "United States", asOf: "2026-08-31", acquired: "2025-01-16", onBarbell: true, vintage: "2025",
       src: { file: "PE_Capital_Calls_v7_FINAL.xlsx", cell: "Fund List!A9" } },
     { id: "p19", name: "Viva Republica (Toss) common — 2023 block", legacy: "비바리퍼블리카 구주 (2023년 매입)", cls: "equity", sub: "preipo", grp: "Pre-IPO",
+      bucket: "conviction", theme: "private",
       sleeve: "alpha", prov: "self", value: 440000, cost: 440000, ccy: "USD", liq: "Locked", term: "Until listing",
       sector: "Fintech", geo: "Korea", asOf: "2026-03-31", acquired: "2023-06-30", onBarbell: false, vintage: "2023",
       src: { file: "PE_Capital_Calls_v7_FINAL.xlsx", cell: "Sheet3!C22" },
@@ -236,6 +252,7 @@
       yieldPct: 7.4,
       src: { file: "PE_Capital_Calls_v7_FINAL.xlsx", cell: "Fund List!A18" } },
     { id: "p35", name: "Gold bullion — KRX custody account", cls: "real", sub: "comm", grp: "Commodities",
+      bucket: "conviction", theme: "resources",
       sleeve: "core", prov: "live", value: 1410000, cost: 980000, qty: 340, px: 5735000, ccy: "KRW", pxUsd: 4147.06, chg: 0.37,
       sector: "Precious Metals", geo: "Korea", liq: "Daily", acquired: "2020-08-19", realizedYTD: 0,
       src: { file: "Holdings_Master_2026Q3.xlsx", cell: "Sheet1!B72" } },
@@ -292,36 +309,104 @@
   ];
 
 
+  /* ================================================= the anchor shelf
+     The anchor is not an asset allocation. It is a shelf of funds indexed by
+     the return each one targets — a 5% fund, a 6% fund, a 7% fund — and the
+     family picks a rung rather than a set of asset classes. What sits inside
+     a fund is the manager's problem: whatever instruments clear that return
+     at that risk. Fixed income at the bottom, absolute-return and yield
+     strategies at the top.
+
+     One control drives the whole model. Raising the rung raises the return
+     the anchor is asked for and, inversely, shrinks the anchor — a family
+     willing to reach for 15% is by definition willing to hold less of it.
+
+     Fund names are placeholders. No real manager or strategy is named. */
+  const anchorShelf = [
+    { band: 5,  name: "Anchor 5",  liq: "Daily",     vol: 2.4,
+      inside: "Developed-market sovereigns and investment-grade credit. The return is what the curve gives." },
+    { band: 6,  name: "Anchor 6",  liq: "Daily",     vol: 3.1,
+      inside: "Investment-grade credit with a longer duration, and short-dated structured paper." },
+    { band: 7,  name: "Anchor 7",  liq: "Monthly",   vol: 4.6,
+      inside: "Structured income notes and listed real-asset income. Contractual coupons, repriced quarterly." },
+    { band: 8,  name: "Anchor 8",  liq: "Monthly",   vol: 5.9,
+      inside: "Diversified senior credit and core property income, across more than one currency." },
+    { band: 9,  name: "Anchor 9",  liq: "Quarterly", vol: 7.2,
+      inside: "Senior secured direct lending to sponsor-backed borrowers. First lien, floating rate." },
+    { band: 10, name: "Anchor 10", liq: "Quarterly", vol: 8.4,
+      inside: "Direct lending with a mezzanine sleeve, and infrastructure credit against contracted cash flows." },
+    { band: 11, name: "Anchor 11", liq: "Quarterly", vol: 9.6,
+      inside: "Opportunistic and bridge credit, special situations, shorter duration against harder collateral." },
+    { band: 12, name: "Anchor 12", liq: "Quarterly", vol: 10.8,
+      inside: "Absolute-return and multi-strategy funds. Return is manager skill, not market direction. DW [P]." },
+    { band: 13, name: "Anchor 13", liq: "Quarterly", vol: 12.1,
+      inside: "Systematic and market-neutral quantitative strategies. DW [P]." },
+    { band: 14, name: "Anchor 14", liq: "Quarterly", vol: 13.5,
+      inside: "Fund of funds across uncorrelated alternatives, plus high-yield emerging-market deposits. DW [P]." },
+    { band: 15, name: "Anchor 15", liq: "Varies",    vol: 15.2,
+      inside: "On-chain lending yield and unhedged emerging-market deposit programmes. DW [P]." },
+  ];
+
+  const SHELF_FLOOR = 5;   /* below this a holding is not on the shelf at all */
+  const SHELF_CEIL  = 15;
+
+  /* ================================================= conviction themes
+     Bucket 2 is not an asset class either. It is a set of things the family
+     has a view about, and the family picks the ones it wants exposure to.
+     DW [P] named startup deals, emerging-market real estate and resources,
+     emerging art, quantum, space, sports teams and collectibles; the user
+     added compute, top private companies and top listed technology.
+
+     `culture` is carried because DW named it, and flagged: art, collectibles
+     and sports teams are not securities, and the platform transacts through
+     the group's BD/ATS. That is an open question, not a solved one. */
+  const themes = [
+    { key: "compute", label: "Compute and AI infrastructure", color: "#1B2A4A",
+      note: "The physical layer under AI — silicon, GPU capacity, the data centres and power behind it." },
+    { key: "listed", label: "Listed companies held by name", color: "#3F7183",
+      note: "Single listed companies held because of the company, not as a slice of an index." },
+    { key: "private", label: "Private companies before listing", color: "#5A74A0",
+      note: "Venture, growth and pre-IPO. Priced by rounds rather than by a market." },
+    { key: "frontier", label: "Frontier science and space", color: "#85AEBC",
+      note: "Quantum, space and defence technology. Long-dated, binary, and uncorrelated with everything else here." },
+    { key: "resources", label: "Resources and emerging-market real assets", color: "#9A7B2E",
+      note: "Metals, energy, and property and infrastructure outside developed markets." },
+    { key: "culture", label: "Art, collectibles and sport", color: "#A9A396", flagged: true,
+      note: "Emerging art, collectibles, sports teams. None of these are securities, and how they would list on the group's BD/ATS is unresolved." },
+    { key: "family", label: "The family's own company", color: "#6B5316", fixed: true,
+      note: "Held before the platform existed. Not a theme that was chosen — but a concentrated equity view all the same, and it belongs where it can be seen." },
+  ];
+
   /* ===================================================== risk / return buckets
-     DW [P]: organise the product by risk and return, not by asset class.
-     Confirmed two buckets — an earlier third "Reserve" line was dropped.
+     DW [P]: organise the product by risk and return, not by asset class. Two
+     buckets, confirmed.
 
-     Consequence, stated rather than hidden: the working balance a family must
-     hold — sovereigns, deposits, T-bills — now sits inside Engine, whose
-     target is 7–20%. It drags. That is not a flaw in the model; it is the
-     most useful thing the two-bucket view surfaces, and the improvement
-     panel reads it off the book directly.
+     What a position is no longer decides which bucket it sits in. A listed
+     technology company held by name is a view; the same exposure bought as an
+     index slice is not. So bucket membership is carried on the position
+     itself, and `subs` below is only the fallback used for marketplace
+     offerings, which are not yet owned by anybody.
 
-     The mapping from subcategory to bucket is a proposal: DW gave
-     illustrative examples, not a taxonomy. Role, not instrument type, decides
-     — diversified compounding vs concentrated upside. */
+     Engine is a shelf of funds indexed by target return (see anchorShelf).
+     Conviction is a set of themes the family picks (see themes). Neither is
+     an asset-class taxonomy, and neither is shown as one. */
   const buckets = [
-    { key: "engine", label: "Engine", color: "#1B2A4A",
-      role: "Compounding capital",
-      band: "7–20% target",
-      note: "Diversified, repeatable return, plus the working balance beneath it. Nothing here depends on being right about one thing.",
+    { key: "engine", label: "Anchor", color: "#1B2A4A",
+      role: "Return you specify",
+      band: "5–15% shelf",
+      note: "One rung of the shelf. The fund decides what to hold; the family decides what to ask of it.",
       subs: ["pubeq", "pcred", "struct", "re", "infra", "sov", "ig", "mmf", "tbill", "dep", "fx"] },
     { key: "conviction", label: "Conviction", color: "#9A7B2E",
       role: "Upside you choose",
-      band: "High return, mid risk",
-      note: "Concentrated positions taken on the family's own view. Judged on the thesis, not against a benchmark.",
+      band: "Themes you pick",
+      note: "Concentrated positions in things the family has a view about. Judged on the thesis, not against a benchmark.",
       subs: ["pe", "vc", "preipo", "comm"] },
   ];
 
-  /* The split is the only model lever. DW [P]: it is personal — 99/1 is his
-     example — so these three are shortcuts on a continuous control, not
-     portfolios. They carry the family's own 95/5, 90/10, 80/20 numbers, which
-     turn out to be exactly an Engine / Conviction split. */
+  /* One control: the rung the family asks the anchor to target. Raising it
+     raises the return asked for and, inversely, shrinks the anchor. The
+     family's own 95/5, 90/10 and 80/20 fall out of it at rungs 5, 7 and 11. */
+  const RISK_BASE = { band: 7, conviction: 10 };
   const bucketPresets = { preservation: 5, balanced: 10, growth: 20 };
 
   /* What each bucket is made of, in the six classes. The model portfolio is
@@ -1013,7 +1098,7 @@
     KRW, TODAY, family, accounts, classes, subs, positions,
     uploadFiles, ingestSteps, exceptions, mandates, survey, modelPortfolios,
     capitalCalls, distributions, benchmark, performance, attribution, modelGoals, ALT_SUBS,
-    sourceTypes, dueDiligence, modelClasses, modelExcuses, buckets, bucketPresets, bucketMix, expectedReturn, expectedVol, classCorr, idiosyncraticVol,
+    sourceTypes, dueDiligence, anchorShelf, SHELF_FLOOR, SHELF_CEIL, themes, modelClasses, modelExcuses, buckets, bucketPresets, bucketMix, RISK_BASE, expectedReturn, expectedVol, classCorr, idiosyncraticVol,
     market, secondary, secondaryTrades, bidsSeed, approvalsSeed, activitySeed, opsLedger, referrals, liquidityAssumptions,
   };
 })();

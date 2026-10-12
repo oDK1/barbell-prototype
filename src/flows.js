@@ -5,58 +5,55 @@
   const D = BB.data, u = BB.u, S = BB.store;
   const { Modal, Money, Delta, Amount, Dropzone } = BB.ui;
 
-  /* Allocation impact — shown before every confirmation. */
-  function Impact({ subKey, amount }) {
+  /* Allocation impact — shown before every confirmation. Two lines: the bucket
+     the commitment lands in, and where inside it — a rung of the anchor shelf
+     or a conviction theme. Never an asset class. */
+  function Impact({ subKey, amount, offering }) {
     const st = S.get();
     if (!amount) return <div className="note">Enter an amount to see the allocation impact.</div>;
-    /* One row: the model class this lands in. The subcategory beneath it is a
-       label, not a second allocation to reason about. */
-    const i = u.impactSix(st.positions, subKey, amount, st.split);
-    const ib = u.impactBucket(st.positions, subKey, amount, st.split);
-    if (!i) return null;
+    const place = u.offerPlace(offering || { fills: subKey, retNum: null, sector: null });
+    const bk = u.byBucket(st.positions, st.band, st.splitPinned ? st.split : null);
+    const row = bk.find((b) => b.key === place.bucket);
+    if (!row) return null;
+    const t = u.total(st.positions) || 1;
+    const before = row.wt;
+    const after = ((row.value + amount) / t) * 100;
+    const picked = place.theme ? st.themes.indexOf(place.theme.key) >= 0 : true;
+
     return (
       <div className="panel">
         <div className="panel-hd"><h3>Allocation impact</h3>
           <span className="tri" style={{ fontSize: 11 }}>for information</span></div>
         <table className="t dense">
-          <thead><tr><th></th><th className="n">Before</th><th className="n">After</th><th className="n">vs model</th></tr></thead>
+          <thead><tr><th></th><th className="n">Before</th><th className="n">After</th><th className="n">vs asked for</th></tr></thead>
           <tbody>
-            {/* the bucket first, the asset class beneath it */}
-            {ib && (
-              <tr>
-                <td>
-                  <div className="tname">
-                    <span style={{ display: "inline-flex", gap: 7, alignItems: "center" }}>
-                      <i className="sw" style={{ width: 8, height: 8, display: "inline-block", background: ib.b.color }} />
-                      {ib.b.label}
-                    </span>
-                  </div>
-                  <div className="tsub">target {u.pct(ib.target)} · {ib.b.role.toLowerCase()}</div>
-                </td>
-                <td className="n num">{u.pct(ib.before)}</td>
-                <td className="n num">{u.pct(ib.after)}</td>
-                <td className="n tri num">{u.pp(ib.driftAfter)}</td>
-              </tr>
-            )}
             <tr>
-              <td style={{ paddingLeft: 22 }}>
+              <td>
                 <div className="tname">
                   <span style={{ display: "inline-flex", gap: 7, alignItems: "center" }}>
-                    <i className="sw" style={{ width: 8, height: 8, display: "inline-block", background: i.c.color }} />
-                    {i.c.label}
+                    <i className="sw" style={{ width: 8, height: 8, display: "inline-block", background: place.color }} />
+                    {row.label}
                   </span>
                 </div>
-                <div className="tsub">{i.target === null ? "not modelled at this size" : "model " + u.pct(i.target)} · via {u.subLabel(subKey)}</div>
+                <div className="tsub">asked for {u.pct(row.target)} · {row.role.toLowerCase()}</div>
               </td>
-              <td className="n num">{u.pct(i.before)}</td>
-              <td className="n num">{u.pct(i.after)}</td>
-              <td className="n tri num">{i.driftAfter === null ? "—" : u.pp(i.driftAfter)}</td>
+              <td className="n num">{u.pct(before)}</td>
+              <td className="n num">{u.pct(after)}</td>
+              <td className="n tri num">{u.pp(after - row.target)}</td>
+            </tr>
+            <tr>
+              <td style={{ paddingLeft: 22 }} colSpan={4}>
+                <div className="tsub">
+                  {place.bucket === "engine"
+                    ? <>Lands on <b>{place.detail}</b>{place.rung === null ? " — below the lowest fund on the shelf" : ""}.</>
+                    : <>Lands under <b>{place.detail}</b>{picked ? "" : " — not currently one of the family's themes"}.</>}
+                </div>
+              </td>
             </tr>
           </tbody>
         </table>
         <div className="why" style={{ borderTop: "1px solid var(--g3)" }}>
-          {ib ? ib.b.label + " would move from " + u.pct(ib.before) + " to " + u.pct(ib.after) + " of total assets, through " + i.c.label.toLowerCase() + "."
-              : i.c.label + " would move from " + u.pct(i.before) + " to " + u.pct(i.after) + " of total assets."}
+          {row.label} would move from {u.pct(before)} to {u.pct(after)} of total assets.
         </div>
       </div>
     );
@@ -144,7 +141,7 @@
             </div>
           </div>
           <div style={{ width: 320 }}>
-            <Impact subKey={instrument.sub} amount={side === "buy" ? notional : -notional} />
+            <Impact subKey={instrument.sub} offering={instrument} amount={side === "buy" ? notional : -notional} />
             <div className="kv mt12">
               <span className="k">Last price</span><span className="v">{instrument.px ? u.localPx(instrument) : "—"}</span>
               <span className="k">Cash available</span><span className="v">{u.usd(cash)}</span>
@@ -186,7 +183,10 @@
         footer={
           <>
             <div className="tri" style={{ fontSize: 11.5 }}>
-              Closing {deal.closing === "Quarterly close" ? "at the next quarterly close" : u.fmtDate(deal.closing)} · ownership record updated on settlement.
+              {deal.closing === "Quarterly close" ? "Closing at the next quarterly close"
+                : deal.closing === "Monthly close" ? "Closing at the next monthly close"
+                : deal.closing === "Continuous" ? "Open continuously"
+                : "Closing " + u.fmtDate(deal.closing)} · ownership record updated on settlement.
             </div>
             <div className="btn-row">
               <button className="btn" onClick={onClose}>Cancel</button>
@@ -218,7 +218,7 @@
             </div>
           </div>
           <div style={{ width: 320 }}>
-            <Impact subKey={deal.fills} amount={amount || 0} />
+            <Impact subKey={deal.fills} offering={deal} amount={amount || 0} />
             <div className="kv mt12">
               <span className="k">Liquidity</span><span className="v">{deal.liq}{deal.term ? " · " + deal.term : ""}</span>
               <span className="k">Target return</span><span className="v">{deal.ret}</span>
@@ -413,7 +413,7 @@
           <span className="k">Indicative fair range</span><span className="v">{listing.indicative[0]}–{listing.indicative[1]}%</span>
           <span className="k">You pay</span><span className="v" style={{ fontSize: 15 }}>{u.usd(consideration)}</span>
         </div>
-        <Impact subKey={listing.sub} amount={listing.size} />
+        <Impact subKey={listing.sub} offering={{ fills: listing.sub, sector: listing.sector, retNum: null }} amount={listing.size} />
         <div className={"note mt12 " + (discount > 0 ? "ok" : "")}>
           {discount > 0
             ? <>You acquire {u.usd(listing.size)} of stated NAV for {u.usd(consideration)} — a {u.pct(discount)} discount,

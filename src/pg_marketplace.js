@@ -10,6 +10,7 @@
   function Row({ m, sug, onOpen, onAct }) {
     const st = S.get();
     const isListed = m.kind === "listed";
+    const place = u.offerPlace(m);
     return (
       <tr className="clickable" onClick={() => onOpen(m)}>
         <td style={{ minWidth: 260 }}>
@@ -26,7 +27,14 @@
               : m.hanwha && <span className="bdg hanwha"><i className="pt" />Hanwha-sourced</span>}
           </div>
         </td>
-        <td>{u.subLabel(m.fills)}<div className="tsub">{u.modelClassLabel(m.fills)}</div></td>
+        {/* where this lands: a rung of the anchor shelf, or a conviction theme */}
+        <td>
+          <span style={{ display: "inline-flex", gap: 7, alignItems: "center" }}>
+            <i className="sw" style={{ width: 8, height: 8, display: "inline-block", background: place.color }} />
+            <span className="tname" style={{ fontSize: 12 }}>{place.label}</span>
+          </span>
+          <div className="tsub">{place.detail}</div>
+        </td>
         <td className="n num">{m.ret}</td>
         <td>
           <span className="bdg plain">{m.liq}</span>
@@ -58,7 +66,7 @@
     return (
       <thead>
         <tr>
-          <th>Opportunity</th><th>Fills</th><th className="n">Return</th><th>Liquidity</th>
+          <th>Opportunity</th><th>Where it lands</th><th className="n">Return</th><th>Liquidity</th>
           <th className="n">Suggested</th><th className="n">Fit</th>
           <th className="hide-narrow" style={{ minWidth: 170 }}>Why</th><th></th>
         </tr>
@@ -68,7 +76,7 @@
 
   function Marketplace({ route }) {
     const st = S.useStore();
-    const [f, setF] = useState({ cls: "", src: "", liq: "", sector: "", geo: "", ret: "" });
+    const [f, setF] = useState({ bucket: "", rung: "", theme: "", src: "", liq: "", sector: "", geo: "", ret: "" });
     const [q, setQ] = useState("");
     const [act, setAct] = useState(null);
     const [ask, setAsk] = useState("");
@@ -88,10 +96,9 @@
 
     const pass = (m) => {
       if (gapFocus && m.fills !== gapFocus) return false;
-      if (f.cls) {
-        const mc = D.modelClasses.find((c) => c.key === f.cls);
-        if (!mc || mc.subs.indexOf(m.fills) < 0) return false;
-      }
+      if (f.bucket && u.offerBucket(m) !== f.bucket) return false;
+      if (f.rung && u.offerRung(m) !== +f.rung) return false;
+      if (f.theme && u.offerTheme(m) !== f.theme) return false;
       if (f.src && m.source !== f.src) return false;
       if (f.liq && m.liq !== f.liq) return false;
       if (f.sector && m.sector !== f.sector) return false;
@@ -135,10 +142,28 @@
                   <div className="f-item search">
                     <input type="text" placeholder="Search opportunities" value={q} onChange={(e) => setQ(e.target.value)} />
                   </div>
-                  <div className="f-item"><label className="f"><span>Asset class</span>
-                    <select value={f.cls} onChange={(e) => setF({ ...f, cls: e.target.value })}>
-                      <option value="">Any</option>{D.modelClasses.map((c) => <option key={c.key} value={c.key}>{c.label}</option>)}
+                  {/* no asset-class filter: the board is filtered by what a
+                      listing is for, which is a rung or a theme */}
+                  <div className="f-item"><label className="f"><span>Bucket</span>
+                    <select value={f.bucket} onChange={(e) => setF({ ...f, bucket: e.target.value, rung: "", theme: "" })}>
+                      <option value="">Any</option>
+                      <option value="engine">Anchor</option>
+                      <option value="conviction">Conviction</option>
                     </select></label></div>
+                  {f.bucket !== "conviction" && (
+                    <div className="f-item"><label className="f"><span>Anchor rung</span>
+                      <select value={f.rung} onChange={(e) => setF({ ...f, rung: e.target.value })}>
+                        <option value="">Any</option>
+                        {D.anchorShelf.map((x) => <option key={x.band} value={x.band}>{x.name} · {x.band}%</option>)}
+                      </select></label></div>
+                  )}
+                  {f.bucket !== "engine" && (
+                    <div className="f-item"><label className="f"><span>Theme</span>
+                      <select value={f.theme} onChange={(e) => setF({ ...f, theme: e.target.value })}>
+                        <option value="">Any</option>
+                        {D.themes.map((x) => <option key={x.key} value={x.key}>{x.label}</option>)}
+                      </select></label></div>
+                  )}
                   <div className="f-item"><label className="f"><span>Source</span>
                     <select value={f.src} onChange={(e) => setF({ ...f, src: e.target.value })}>
                       <option value="">Any</option>{D.sourceTypes.map((c) => <option key={c.key} value={c.key}>{c.label}</option>)}
@@ -197,7 +222,7 @@
             {/* DW [P]: the buying surface answers to the same two buckets as
                 the portfolio. The six classes stay one level down. END-STATE. */}
             <Panel title="Allocation context">
-              {u.byBucket(st.positions, st.split).map((b) => (
+              {u.byBucket(st.positions, st.band, st.splitPinned ? st.split : null).map((b) => (
                 <div key={b.key} className="mkb">
                   <div className="mkb-hd">
                     <i style={{ background: b.color }} />

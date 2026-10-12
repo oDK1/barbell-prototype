@@ -681,3 +681,50 @@ table.t td.val .krw{font-weight:400}
   .steps .step .l,.steps .step .s{min-width:0;overflow-wrap:break-word}
   .steps .step .s{font-size:10px;line-height:1.35}
 }
+
+/* ---- the anchor shelf ---------------------------------------------------
+   Drawn as a shelf: one column per rung, height is how much of the anchor
+   sits there, and the rung the family asked for is the only one in colour.
+   The "below" column is deliberately first and deliberately grey — it is the
+   capital that is not on the shelf at all. */
+.sl-inside{padding:8px 8px 0;font-size:11.5px;line-height:1.55}
+.sl-split{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:12px;
+  padding-top:10px;border-top:1px solid var(--g3)}
+.sl-split .spacer{flex:1}
+.ss-l{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.ss-read{font-size:19px;font-weight:600;letter-spacing:-.02em}
+
+.shelfwrap,.themewrap{padding:14px;border-bottom:1px solid var(--g3)}
+.shelf-hd{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.shelf{display:flex;align-items:flex-end;gap:3px;height:124px;
+  border-bottom:1px solid var(--g3);padding-bottom:0}
+.rung{display:flex;flex-direction:column;justify-content:flex-end;height:100%;min-width:0;text-align:center}
+.rb-wrap{flex:1;display:flex;align-items:flex-end;padding:0 2px}
+.rb{width:100%;background:#C9CEDA;min-height:1px}
+.rung.on .rb{background:#1B2A4A}
+.rung.off .rb{background:#D9D6CE}
+.rung.empty .rb{background:#EDEBE5}
+.rl{font-size:10px;color:var(--g2);padding-top:5px;border-top:1px solid var(--g3);margin-top:4px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rung.on .rl{color:var(--navy);font-weight:600}
+.rv{font-size:10px;color:var(--g1);height:13px}
+.shelf-ft{font-size:11.5px;line-height:1.55;margin-top:10px}
+tr.rung-on{background:var(--navy-wash)}
+tr.rung-below td{opacity:.62}
+.rung-n{font-weight:600}
+
+/* ---- conviction themes --------------------------------------------------
+   Toggles, not weights. Picking one changes what the marketplace ranks
+   first; it does not move money. */
+.themes{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:8px}
+.th{display:flex;flex-direction:column;gap:5px;text-align:left;cursor:pointer;
+  border:1px solid var(--g3);background:var(--paper);padding:10px 11px;font:inherit;border-radius:var(--r)}
+.th:hover{border-color:var(--ink)}
+.th.on{border-color:var(--navy);background:var(--navy-wash)}
+.th.on.held{border-left:3px solid var(--navy)}
+.th-hd{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.th-hd i{width:9px;height:9px;display:inline-block;flex-shrink:0}
+.th-n{font-size:12.5px;font-weight:600;color:var(--ink)}
+.th-v{font-size:11.5px;color:var(--g1);font-weight:600}
+.th-note{font-size:11px;line-height:1.5}
+@media (max-width:560px){ .themes{grid-template-columns:1fr} .shelf{height:96px} .rl{font-size:9px} }

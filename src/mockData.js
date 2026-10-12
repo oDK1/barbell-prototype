@@ -310,40 +310,39 @@
 
 
   /* ================================================= the anchor shelf
-     The anchor is not an asset allocation. It is a shelf of funds indexed by
-     the return each one targets — a 5% fund, a 6% fund, a 7% fund — and the
-     family picks a rung rather than a set of asset classes. What sits inside
+     The anchor is not an asset allocation. It is a shelf of funds, each named
+     for the yield it targets — a 5% fund, a 6% fund, a 7% fund — and the
+     family states a yield rather than a set of asset classes. What sits inside
      a fund is the manager's problem: whatever instruments clear that return
      at that risk. Fixed income at the bottom, absolute-return and yield
      strategies at the top.
 
-     One control drives the whole model. Raising the rung raises the return
-     the anchor is asked for and, inversely, shrinks the anchor — a family
-     willing to reach for 15% is by definition willing to hold less of it.
+     The family never picks one. A target yield is stated and the basket is
+     built across these funds to reach it.
 
      Fund names are placeholders. No real manager or strategy is named. */
   const anchorShelf = [
-    { band: 5,  name: "Anchor 5",  liq: "Daily",     vol: 2.4,
+    { band: 5,  name: "Target Yield 5%",  liq: "Daily",     vol: 2.4,
       inside: "Developed-market sovereigns and investment-grade credit. The return is what the curve gives." },
-    { band: 6,  name: "Anchor 6",  liq: "Daily",     vol: 3.1,
+    { band: 6,  name: "Target Yield 6%",  liq: "Daily",     vol: 3.1,
       inside: "Investment-grade credit with a longer duration, and short-dated structured paper." },
-    { band: 7,  name: "Anchor 7",  liq: "Monthly",   vol: 4.6,
+    { band: 7,  name: "Target Yield 7%",  liq: "Monthly",   vol: 4.6,
       inside: "Structured income notes and listed real-asset income. Contractual coupons, repriced quarterly." },
-    { band: 8,  name: "Anchor 8",  liq: "Monthly",   vol: 5.9,
+    { band: 8,  name: "Target Yield 8%",  liq: "Monthly",   vol: 5.9,
       inside: "Diversified senior credit and core property income, across more than one currency." },
-    { band: 9,  name: "Anchor 9",  liq: "Quarterly", vol: 7.2,
+    { band: 9,  name: "Target Yield 9%",  liq: "Quarterly", vol: 7.2,
       inside: "Senior secured direct lending to sponsor-backed borrowers. First lien, floating rate." },
-    { band: 10, name: "Anchor 10", liq: "Quarterly", vol: 8.4,
+    { band: 10, name: "Target Yield 10%", liq: "Quarterly", vol: 8.4,
       inside: "Direct lending with a mezzanine sleeve, and infrastructure credit against contracted cash flows." },
-    { band: 11, name: "Anchor 11", liq: "Quarterly", vol: 9.6,
+    { band: 11, name: "Target Yield 11%", liq: "Quarterly", vol: 9.6,
       inside: "Opportunistic and bridge credit, special situations, shorter duration against harder collateral." },
-    { band: 12, name: "Anchor 12", liq: "Quarterly", vol: 10.8,
+    { band: 12, name: "Target Yield 12%", liq: "Quarterly", vol: 10.8,
       inside: "Absolute-return and multi-strategy funds. Return is manager skill, not market direction. DW [P]." },
-    { band: 13, name: "Anchor 13", liq: "Quarterly", vol: 12.1,
+    { band: 13, name: "Target Yield 13%", liq: "Quarterly", vol: 12.1,
       inside: "Systematic and market-neutral quantitative strategies. DW [P]." },
-    { band: 14, name: "Anchor 14", liq: "Quarterly", vol: 13.5,
+    { band: 14, name: "Target Yield 14%", liq: "Quarterly", vol: 13.5,
       inside: "Fund of funds across uncorrelated alternatives, plus high-yield emerging-market deposits. DW [P]." },
-    { band: 15, name: "Anchor 15", liq: "Varies",    vol: 15.2,
+    { band: 15, name: "Target Yield 15%", liq: "Varies",    vol: 15.2,
       inside: "On-chain lending yield and unhedged emerging-market deposit programmes. DW [P]." },
   ];
 

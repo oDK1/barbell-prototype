@@ -79,78 +79,6 @@
      improved, including wider diversification across uncorrelated exposures.
      Tokenised fractional sizing is what makes that reachable at small ticket
      sizes — the sizing line below says so explicitly. END-STATE. */
-  function ImprovePanel({ positions }) {
-    const st = S.useStore();
-    const all = u.spread(positions);
-    const conviction = D.buckets.find((b) => b.key === "conviction");
-    const cs = u.spread(positions, conviction.subs);
-    const aff = u.affiliateExposure(positions);
-    const t = u.total(positions);
-
-    const ideas = [];
-    /* The shelf's own finding, read off the book: capital sitting below the
-       lowest fund on it is capital nobody gave a job to. */
-    const lad = u.anchorLadder(positions, null);
-    if (lad.below.wt > 8) ideas.push({
-      t: u.usdC(lad.below.value) + " is earning " + u.pct(lad.below.earns),
-      d: lad.below.count + " holdings sit below Anchor 5, the lowest fund on the shelf — "
-        + u.pct(lad.below.ofAnchor) + " of the anchor and " + u.pct(lad.below.wt) + " of the book. "
-        + "Some of it is spending and capital calls and has to stay. The rest is a decision nobody made.",
-      to: "/portfolio?tab=liq", cta: "See what is actually committed",
-    });
-    /* Conviction that was arrived at rather than chosen. */
-    const cb = u.byBucket(positions, 100 - st.anchorPct)[1];
-    if (cb.drift > 5) ideas.push({
-      t: "Conviction is " + u.pct(cb.wt) + ", not " + u.pct(cb.target),
-      d: cb.count + " positions are held on a view rather than for a return profile. That is "
-        + u.usdC((cb.drift / 100) * t) + " more than the family asked for — not wrong, but not chosen either.",
-      to: "/portfolio#model-panel", cta: "Set the split deliberately",
-    });
-    if (aff.wt > 5) ideas.push({
-      t: "One company carries " + u.pct(aff.wt) + " of the book",
-      d: aff.items.map((i) => i.name).join(", ") + ". The family's wealth and its income move together. Nothing here is uncorrelated with it.",
-      to: "/portfolio/equity?sub=pubeq", cta: "See the holding",
-    });
-    if (all.topGeo && all.topGeo.wt > 40) ideas.push({
-      t: all.topGeo.v + " is " + u.pct(all.topGeo.wt) + " of everything",
-      d: "Geography is the cheapest uncorrelated exposure to add. Fractional tokenised sizing means a position no longer has to clear a fund minimum to be worth taking.",
-      to: "/marketplace?ask=" + encodeURIComponent("outside " + all.topGeo.v), cta: "Find exposure elsewhere",
-    });
-    if (cs.effective < 6) ideas.push({
-      t: "Conviction rests on " + cs.effective.toFixed(1) + " effective holdings",
-      d: "A conviction sleeve is meant to be concentrated, but " + (cs.largest ? cs.largest.name + " alone is " + u.pct((cs.largest.value / t) * 100) + " of the book" : "it is narrow") + ". Splitting one ticket across several theses costs nothing once positions are fractional.",
-      to: "/marketplace?ask=" + encodeURIComponent("venture"), cta: "Widen the sleeve",
-    });
-    if (all.topSector && all.topSector.wt > 25) ideas.push({
-      t: all.topSector.v + " runs through " + u.pct(all.topSector.wt) + " of the book",
-      d: "Sector concentration survives any asset-class split — it does not show up in an allocation table.",
-      to: "/marketplace", cta: "Open the marketplace",
-    });
-
-    return (
-      <div className="panel mt16">
-        <div className="panel-hd">
-          <div>
-            <h3>How this could be better</h3>
-            <div className="tri" style={{ fontSize: 11.5, marginTop: 2 }}>
-              Concentration the allocation does not show · {all.effective.toFixed(1)} effective holdings across {all.n}
-            </div>
-          </div>
-          <span className="tri" style={{ fontSize: 11 }}>Observations. Every decision is the family's.</span>
-        </div>
-        {ideas.length === 0
-          ? <div className="empty">No concentration worth flagging.</div>
-          : ideas.map((x, i) => (
-            <div key={i} className="improve">
-              <div className="imp-t">{x.t}</div>
-              <div className="imp-d">{x.d}</div>
-              <button className="btn sm mt8" onClick={() => S.navigate(x.to)}>{x.cta} →</button>
-            </div>
-          ))}
-      </div>
-    );
-  }
-
   /* ------------------------------------------------------- allocation tab */
   function AllocationTab({ positions, openSignal }) {
     const t = u.total(positions);
@@ -207,7 +135,7 @@
                 {open && isAnchor && (
                   <div className="bk-in">
                     <table className="t dense">
-                      <thead><tr><th>Fund</th><th>What it holds</th><th className="n">Positions</th>
+                      <thead><tr><th>Fund · named for its target</th><th>What it holds</th><th className="n">Positions</th>
                         <th className="n">Of anchor</th><th className="n">Value</th></tr></thead>
                       <tbody>
                         {lad.below.count > 0 && (
@@ -221,10 +149,9 @@
                           </tr>
                         )}
                         {lad.rows.filter((f) => f.count > 0 || f.chosen).map((f) => (
-                          <tr key={f.band} className={f.chosen ? "rung-on" : ""}>
+                          <tr key={f.band}>
                             <td>
                               <span className="rung-n">{f.name}</span>
-                              {f.chosen && <span className="bdg plain" style={{ marginLeft: 7 }}>asked for</span>}
                               <div className="tsub">{f.liq} · vol {u.pct(f.vol)}</div>
                             </td>
                             <td className="tsub">{f.inside}</td>
@@ -269,9 +196,6 @@
             );
           })}
         </div>
-
-        {/* DW [P]: always show how the portfolio could be improved. END-STATE. */}
-        <ImprovePanel positions={positions} />
 
         <QueryBar positions={positions} />
 
@@ -434,8 +358,8 @@
               </span>
             </div>
             <table className="t dense">
-              <thead><tr><th style={{ width: 150 }}>Fund</th><th>What it holds</th>
-                <th className="n" style={{ width: 90 }}>Target</th>
+              <thead><tr><th style={{ width: 170 }}>Fund · named for its target</th><th>What it holds</th>
+                <th className="n" style={{ width: 90 }}>Targets</th>
                 <th style={{ width: "22%" }}>Weight</th>
                 <th className="n" style={{ width: 80 }}>Of anchor</th>
                 <th className="n" style={{ width: 110 }}>Amount</th></tr></thead>
@@ -466,7 +390,7 @@
               The basket is built for the target, not picked from a list. Raising the target narrows it toward the
               top of the shelf; lowering it narrows it toward the bottom.
               {lad.below.count > 0 && <> Against this, <b>{u.usdC(lad.below.value)}</b> of what is held today
-                earns {u.pct(lad.below.earns)} — under Anchor 5, so it clears neither the target nor the basket's lowest fund.</>}
+                earns {u.pct(lad.below.earns)} — under the {D.anchorShelf[0].name} fund, so it clears neither the target nor the basket's lowest rung.</>}
             </div>
           </div>
 
@@ -523,7 +447,7 @@
 
     if (lad.below.count > 0) items.push({
       t: u.usdC(lad.below.value) + " earns " + u.pct(lad.below.earns),
-      d: lad.below.count + " holdings return less than Anchor 5, the lowest fund on the shelf. "
+      d: lad.below.count + " holdings return less than the " + D.anchorShelf[0].name + " fund, the lowest on the shelf. "
         + u.usdC(built.cash) + " of that is the cash floor and belongs there. The rest was never given a job.",
       cta: "Find anchor funds", to: "/marketplace?ask=" + encodeURIComponent("daily liquidity yield"),
     });
@@ -545,6 +469,37 @@
       cta: "Review the exposures", to: "/portfolio#model-panel",
     });
 
+    /* DW [P]: wider diversification across uncorrelated exposures. These used
+       to sit in a panel of their own on the portfolio; they belong with the
+       rest of what the family could act on. */
+    const all = u.spread(positions, null);
+    const conv = u.inBucket(positions, "conviction");
+    const cs = u.spread(conv, null);
+    const aff = u.affiliateExposure(positions);
+
+    if (aff.wt > 5) items.push({
+      t: "One company carries " + u.pct(aff.wt) + " of the book",
+      d: aff.items.map((i) => i.name).join(", ") + ". The family's wealth and its income move together. Nothing here is uncorrelated with it.",
+      cta: "See the holding", to: "/portfolio/equity?sub=pubeq",
+    });
+    if (all.topGeo && all.topGeo.wt > 40) items.push({
+      t: all.topGeo.v + " is " + u.pct(all.topGeo.wt) + " of everything",
+      d: "Geography is the cheapest uncorrelated exposure to add. Fractional tokenised sizing means a position no longer has to clear a fund minimum to be worth taking.",
+      cta: "Find exposure elsewhere", to: "/marketplace?ask=" + encodeURIComponent("outside " + all.topGeo.v),
+    });
+    if (all.topSector && all.topSector.wt > 25) items.push({
+      t: all.topSector.v + " runs through " + u.pct(all.topSector.wt) + " of the book",
+      d: "Sector concentration survives any split between buckets — it does not show up against a yield target or an exposure menu.",
+      cta: "Open the marketplace", to: "/marketplace",
+    });
+    if (cs.effective < 6 && cs.n > 0) items.push({
+      t: "Conviction rests on " + cs.effective.toFixed(1) + " effective holdings",
+      d: "A conviction sleeve is meant to be concentrated, but "
+        + (cs.largest ? cs.largest.name + " alone is " + u.pct((cs.largest.value / t) * 100) + " of the book" : "it is narrow")
+        + ". Splitting one ticket across several theses costs nothing once positions are fractional.",
+      cta: "Widen the sleeve", to: "/marketplace?ask=" + encodeURIComponent("venture"),
+    });
+
     const legacy = themeRows.find((x) => x.key === "legacy");
     if (legacy && legacy.count > 0) items.push({
       t: u.usdC(legacy.value) + " sits outside every exposure on the menu",
@@ -560,7 +515,7 @@
     }));
 
     return (
-      <Modal title="What to do about it" sub="Ordered by what it costs to leave alone" onClose={onClose} wide
+      <Modal title="What to do about it" sub="Everything the book could be doing better, ordered by what it costs to leave alone" onClose={onClose} wide
         footer={<>
           <div className="tri" style={{ fontSize: 11.5 }}>Observations. Every decision is the family's.</div>
           <div className="btn-row">
@@ -653,7 +608,7 @@
     const r = u.rungOf(p);
     const f = r === null ? null : D.anchorShelf.find((x) => x.band === r);
     return { bucket: "engine", label: "Anchor", color: "#1B2A4A",
-      detail: f ? f.name + " · " + f.band + "%" : "below the shelf",
+      detail: f ? f.name + " fund" : "below the shelf",
       sortKey: "1" + String(r === null ? 0 : r).padStart(2, "0") };
   }
 

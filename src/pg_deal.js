@@ -20,13 +20,13 @@
     const ctx = u.marketContext(st.positions, st.mandate, st.realizedClosed);
     const sc = u.scoreFor(m, ctx);
     /* stated in the six model classes, not the subcategory beneath them */
-    const mc = u.impactSix(st.positions, m.fills, 0, st.mandate);
+    const mc = u.impactSix(st.positions, m.fills, 0, st.split);
     const mcDrift = mc && mc.target !== null ? mc.target - mc.before : 0;
     const gapWord = (x) => u.num(Math.abs(x), 1) + "pp " + (x > 0 ? "below" : "above") + " the model";
     const needsProposal = st.account === "successor" && !isListed;
 
     const tabs = [{ k: "thesis", label: isListed ? "Overview" : "Thesis" }, { k: "terms", label: "Terms" }, { k: "docs", label: "Documents", n: m.docs.length }]
-      .concat(m.hanwha ? [{ k: "hanwha", label: "Hanwha's position" }] : [])
+
 ;
 
     return (
@@ -37,7 +37,7 @@
             <div className="row tight" style={{ alignItems: "center" }}>
               <span className="bdg plain">{u.subLabel(m.fills)}</span>
               <span className="bdg plain">{m.liq}{m.term && m.term !== "—" ? " · " + m.term : ""}</span>
-              {m.hanwha && <span className="bdg hanwha"><i className="pt" />Hanwha-originated</span>}
+              {m.hanwha && <span className="bdg hanwha"><i className="pt" />{(D.sourceTypes.find((x) => x.key === m.source) || {}).label || "Hanwha-originated"}</span>}
             </div>
             <h1 className="mt8">{m.name}</h1>
             <div className="sub mt8">{m.ticker ? <span className="mono">{m.ticker}</span> : m.manager} · {m.sector} · {m.geo}</div>
@@ -87,6 +87,38 @@
           </Agent>
         </div>
 
+        {/* DW [P]: Hanwha's role and its diligence are the trust argument, so
+            they sit on the page rather than behind the last tab. The source
+            type says what kind of involvement this is. END-STATE. */}
+        {m.hanwha && (() => {
+          const stp = D.sourceTypes.find((x) => x.key === m.source);
+          const dd = m.dd || (m.source ? D.dueDiligence[m.source] : null);
+          return (
+            <div className="hwrole mt16" style={{ borderLeftColor: stp ? stp.color : "var(--navy)" }}>
+              <div className="hw-hd">
+                <span className="hw-k">{stp ? stp.label : "Hanwha-sourced"}</span>
+                <span className="spacer" />
+                <span className="tri" style={{ fontSize: 11 }}>Member allocation · {m.avail}</span>
+              </div>
+              <div className="hw-role">{m.role || m.anchor}</div>
+              <div className="hw-grid">
+                <div className="hw-col">
+                  <div className="lbl">Hanwha's own position</div>
+                  <div className="hw-t">{m.anchor}</div>
+                  <div className="tri mt8" style={{ fontSize: 11 }}>Identical terms — no preferential economics.</div>
+                </div>
+                <div className="hw-col">
+                  <div className="lbl">What was checked</div>
+                  {dd
+                    ? <ul className="hw-dd">{dd.map((x, i2) => <li key={i2}>{x}</li>)}</ul>
+                    : <div className="tri mt8" style={{ fontSize: 11.5 }}>Reviewed by the originating desk.</div>}
+                </div>
+              </div>
+              {stp && <div className="hw-ft tri">{stp.note}</div>}
+            </div>
+          );
+        })()}
+
         <div className="grid mt16" style={{ gridTemplateColumns: "1.6fr 1fr", alignItems: "start" }}>
           <div className="panel">
             <Tabs tabs={tabs} active={tab} onChange={setTab} />
@@ -114,27 +146,11 @@
                   </table>
                 )
               )}
-              {tab === "hanwha" && (
-                <div>
-                  <div className="note ok" style={{ fontSize: 12.5 }}>
-                    <b>Hanwha Life holds an anchor position in this instrument, on the same terms.</b>
-                  </div>
-                  <div className="prose mt12">{m.anchor}</div>
-                  <table className="t dense mt16">
-                    <tbody>
-                      <tr><td className="tri" style={{ width: 200 }}>Anchor investor</td><td className="tname">Hanwha Life Insurance</td></tr>
-                      <tr><td className="tri">Terms</td><td className="tname">Identical — no preferential economics</td></tr>
-                      <tr><td className="tri">Originated by</td><td className="tname">{m.manager || "Hanwha"}</td></tr>
-                      <tr><td className="tri">Member allocation</td><td className="tname">{m.avail}</td></tr>
-                    </tbody>
-                  </table>
-                </div>
-              )}
             </div>
           </div>
 
           <div>
-            <Panel title="Transaction" sub={isListed ? "Order ticket · same-day settlement" : "Subscription · closes " + (m.closing === "Quarterly close" ? "at the next quarterly close" : u.fmtDate(m.closing))}>
+            <Panel title="Transaction" sub={isListed ? "Order ticket · same-day settlement" : "Subscription · " + (m.closing === "Quarterly close" ? "closes at the next quarterly close" : m.closing === "Continuous" ? "open continuously" : m.closing === "Monthly close" ? "closes at the next monthly close" : "closes " + u.fmtDate(m.closing))}>
               <div className="kv">
                 {/* DW [D]: tokenised from day one — which is what removes the
                     minimum and makes fractional diversification possible. */}

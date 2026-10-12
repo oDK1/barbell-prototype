@@ -16,7 +16,14 @@
           <div className="tname">{m.name}</div>
           <div className="tsub" style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
             <span>{m.ticker ? <span className="mono">{m.ticker}</span> : m.manager}</span>
-            {m.hanwha && <span className="bdg hanwha"><i className="pt" />Hanwha-sourced</span>}
+            {/* DW [P]: Hanwha's involvement is the trust signal, so say which
+                kind it is rather than flagging every row the same way. */}
+            {m.source
+              ? <span className="bdg src" style={{ borderColor: (D.sourceTypes.find((x) => x.key === m.source) || {}).color }}>
+                  <i className="pt" style={{ background: (D.sourceTypes.find((x) => x.key === m.source) || {}).color }} />
+                  {(D.sourceTypes.find((x) => x.key === m.source) || {}).label}
+                </span>
+              : m.hanwha && <span className="bdg hanwha"><i className="pt" />Hanwha-sourced</span>}
           </div>
         </td>
         <td>{u.subLabel(m.fills)}<div className="tsub">{u.modelClassLabel(m.fills)}</div></td>
@@ -61,7 +68,7 @@
 
   function Marketplace({ route }) {
     const st = S.useStore();
-    const [f, setF] = useState({ cls: "", liq: "", sector: "", geo: "", ret: "" });
+    const [f, setF] = useState({ cls: "", src: "", liq: "", sector: "", geo: "", ret: "" });
     const [q, setQ] = useState("");
     const [act, setAct] = useState(null);
     const [ask, setAsk] = useState("");
@@ -85,6 +92,7 @@
         const mc = D.modelClasses.find((c) => c.key === f.cls);
         if (!mc || mc.subs.indexOf(m.fills) < 0) return false;
       }
+      if (f.src && m.source !== f.src) return false;
       if (f.liq && m.liq !== f.liq) return false;
       if (f.sector && m.sector !== f.sector) return false;
       if (f.geo && u.geoBucket(m.geo) !== f.geo) return false;
@@ -130,6 +138,10 @@
                   <div className="f-item"><label className="f"><span>Asset class</span>
                     <select value={f.cls} onChange={(e) => setF({ ...f, cls: e.target.value })}>
                       <option value="">Any</option>{D.modelClasses.map((c) => <option key={c.key} value={c.key}>{c.label}</option>)}
+                    </select></label></div>
+                  <div className="f-item"><label className="f"><span>Source</span>
+                    <select value={f.src} onChange={(e) => setF({ ...f, src: e.target.value })}>
+                      <option value="">Any</option>{D.sourceTypes.map((c) => <option key={c.key} value={c.key}>{c.label}</option>)}
                     </select></label></div>
                   <div className="f-item"><label className="f"><span>Liquidity</span>
                     <select value={f.liq} onChange={(e) => setF({ ...f, liq: e.target.value })}>
@@ -182,24 +194,24 @@
 
           {/* sidebar */}
           <div style={{ width: 280, flexShrink: 0 }}>
+            {/* DW [P]: the buying surface answers to the same two buckets as
+                the portfolio. The six classes stay one level down. END-STATE. */}
             <Panel title="Allocation context">
-              <table className="t dense">
-                <thead><tr><th>Class</th><th className="n">Now</th><th className="n">Model</th></tr></thead>
-                <tbody>
-                  {u.holdingsSix(st.positions, st.mandate).map((c) => (
-                    <tr key={c.key} style={c.blocked ? { opacity: .5 } : null}>
-                      <td>
-                        <span style={{ display: "inline-flex", gap: 7, alignItems: "center" }}>
-                          <i className="sw" style={{ width: 8, height: 8, display: "inline-block", background: c.color }} />
-                          <span className="tname" style={{ fontSize: 12 }}>{c.label}</span>
-                        </span>
-                      </td>
-                      <td className="n num">{u.pct(c.wt)}</td>
-                      <td className="n num tri">{c.blocked ? "—" : u.pct(c.model)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              {u.byBucket(st.positions, st.split).map((b) => (
+                <div key={b.key} className="mkb">
+                  <div className="mkb-hd">
+                    <i style={{ background: b.color }} />
+                    <span className="mkb-n">{b.label}</span>
+                    <span className="spacer" />
+                    <span className="num mkb-w">{u.pct(b.wt)}</span>
+                  </div>
+                  <div className="bk-bar"><i style={{ width: Math.min(100, b.wt) + "%", background: b.color }} />
+                    <b style={{ left: Math.min(100, b.target) + "%" }} /></div>
+                  <div className="mkb-ft tri">
+                    target {u.pct(b.target)} · {u.pp(b.drift)}
+                  </div>
+                </div>
+              ))}
               <button className="btn sm block mt8" onClick={() => S.navigate("/portfolio")}>Open the model</button>
             </Panel>
 

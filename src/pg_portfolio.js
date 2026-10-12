@@ -88,6 +88,15 @@
     const t = u.total(positions);
 
     const ideas = [];
+    /* The two-bucket decision put the working balance inside Engine. Rather
+       than hide the drag in a third line, say what it costs. */
+    const drag = u.engineDrag(positions);
+    if (drag.share > 12) ideas.push({
+      t: u.usdC(drag.idleValue) + " of Engine earns " + u.pct(drag.yield),
+      d: "Engine carries a 7–20% target. " + u.pct(drag.share) + " of it sits in sovereigns, deposits and T-bills across " + drag.count + " lines — "
+        + u.pct(drag.ofBook) + " of the whole book. Some of that is spending and capital calls and has to stay. The rest is a decision nobody made.",
+      to: "/portfolio?tab=liq", cta: "See what is actually committed",
+    });
     if (aff.wt > 5) ideas.push({
       t: "One company carries " + u.pct(aff.wt) + " of the book",
       d: aff.items.map((i) => i.name).join(", ") + ". The family's wealth and its income move together. Nothing here is uncorrelated with it.",
@@ -144,16 +153,16 @@
             classes survive one level down as disclosure — what is inside a
             bucket — rather than as the organising idea. END-STATE. */}
         <div className="buckets mt16">
-          {u.byBucket(positions, S.get().mandate).map((b) => {
+          {u.byBucket(positions, S.get().split).map((b) => {
             const sp = u.spread(positions, b.subs);
             const open = !!bOpen[b.key];
             return (
-              <div key={b.key} className={"bk" + (b.key === "reserve" ? " bk-reserve" : "")}>
+              <div key={b.key} className="bk">
                 <div className="bk-hd clickable" onClick={() => setBOpen({ ...bOpen, [b.key]: !open })}>
                   <div className="bk-id">
                     <i style={{ background: b.color }} />
                     <div>
-                      <div className="bk-name">{b.label}{b.proposal && <span className="bdg plain" style={{ marginLeft: 7 }}>proposal</span>}</div>
+                      <div className="bk-name">{b.label}</div>
                       <div className="bk-role">{b.role} · {b.band}</div>
                     </div>
                   </div>
@@ -290,11 +299,12 @@
     const st = S.useStore();
     const t = u.total(positions);
     const [aum, setAum] = useState(t);
-    const [goal, setGoal] = useState(st.mandate);
-    React.useEffect(() => { setGoal(st.mandate); }, [st.mandate]);
+    /* DW [D]: one Engine / Conviction split replaces the nine model portfolios. */
+    const [conv, setConv] = useState(st.split);
+    React.useEffect(() => { setConv(st.split); }, [st.split]);
     const [open, setOpen] = useState({});
     const [path, setPath] = useState(false);
-    const whatIf = goal !== st.mandate;
+    const whatIf = conv !== st.split;
 
     const MAXX = 100;                                   // $1M … $100M end to end
     const THUMB = 16;                                   // native range thumb, for chip alignment
@@ -302,7 +312,7 @@
     const fromPos = (v) => 1e6 * Math.pow(MAXX, v);
     const short = (a) => a % 1e6 === 0 ? "$" + (a / 1e6) + "M" : u.usdC(a);
 
-    const six = u.modelSix(aum, goal);
+    const six = u.modelSix(aum, conv);
     const heldSix = u.bySix(positions);
     const model = { classes: u.sixToFour(six.w), subs: u.sixToSubs(six.w) };
     const [hover, setHover] = useState(null);
@@ -312,8 +322,14 @@
     }));
     const inPlay = sixRows.filter((r) => !r.blocked);
     const ruledOut = sixRows.filter((r) => r.blocked);
-    const mandate = D.mandates.find((x) => x.key === st.mandate) || D.mandates[1];
-    const selected = D.mandates.find((x) => x.key === goal) || mandate;
+    /* A split that happens to sit on a preset keeps the family's own name for
+       it; anything else is simply the two numbers. */
+    const postureOf = (v) => {
+      const k = Object.keys(D.bucketPresets).find((k2) => D.bucketPresets[k2] === v);
+      return (k && D.mandates.find((x) => x.key === k)) || null;
+    };
+    const splitName = (v) => (100 - v) + " / " + v;
+    const selLabel = (postureOf(conv) || {}).label || "Engine " + splitName(conv);
     const confirmed = st.activity.find((a) => a.kind === "Mandate");
     const atToday = Math.abs(aum - t) < 1e5;
     const cls = u.byClass(positions);
@@ -335,76 +351,74 @@
             <div>
               <h3>Model portfolio</h3>
               <div className="tri" style={{ fontSize: 11.5, marginTop: 2 }}>
-                Two settings decide the shape below: what the family is trying to do, and how much it has.
+                One setting decides the shape below.
               </div>
             </div>
             <button className="btn sm" onClick={() => setPath(true)}>Rebalancing path</button>
           </div>
 
-          {/* the two levers, side by side and labelled as such */}
-          <div className="levers">
-            <div className="lever">
-              <div className="lbl">1 · Objective</div>
-              <div className="mt8">
-                <Seg options={D.mandates.map((g) => ({ v: g.key, label: g.label }))} value={goal} onChange={setGoal} />
+          {/* DW [D]: one lever. The split is the model — everything below is
+              derived from it. The size row underneath is a what-if, not a
+              second axis: it only exists so the minimum-cheque arithmetic can
+              be seen at sizes the family has not reached. END-STATE. */}
+          <div className="splitlever">
+            <div className="sl-hd">
+              <div className="lbl">The split</div>
+              <div className="sl-read">
+                <span className="sl-a num">{100 - conv}</span>
+                <span className="sl-sep">/</span>
+                <span className="sl-b num">{conv}</span>
               </div>
-              {whatIf ? (
-                <div className="lever-note warn">
-                  <span style={{ flex: 1 }}>A what-if. The family's mandate is <b>{mandate.label}</b>.</span>
-                  <span className="btn-row">
-                    <button className="link g" onClick={() => setGoal(st.mandate)}>Discard</button>
-                    
-                      <button className="btn sm p" onClick={() => S.actions.setMandate(goal)}>Adopt as mandate</button>
-                    
-                  </span>
-                </div>
-              ) : (
-                <div className="lever-note">
-                  <span style={{ flex: 1 }}>
-                    The family's mandate · <b>{mandate.core} / {mandate.alpha}</b> Core / Alpha
-                    {confirmed ? " · confirmed " + u.fmtDate(confirmed.ts) : ""}
-                  </span>
-                  
-                    <button className="link g" onClick={() => S.navigate("/onboarding/mandate")}>Refine with 8 questions</button>
-                  
-                </div>
-              )}
-              <div className="tri" style={{ fontSize: 11.5, marginTop: 6 }}>{selected.line}</div>
+              <div className="sl-leg">
+                <span><i style={{ background: "#1B2A4A" }} />Engine</span>
+                <span><i style={{ background: "#9A7B2E" }} />Conviction</span>
+              </div>
             </div>
 
-            <div className="lever">
-              <div className="sizehd">
-                <div className="lbl">2 · Size</div>
-                <span className="aumval num">{short(aum)}</span>
+            <div className="sl-track">
+              <div className="sl-chips">
+                {[1, 5, 10, 20, 35].map((v) => (
+                  <button key={v} onClick={() => setConv(v)} className={conv === v ? "on" : ""}
+                    title={(postureOf(v) || {}).label || "Set the split to " + splitName(v)}
+                    style={{ left: "calc(" + ((v / 40) * 100) + "% + " + ((0.5 - v / 40) * 16).toFixed(1) + "px)" }}>
+                    {splitName(v)}
+                  </button>
+                ))}
               </div>
-              {/* The chips sit above the rail and on the thumb's own centres.
-                  A range thumb travels from T/2 to width − T/2, so each chip is
-                  offset by (0.5 − p)·T to follow it rather than the raw track. */}
-              <div className="track mt8">
-                <div className="ticks">
-                  {[1e6, 10e6, 100e6].map((a) => {
-                    const f = pos(a);
-                    return (
-                      <button key={a} onClick={() => setAum(a)}
-                        className={Math.abs(aum - a) < 1e5 ? "on" : ""}
-                        title={"Model the " + short(a) + " tier"}
-                        style={{ left: "calc(" + (f * 100) + "% + " + ((0.5 - f) * THUMB).toFixed(1) + "px)" }}>
-                        {short(a)}
-                      </button>
-                    );
-                  })}
-                </div>
-                <input type="range" min="0" max="1000" step="1" value={Math.round(pos(aum) * 1000)}
-                  onChange={(e) => setAum(Math.round(fromPos(+e.target.value / 1000) / 1e5) * 1e5)} />
+              <input type="range" min="0" max="40" step="1" value={conv}
+                onChange={(e) => setConv(+e.target.value)} />
+            </div>
+
+            {whatIf ? (
+              <div className="lever-note warn">
+                <span style={{ flex: 1 }}>A what-if. The family's split is <b>Engine {splitName(st.split)}</b>.</span>
+                <span className="btn-row">
+                  <button className="link g" onClick={() => setConv(st.split)}>Discard</button>
+                  <button className="btn sm p" onClick={() => { S.actions.setSplit(conv); S.actions.commitSplit(); }}>Adopt this split</button>
+                </span>
               </div>
+            ) : (
               <div className="lever-note">
                 <span style={{ flex: 1 }}>
-                  {atToday
-                    ? <>Today's assets. Click a tier below or drag the slider to any size between them.</>
-                    : <>A what-if — today's assets are {short(t)}.</>}
+                  The family's split · <b>{selLabel}</b>
+                  {confirmed ? " · confirmed " + u.fmtDate(confirmed.ts) : ""}
                 </span>
-                {!atToday && <button className="link g" onClick={() => setAum(t)}>Back to today</button>}
+                <button className="link g" onClick={() => S.navigate("/onboarding/mandate")}>Refine with 8 questions</button>
               </div>
+            )}
+
+            <div className="sl-size">
+              <span className="lbl">Model at</span>
+              {[1e6, 10e6, t, 100e6].map((a, i2) => (
+                <button key={i2} onClick={() => setAum(a)}
+                  className={"chip" + (Math.abs(aum - a) < 1e5 ? " on" : "")}>
+                  {i2 === 2 ? "Today · " + short(a) : short(a)}
+                </button>
+              ))}
+              <span className="spacer" />
+              <span className="tri" style={{ fontSize: 11 }}>
+                {atToday ? "Minimum cheque sizes are applied at today's assets." : "A what-if — today's assets are " + short(t) + "."}
+              </span>
             </div>
           </div>
 
@@ -475,7 +489,7 @@
               {ruledOut.length > 0 && (
                 <div className="ruledout">
                   <div className="lbl" style={{ marginBottom: 8 }}>
-                    Not recommended at {short(aum)} · {selected.label}
+                    Not recommended at {short(aum)} · Engine {splitName(conv)}
                   </div>
                   {ruledOut.map((c) => (
                     <div key={c.key} className="ro-item">
@@ -485,7 +499,7 @@
                         <span className="tri num" style={{ fontSize: 11.5 }}>
                           {c.blocked.why === "size" && c.blocked.pct > 0
                             ? u.pct(c.blocked.pct) + " would be " + u.usdC(c.blocked.dollars) + " · minimum " + u.usdC(c.blocked.min)
-                            : "0% at this size and objective"}
+                            : "0% at this split"}
                         </span>
                         <span style={{ flex: 1 }} />
                         <span className="tri" style={{ fontSize: 11 }}>
@@ -501,13 +515,13 @@
           </div>
 
           {/* what the two mixes would compound to, if the assumptions hold */}
-          <GrowthFan positions={positions} modelClasses={model.classes} modelLabel={selected.label}
+          <GrowthFan positions={positions} modelClasses={model.classes} modelLabel={"Engine " + splitName(conv)}
             collapsible defaultOpen={false} />
           <div style={{ padding: "8px 14px", borderTop: "1px solid var(--g3)", fontSize: 11, color: "var(--g2)" }}>
             Class and subcategory only — never individual securities.
           </div>
         </div>
-        {path && <PathModal rows={flat} t={t} model={{ label: selected.label + " · " + short(aum) }} onClose={() => setPath(false)} />}
+        {path && <PathModal rows={flat} t={t} model={{ label: "Engine " + splitName(conv) + " · " + short(aum) }} onClose={() => setPath(false)} />}
       </>
     );
   }

@@ -29,6 +29,10 @@
     ops: clone(D.opsLedger),
     referrals: clone(D.referrals),
     mandate: "balanced",
+    /* DW [D]: one Engine / Conviction split replaces the nine model portfolios.
+       `split` is the number the family sets; `mandate` survives only as the
+       nearest posture label and to feed the marketplace scoring path. */
+    split: D.bucketPresets.balanced,
     survey: {},
     uploads: clone(D.uploadFiles),
     exceptions: clone(D.exceptions).map((e) => ({ ...e, resolved: false, value: e.type === "input" ? e.suggestion : e.answer })),
@@ -127,10 +131,31 @@
       emit();
     },
 
+    /* The one model lever. Snaps `mandate` to the nearest posture so the
+       marketplace's scoring, which still reasons in postures, stays coherent. */
+    setSplit(conv) {
+      const v = Math.max(0, Math.min(100, Math.round(conv)));
+      state.split = v;
+      let best = "balanced", d = Infinity;
+      Object.keys(D.bucketPresets).forEach((k) => {
+        const gap = Math.abs(D.bucketPresets[k] - v);
+        if (gap < d) { d = gap; best = k; }
+      });
+      state.mandate = best;
+      emit();
+    },
+
+    commitSplit() {
+      const v = state.split;
+      log("Mandate", "Set the split — Engine " + (100 - v) + " / Conviction " + v, "principal");
+      emit();
+    },
+
     setMandate(key) {
       const m = D.mandates.find((x) => x.key === key);
       if (!m) return;
       state.mandate = key;
+      state.split = D.bucketPresets[key] !== undefined ? D.bucketPresets[key] : state.split;
       // rescale subcategory targets proportionally inside each class
       D.classes.forEach((c) => {
         const old = c.target, next = m.targets[c.key];

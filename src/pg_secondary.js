@@ -194,7 +194,7 @@
     const sc = u.listingView(l, ctx).sc;
     const hist = u.tradeHistory(l.id, st.trades, l.askPct);
     const gap = u.bySub(st.positions).find((x) => x.key === l.sub);
-    const mc = u.impactSix(st.positions, l.sub, 0, st.mandate);
+    const mc = u.impactSix(st.positions, l.sub, 0, st.split);
     const mcDrift = mc && mc.target !== null ? mc.target - mc.before : 0;
     const gapWord = (x) => u.num(Math.abs(x || 0), 1) + "pp " + ((x || 0) > 0 ? "below" : "above") + " the model";
     const why = u.listingView(l, ctx).why;

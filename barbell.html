@@ -588,7 +588,6 @@ table.t td.val .krw{font-weight:400}
 .bk{border:1px solid var(--g3);background:var(--paper);border-left:3px solid var(--g3)}
 .bk:nth-child(1){border-left-color:#1B2A4A}
 .bk:nth-child(2){border-left-color:#9A7B2E}
-.bk.bk-reserve{border-left-color:var(--g2);background:#FCFBF8}
 .bk-hd{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:13px 15px 9px;cursor:pointer}
 .bk-id{display:flex;gap:11px;align-items:flex-start}
 .bk-id>i{width:10px;height:10px;margin-top:5px;flex-shrink:0;display:block}
@@ -613,6 +612,86 @@ table.t td.val .krw{font-weight:400}
 .lens-l:first-of-type{border-top:0}
 .lens-n{flex-shrink:0;width:18px;height:18px;border-radius:50%;background:var(--navy-wash);color:var(--navy);
   font-size:10.5px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;margin-top:2px}
+
+/* ---------- the split lever (DW [D]: one control replaces nine portfolios) ---
+   The readout is the point of the screen, so it is set larger than anything
+   else in the panel and the two numbers are coloured as their buckets. The
+   rail beneath runs 0–40, which covers 99/1 at one end and a book that is a
+   third conviction at the other. */
+.splitlever{padding:14px;border-bottom:1px solid var(--g3)}
+.sl-hd{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.sl-read{display:flex;align-items:baseline;gap:6px;line-height:1}
+.sl-read .sl-a{font-size:34px;font-weight:600;letter-spacing:-.03em;color:#1B2A4A}
+.sl-read .sl-sep{font-size:22px;color:var(--g2)}
+.sl-read .sl-b{font-size:34px;font-weight:600;letter-spacing:-.03em;color:#9A7B2E}
+.sl-leg{display:flex;gap:14px;font-size:11px;color:var(--g1)}
+.sl-leg span{display:inline-flex;align-items:center;gap:6px}
+.sl-leg i{width:9px;height:9px;display:inline-block}
+.sl-track{padding:0 8px;margin-top:12px}
+.sl-track input[type=range]{display:block;width:100%;margin:0;padding:0;accent-color:#9A7B2E}
+.sl-chips{position:relative;height:24px;margin-bottom:2px}
+.sl-chips button{position:absolute;top:0;transform:translateX(-50%);border:1px solid var(--g3);background:var(--paper);
+  padding:2px 8px;font:inherit;font-size:10.5px;font-weight:500;color:var(--g1);
+  cursor:pointer;line-height:1.5;border-radius:var(--r);white-space:nowrap}
+.sl-chips button:hover{border-color:var(--ink);color:var(--ink)}
+.sl-chips button.on{background:var(--ink);border-color:var(--ink);color:#fff;font-weight:600}
+/* Size is demoted to a row of chips: a what-if on the minimum-cheque rule,
+   not a second axis of the model. */
+.sl-size{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;
+  padding-top:10px;border-top:1px solid var(--g3)}
+.sl-size .chip{border:1px solid var(--g3);background:var(--paper);padding:2px 9px;font:inherit;
+  font-size:10.5px;font-weight:500;color:var(--g1);cursor:pointer;border-radius:var(--r);white-space:nowrap}
+.sl-size .chip:hover{border-color:var(--ink);color:var(--ink)}
+.sl-size .chip.on{background:var(--ink);border-color:var(--ink);color:#fff;font-weight:600}
+.sl-size .spacer{flex:1}
+@media (max-width:560px){ .sl-read .sl-a,.sl-read .sl-b{font-size:27px} }
+
+/* Allocation context in the marketplace sidebar: the same two buckets the
+   portfolio is organised by, at sidebar width. */
+.mkb{padding:9px 0;border-bottom:1px solid var(--g3)}
+.mkb:last-of-type{border-bottom:0}
+.mkb-hd{display:flex;align-items:center;gap:7px;font-size:12px}
+.mkb-hd i{width:9px;height:9px;display:inline-block;flex-shrink:0}
+.mkb-hd .spacer{flex:1}
+.mkb-n{font-weight:600}
+.mkb-w{font-weight:600}
+.mkb-ft{font-size:11px;margin-top:5px}
+.mkb .bk-bar{margin-top:6px}
+
+/* Source badge. One outline per source type, coloured by it, so the board
+   reads as four kinds of listing rather than one flag repeated. */
+.bdg.src{border:1px solid var(--g3);background:var(--paper);color:var(--g1);font-weight:600}
+
+/* ---- Hanwha's role, promoted out of the last tab (DW [P]) ----------------
+   Ruled off with the source type's own colour so the four kinds of listing
+   are distinguishable at a glance on the deal page as well as the board. */
+.hwrole{border:1px solid var(--g3);border-left:3px solid var(--navy);background:var(--paper)}
+.hw-hd{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--g3);background:#FCFBF8}
+.hw-hd .spacer{flex:1}
+.hw-k{font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;font-weight:600;color:var(--navy)}
+.hw-role{padding:12px 14px;font-size:13.5px;line-height:1.6;color:var(--ink);font-weight:500}
+.hw-grid{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--g3)}
+.hw-col{padding:12px 14px}
+.hw-col:first-child{border-right:1px solid var(--g3)}
+.hw-t{font-size:12.5px;line-height:1.55;color:var(--ink-2);margin-top:6px}
+.hw-dd{margin:6px 0 0;padding-left:16px;font-size:12px;line-height:1.7;color:var(--ink-2)}
+.hw-ft{padding:9px 14px;border-top:1px solid var(--g3);background:var(--g4);font-size:11px;line-height:1.55}
+@media (max-width:900px){ .hw-grid{grid-template-columns:1fr} .hw-col:first-child{border-right:0;border-bottom:1px solid var(--g3)} }
+
+/* On a phone the preset chips cannot sit on the rail without the end ones
+   hanging off it, so they become an ordinary wrapping row instead. */
+@media (max-width:560px){
+  .sl-chips{display:flex;flex-wrap:wrap;gap:6px;height:auto;margin-bottom:8px}
+  .sl-chips button{position:static;transform:none;left:auto !important}
+}
+
+/* Three equal step columns do not fit a phone: the sub-labels push the last
+   one past the edge. Narrow the padding and let the labels wrap. */
+@media (max-width:560px){
+  .steps .step{padding-left:9px;padding-right:9px;column-gap:7px;min-width:0}
+  .steps .step .l,.steps .step .s{min-width:0;overflow-wrap:break-word}
+  .steps .step .s{font-size:10px;line-height:1.35}
+}
 
 </style>
 </head>
@@ -1227,43 +1306,45 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
   /* ===================================================== risk / return buckets
      DW [P]: organise the product by risk and return, not by asset class.
+     Confirmed two buckets — an earlier third "Reserve" line was dropped.
 
-     Bucket 1 and Bucket 2 are his. `reserve` is a PROPOSAL: his two buckets
-     describe capital that is invested, and a 42-position book still holds
-     sovereigns, IG and cash that are neither compounding at 7–20% nor
-     conviction. Treating them as a working balance rather than forcing them
-     into a bucket keeps both buckets honest. Open question for DW.
+     Consequence, stated rather than hidden: the working balance a family must
+     hold — sovereigns, deposits, T-bills — now sits inside Engine, whose
+     target is 7–20%. It drags. That is not a flaw in the model; it is the
+     most useful thing the two-bucket view surfaces, and the improvement
+     panel reads it off the book directly.
 
-     The mapping from subcategory to bucket is also a proposal: DW gave
+     The mapping from subcategory to bucket is a proposal: DW gave
      illustrative examples, not a taxonomy. Role, not instrument type, decides
      — diversified compounding vs concentrated upside. */
   const buckets = [
     { key: "engine", label: "Engine", color: "#1B2A4A",
       role: "Compounding capital",
       band: "7–20% target",
-      note: "Diversified, repeatable return. Absolute-return and yield strategies that do not depend on being right about one thing.",
-      subs: ["pubeq", "pcred", "struct", "re", "infra"] },
+      note: "Diversified, repeatable return, plus the working balance beneath it. Nothing here depends on being right about one thing.",
+      subs: ["pubeq", "pcred", "struct", "re", "infra", "sov", "ig", "mmf", "tbill", "dep", "fx"] },
     { key: "conviction", label: "Conviction", color: "#9A7B2E",
       role: "Upside you choose",
       band: "High return, mid risk",
-      note: "Concentrated positions taken on the family's own view. Judged on the thesis, not on a benchmark.",
+      note: "Concentrated positions taken on the family's own view. Judged on the thesis, not against a benchmark.",
       subs: ["pe", "vc", "preipo", "comm"] },
-    { key: "reserve", label: "Reserve", color: "#A9A396",
-      role: "Spendable, committed",
-      band: "Liquidity, not return",
-      note: "Capital calls, spending and the floor beneath them. Sized by obligations, not by a target return.",
-      subs: ["sov", "ig", "mmf", "tbill", "dep", "fx"], proposal: true },
   ];
 
-  /* Illustrative bucket splits behind each posture. DW [P]: the split is
-     personal — 99/1 is his example — so these are starting points a client
-     moves, not fixed models. */
-  const bucketPresets = {
-    preservation: { engine: 70, conviction: 5,  reserve: 25 },
-    balanced:     { engine: 78, conviction: 12, reserve: 10 },
-    growth:       { engine: 68, conviction: 25, reserve: 7 },
-  };
+  /* The split is the only model lever. DW [P]: it is personal — 99/1 is his
+     example — so these three are shortcuts on a continuous control, not
+     portfolios. They carry the family's own 95/5, 90/10, 80/20 numbers, which
+     turn out to be exactly an Engine / Conviction split. */
+  const bucketPresets = { preservation: 5, balanced: 10, growth: 20 };
 
+  /* What each bucket is made of, in the six classes. The model portfolio is
+     these two compositions blended at whatever the slider says — which is how
+     one control replaces a nine-cell matrix. Engine draws only on classes its
+     own subcategories can reach; Conviction only on private equity and the
+     commodity line. Each row sums to 100. */
+  const bucketMix = {
+    engine:     { pubeq: 34, priveq: 0,  pubdebt: 30, privdebt: 12, real: 12, cash: 12 },
+    conviction: { pubeq: 0,  priveq: 75, pubdebt: 0,  privdebt: 0,  real: 25, cash: 0  },
+  };
   /* ------------------------------------------------- six-class model framework */
   /* The model is stated in six classes, equity and debt each split public /
      private, so the implementation question ("through what vehicle?") sits
@@ -1289,40 +1370,19 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       note: "MMF, T-bills, deposits, FX" },
   ];
 
-  /* Nine published portfolios. The objective sets the risk budget; the tier
-     decides how that budget is implemented. Read down a column to watch a
-     tier substitute private exposure for public as minimums become clearable. */
-  const modelMatrix = {
-    preservation: {
-      1:   { pubeq: 20, priveq: 0,  pubdebt: 60, privdebt: 0,  real: 5,  cash: 15 },
-      10:  { pubeq: 20, priveq: 0,  pubdebt: 52, privdebt: 8,  real: 5,  cash: 15 },
-      100: { pubeq: 17, priveq: 3,  pubdebt: 42, privdebt: 18, real: 5,  cash: 15 },
-    },
-    balanced: {
-      1:   { pubeq: 55, priveq: 0,  pubdebt: 35, privdebt: 0,  real: 5,  cash: 5 },
-      10:  { pubeq: 45, priveq: 10, pubdebt: 30, privdebt: 5,  real: 5,  cash: 5 },
-      100: { pubeq: 35, priveq: 15, pubdebt: 25, privdebt: 10, real: 10, cash: 5 },
-    },
-    growth: {
-      1:   { pubeq: 75, priveq: 0,  pubdebt: 15, privdebt: 0,  real: 5,  cash: 5 },
-      10:  { pubeq: 60, priveq: 15, pubdebt: 10, privdebt: 5,  real: 5,  cash: 5 },
-      100: { pubeq: 45, priveq: 25, pubdebt: 10, privdebt: 5,  real: 10, cash: 5 },
-    },
-  };
-
   /* Why a class is not recommended, by whichever rule excluded it. */
   const modelExcuses = {
     real: {
-      size: "Property and infrastructure enter through funds that start at $500,000. Below that cheque the allocation buys one building at one address — a concentration, not a diversifier. Under this objective the weight does more work in public equity until the book can carry a diversified real-asset position.",
-      goal: "Not held under this objective at this size.",
+      size: "Property and infrastructure enter through funds that start at $500,000. Below that cheque the allocation buys one building at one address — a concentration, not a diversifier. The weight does more work in public equity until the book can carry a diversified real-asset position.",
+      split: "Real assets enter through Conviction. At this split the slice is too small to clear a fund minimum.",
     },
     priveq: {
-      size: "A ten-year lock-up behind a $250,000 minimum. At this size that cheque is a concentrated bet on one fund in one vintage — the opposite of what the sleeve is for. Listed equity carries the same market exposure, daily.",
-      goal: "Capital that has to be spendable cannot sit in a ten-year lock-up. The objective rules this out before size does.",
+      size: "A ten-year lock-up behind a $250,000 minimum. At this size that cheque is a concentrated bet on one fund in one vintage — the opposite of what the bucket is for. Listed equity carries the same market exposure, daily.",
+      split: "Conviction is set to zero. Private equity is the bucket's main instrument, so nothing is allocated to it.",
     },
     privdebt: {
       size: "Direct lending funds start at $500,000 and gate redemptions quarterly. Below that cheque a public credit ETF buys the same spread with daily liquidity and no gate.",
-      goal: "Quarterly gates sit badly with a mandate built on being able to spend.",
+      split: "Not reachable at this split.",
     },
   };
 
@@ -1492,6 +1552,34 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
   /* ---------------------------------------------------------- marketplace */
   /* One schema for everything. `kind` only changes the transaction mechanic. */
+  /* ===================================================== where a listing comes from
+     DW [P]: listings are not only Hanwha's own direct deals. They also include
+     funds Hanwha works with or creates through its LP position, and DeFi or
+     co-created products. DW [P]: Hanwha's involvement is the trust signal, so
+     the source is stated on the row, not buried in a tab.
+
+     Names below the group's own are placeholders. No real third-party manager,
+     protocol or counterparty is named. */
+  const sourceTypes = [
+    { key: "direct", label: "Hanwha direct", short: "Direct", color: "#1B2A4A",
+      note: "Originated by Hanwha. The group holds the same instrument on the same terms as members." },
+    { key: "fund", label: "Fund · Hanwha LP", short: "LP access", color: "#5A74A0",
+      note: "A third-party fund Hanwha is an LP in. The member tranche is carved out of Hanwha's own commitment — which is the only reason the minimum is reachable at this size." },
+    { key: "cocreated", label: "Co-created", short: "Co-created", color: "#9A7B2E",
+      note: "Built by Hanwha with the manager for this platform. The structure does not exist elsewhere and the terms were set by Hanwha's own participation." },
+    { key: "defi", label: "Digital", short: "Digital", color: "#3F7183",
+      note: "On-chain yield, wrapped by Hanwha into a vehicle a Korean family office can hold, custody and report. Hanwha carries the protocol diligence and the operational risk." },
+  ];
+
+  /* What was actually checked, by source type, where a listing does not carry
+     its own list. Stated as work done, not as a guarantee. */
+  const dueDiligence = {
+    direct: ["Credit and structure reviewed by the originating desk", "Hanwha balance sheet committed on identical terms", "Independent valuation on file"],
+    fund: ["Manager reviewed under Hanwha's LP diligence", "Track record verified against audited fund accounts", "Side-letter terms extended to the member tranche"],
+    cocreated: ["Structure designed and priced by Hanwha", "Counterparty credit reviewed by the group", "Hanwha retains a first-loss or anchor position"],
+    defi: ["Protocol code audited by two independent firms", "Custody through a regulated Korean qualified custodian", "Counterparty and bridge risk reviewed by the group's digital asset desk", "Daily proof-of-reserve reconciliation"],
+  };
+
   const market = [
     /* ---- Sovereign / duration ---------------------------------------- */
     { id: "m01", kind: "listed", name: "US Treasury 4.125% 15-Aug-2036", ticker: "US91282CMR9", fills: "sov", cls: "debt",
@@ -1538,6 +1626,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       why: "Government-guaranteed KRW credit at a 91bp spread over the KTB curve, in exchange for holding to maturity.",
       sector: "Government", geo: "Korea", ccy: "KRW", manager: "Korea Housing Finance Corporation", closing: "2026-10-08",
       hanwha: true, anchor: "Hanwha Life holds ₩400B of the same programme across recent vintages.",
+      source: "direct", role: "Hanwha Life anchored the programme and Hanwha Securities arranged the placement.",
       overview: "Senior tranche of a government-guaranteed residential mortgage securitisation. Sovereign-equivalent credit with a 91bp pickup over the on-the-run KTB, in exchange for holding to maturity. Fills the duration gap in the reporting currency without an FX overlay.",
       terms: [["Yield to maturity", "4.62%"], ["Guarantee", "Korea Housing Finance Corporation (government-backed)"], ["Term", "3 years, no early redemption"], ["Minimum", "₩700,000,000 (≈$500,000)"], ["Coupon", "Quarterly"], ["Closing", "8 October 2026"]],
       docs: [["Programme prospectus", "PDF · 96pp"], ["Pool characteristics", "XLSX"], ["Guarantee terms", "PDF · 12pp"]],
@@ -1549,6 +1638,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       why: "Senior secured against contracted data centre cash flows, on the same security package as the Facility I position already held.",
       sector: "Infrastructure", geo: "United States", ccy: "USD", manager: "Northgate Capital Partners", closing: "2026-10-30",
       hanwha: true, anchor: "Hanwha Life holds $180M of the senior tranche on identical terms.",
+      source: "direct", role: "Originated by Hanwha's infrastructure credit desk; the group took the senior tranche first.",
       overview: "Senior secured lending against a 220MW US hyperscale data center platform, 94% contracted to two investment-grade tenants on 12-year leases. First-lien on the operating entity, 55% LTV on an independent appraisal, cash sweep above 1.35x DSCR. The family already holds the Facility I position at $2.39M; this is the same borrower, same security package, one tranche later.",
       terms: [["Target return", "9.2% (SOFR + 475bps, 4.0% floor)"], ["Term", "5 years, no extension"], ["Security", "First lien, 55% LTV"], ["Minimum", "$1,000,000"], ["Distribution", "Quarterly cash"], ["Closing", "30 October 2026"], ["Fees", "1.0% management, no carry"]],
       docs: [["Information memorandum", "PDF · 64pp"], ["Credit agreement (draft)", "PDF · 212pp"], ["Third-party appraisal", "PDF · 38pp"], ["Tenant lease summary", "XLSX"]],
@@ -1559,10 +1649,50 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       why: "8.4% target with quarterly liquidity; the family holds Fund II and the reporting line is identical.",
       sector: "Diversified", geo: "United States", ccy: "USD", manager: "Meridian Credit", closing: "Quarterly close",
       hanwha: true, anchor: "Hanwha Life holds $150M in the same evergreen vehicle, redeemable on the same quarterly terms.",
+      source: "fund", role: "Hanwha has been an LP in Meridian's credit vehicles since Fund I. The member tranche sits inside that relationship.",
       overview: "Diversified senior secured lending to sponsor-backed mid-market borrowers, 128 positions, average hold 1.4% of the fund. Evergreen structure with quarterly redemption at NAV subject to a 5% gate.",
       terms: [["Target return", "8.4% net"], ["Liquidity", "Quarterly, 90 days' notice, 5% gate"], ["Minimum", "$500,000"], ["Fees", "1.25% / 10% over 6%"], ["Leverage", "0.85x"]],
       docs: [["Private placement memorandum", "PDF · 118pp"], ["Q2 2026 investor letter", "PDF · 12pp"]],
       qa: [["How did the gate behave in 2024?", "Redemptions were met in full in every quarter since inception; the gate has never been applied."]] },
+    /* ---- DW [P]: listings beyond Hanwha's own direct deals ---------------
+       Three placeholders standing for the three sources DW named that the
+       board did not previously carry: a product Hanwha co-created, on-chain
+       yield wrapped for a Korean family office, and an emerging-market
+       deposit programme. Names, counterparties and figures are invented. */
+    { id: "m43", kind: "private", name: "Hanwha Korea Income Participation Note 2026-A", fills: "struct", cls: "debt",
+      ret: "8.8% target", retNum: 8.8, liq: "Quarterly", term: "4yr · quarterly put", min: 0, avail: "₩90B tranche open", fit: 87,
+      why: "Engine-grade yield with a quarterly put — co-created, so the terms are Hanwha's own rather than a distributor's.",
+      sector: "Structured", geo: "Korea", ccy: "KRW", manager: "Hanwha Securities", closing: "Quarterly close",
+      hanwha: true, anchor: "Hanwha Life holds the ₩300B first-loss tranche beneath this note.",
+      source: "cocreated", role: "Designed, priced and issued by Hanwha. The note did not exist before this platform asked for it.",
+      dd: ["Structure designed and priced in-house", "Hanwha Life holds the first-loss tranche beneath members", "Underlying collateral pool reviewed quarterly by the group's credit committee", "Independent pricing agent appointed"],
+      overview: "A participation note referencing a diversified pool of Korean mid-market receivables, with Hanwha Life holding a first-loss tranche beneath the member tranche. Built for this platform: the quarterly put and the absence of a minimum are both consequences of Hanwha taking the subordinate position.",
+      terms: [["Target return", "8.8% net"], ["Put", "Quarterly at par, 10 business days' notice"], ["Subordination", "Hanwha Life first loss, ₩300B"], ["Sizing", "Fractional — any amount"], ["Fees", "0.75%, no carry"]],
+      docs: [["Term sheet", "PDF · 11pp"], ["Collateral pool summary", "PDF · 26pp"], ["Issuer disclosure", "PDF · 46pp"]], qa: [] },
+
+    { id: "m44", kind: "private", name: "Aegis Tokenised USD Yield Programme", fills: "struct", cls: "debt",
+      ret: "9.6% target", retNum: 9.6, liq: "Daily", term: "Open-ended", min: 0, avail: "Open", fit: 79,
+      why: "On-chain lending yield at daily liquidity, wrapped so it can be custodied and reported like any other line.",
+      sector: "Digital Assets", geo: "United States", ccy: "USD", manager: "Aegis Digital (placeholder)", closing: "Continuous",
+      hanwha: true, anchor: "Hanwha holds $25M in the same programme and carries the operational risk of the wrapper.",
+      source: "defi", role: "Hanwha selected the venues, built the feeder vehicle and stands between members and the protocol.",
+      dd: ["Protocol code audited by two independent firms", "Custody through a regulated Korean qualified custodian", "Counterparty and bridge risk reviewed by the group's digital asset desk", "Daily proof-of-reserve reconciliation", "Hanwha capital invested on identical terms"],
+      overview: "Over-collateralised USD lending across a small set of audited on-chain venues, held through a Hanwha feeder so the family's exposure is a single reportable line rather than a wallet. Yield is variable and has ranged from 6.1% to 14.3% over the last twenty-four months.",
+      terms: [["Target return", "9.6%, variable"], ["Liquidity", "Daily, same-day settlement"], ["Collateralisation", "Over-collateralised, 142% weighted"], ["Sizing", "Fractional — any amount"], ["Custody", "Regulated Korean qualified custodian"], ["Fees", "0.90%"]],
+      docs: [["Programme memorandum", "PDF · 38pp"], ["Audit reports (2)", "PDF · 94pp"], ["Custody and wrapper structure", "PDF · 16pp"], ["Historical yield series", "XLSX"]],
+      qa: [["What is the worst case here?", "Loss of principal through a protocol failure or a custody failure. Over-collateralisation protects against borrower default, not against a flaw in the venue itself."]] },
+
+    { id: "m45", kind: "private", name: "Emerging Markets Deposit Programme — Series 4", fills: "ig", cls: "debt",
+      ret: "9.1% target", retNum: 9.1, liq: "Quarterly", term: "2yr rolling", min: 0, avail: "Open", fit: 81,
+      why: "Bank deposit yield well above the Korean curve, spread across six jurisdictions rather than taken in one.",
+      sector: "Financials", geo: "Asia", ccy: "USD", manager: "Hanwha Securities", closing: "Monthly close",
+      hanwha: true, anchor: "Hanwha Life places $400M across the same bank panel each quarter.",
+      source: "cocreated", role: "Hanwha assembled the bank panel, negotiated the rates and places member capital alongside its own.",
+      dd: ["Each bank reviewed against the group's own counterparty limits", "Deposits spread across six jurisdictions, no bank above 25%", "Rates negotiated on the group's aggregate volume", "Reviewed quarterly by the group's treasury"],
+      overview: "Term deposits placed across a panel of emerging-market banks, aggregated so that a family-office ticket earns the rate the group's volume commands. Currency risk is hedged to USD; the credit risk is the banks'.",
+      terms: [["Target return", "9.1% net of hedging"], ["Liquidity", "Quarterly, 30 days' notice"], ["Concentration", "No single bank above 25%"], ["Sizing", "Fractional — any amount"], ["Hedging", "Fully hedged to USD"]],
+      docs: [["Programme terms", "PDF · 22pp"], ["Bank panel and limits", "PDF · 9pp"]], qa: [] },
+
     { id: "m08", kind: "listed", name: "Invesco Senior Loan ETF", ticker: "BKLN", fills: "pcred", cls: "debt",
       ret: "7.60% yield", retNum: 7.6, liq: "Daily", term: "Open-ended", min: 1000, avail: "Continuous", fit: 76,
       why: "Floating-rate senior loans with daily liquidity — the same credit risk without the lock-up.",
@@ -1593,6 +1723,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       why: "Second phase of an asset the family already owns, at the same entry basis as Hanwha Life.",
       sector: "Data Centers", geo: "Korea", ccy: "USD", manager: "Hanwha Asset Management", closing: "2026-11-14",
       hanwha: true, anchor: "Hanwha Life is the anchor investor at $220M, subscribed at the same price and terms as members.",
+      source: "direct", role: "Developed and financed by Hanwha; the group remains the largest equity holder.",
       overview: "Second phase of the Songdo campus: 180MW of contracted capacity with a signed 15-year offtake from a global cloud operator. Phase I, which the family already holds at $2.34M, is 100% leased and distributing at a 7.4% cash yield.",
       terms: [["Target IRR", "13.5% gross / 11.8% net"], ["Cash yield", "6.2% from year 3"], ["Term", "8 years"], ["Minimum", "$750,000"], ["Fees", "1.5% / 15% over 8%"], ["Closing", "14 November 2026"]],
       docs: [["Investment memorandum", "PDF · 88pp"], ["Offtake agreement summary", "PDF · 14pp"], ["Power supply agreement", "PDF · 22pp"], ["Phase I performance", "PDF · 9pp"]],
@@ -1603,6 +1734,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       why: "$300,000 minimum, quarterly cash from year one; Co-Invest I is marking at 1.08x.",
       sector: "Logistics", geo: "Korea", ccy: "KRW", manager: "Hanwha Asset Management", closing: "2026-12-05",
       hanwha: true, anchor: "Hanwha Life holds 40% of the REIT's equity alongside co-investors.",
+      source: "cocreated", role: "Structured by Hanwha with the REIT manager so that member tickets could sit alongside the group's own 40%.",
       overview: "Cold-chain and last-mile logistics assets in the Seoul metropolitan area, 91% occupied on a weighted 6.2-year lease term. Distributions quarterly from year 1.",
       terms: [["Target IRR", "9.8%"], ["Cash yield", "5.9% from year 1"], ["Term", "6 years"], ["Minimum", "$300,000"], ["Fees", "1.2% / 12% over 7%"], ["Closing", "5 December 2026"]],
       docs: [["Co-investment memorandum", "PDF · 52pp"], ["Asset schedule", "XLSX"], ["Valuation report", "PDF · 30pp"]],
@@ -1654,6 +1786,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       why: "Access tranche in a fund that is otherwise closed; sits inside the Alpha sleeve's remaining capacity.",
       sector: "Technology", geo: "United States", ccy: "USD", manager: "Meridian Venture Partners", closing: "2026-10-15",
       hanwha: true, anchor: "Hanwha Life is the cornerstone LP in Fund XII at $60M; the member tranche is carved out of that commitment.",
+      source: "fund", role: "Hanwha is the cornerstone LP. The access tranche exists because of that position and not otherwise.",
       overview: "Early-stage US venture fund, twelfth vintage. Funds VIII–X are marking at 4.2x, 3.1x and 2.4x net. The tranche exists because the GP reserved capacity for platform investors; the family could not access this fund directly at a $250K commitment.",
       terms: [["Target", "3.1x net / 22% net IRR"], ["Term", "10 years + 2 one-year extensions"], ["Minimum", "$250,000"], ["Fees", "2.0% / 20% over 8%"], ["Drawdown", "Over 4 years, ~25% per year"], ["Closing", "15 October 2026"]],
       docs: [["Fund XII PPM", "PDF · 142pp"], ["Track record — Funds VIII-XI", "PDF · 24pp"], ["LPA (tranche)", "PDF · 96pp"], ["Side letter", "PDF · 6pp"]],
@@ -1664,6 +1797,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       why: "Averages into an existing Series F position at a 12% discount to the last primary round.",
       sector: "Aerospace", geo: "United States", ccy: "USD", manager: "Direct block", closing: "2026-10-22",
       hanwha: true, anchor: "Hanwha Life took $40M of the same secondary block at $186.00 — the price members pay.",
+      source: "direct", role: "Sourced by Hanwha's pre-IPO desk from a selling employee holder; the group took the larger half of the block.",
       overview: "Secondary block in a large private aerospace manufacturer, sold by an early employee holder. Priced at $186/share against the Series G primary at $211. The family holds the Series F block at $820K, entered at $142.",
       terms: [["Price", "$186.00 per share"], ["Discount to last round", "11.8%"], ["Minimum", "$500,000"], ["Transfer", "Company right of first refusal, 30 days"], ["Closing", "22 October 2026"]],
       docs: [["Company overview", "PDF · 46pp"], ["Cap table summary", "PDF · 8pp"], ["ROFR waiver process", "PDF · 4pp"], ["Audited financials 2025", "PDF · 62pp"]],
@@ -1674,6 +1808,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       why: "Growth-stage AI infrastructure; the family holds SPV I, marked at 1.35x after 17 months.",
       sector: "Technology", geo: "United States", ccy: "USD", manager: "Helios Partners", closing: "2026-11-01",
       hanwha: true, anchor: "Hanwha Life holds $45M of the same Series D, subscribed alongside the SPV at the round price.",
+      source: "cocreated", role: "The SPV was formed by Hanwha to carry member capital into a round the group was already taking.",
       overview: "Single-asset SPV into the Series D of a GPU cloud operator with $310M of contracted revenue. Concentrated: one company, one round, no diversification.",
       terms: [["Target", "4.0x"], ["Structure", "Single-asset SPV"], ["Minimum", "$250,000"], ["Fees", "0% management / 10% carry"], ["Closing", "1 November 2026"]],
       docs: [["SPV memorandum", "PDF · 28pp"], ["Company deck", "PDF · 34pp"], ["Series D term sheet", "PDF · 12pp"]],
@@ -1683,6 +1818,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       why: "Core open-end property; the family holds Fund IV and the exposure would be duplicative.",
       sector: "Diversified RE", geo: "Asia-Pacific", ccy: "USD", manager: "Pacific Core", closing: "Quarterly close",
       hanwha: true, anchor: "Hanwha Life holds $210M in the fund and stands in the same quarterly redemption queue.",
+      source: "fund", role: "Hanwha has stood in the same redemption queue as members since Fund III.",
       overview: "Core open-end Asia-Pacific property fund. Shown because the family holds Fund IV.",
       terms: [["Target return", "8.1% net"], ["Liquidity", "Quarterly queue"], ["Minimum", "$500,000"], ["Fees", "1.0% / no carry"]],
       docs: [["PPM", "PDF · 104pp"]], qa: [] },
@@ -1889,7 +2025,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     KRW, TODAY, family, accounts, classes, subs, positions,
     uploadFiles, ingestSteps, exceptions, mandates, survey, modelPortfolios,
     capitalCalls, distributions, benchmark, performance, attribution, modelGoals, ALT_SUBS,
-    modelClasses, modelMatrix, modelExcuses, buckets, bucketPresets, expectedReturn, expectedVol, classCorr, idiosyncraticVol,
+    sourceTypes, dueDiligence, modelClasses, modelExcuses, buckets, bucketPresets, bucketMix, expectedReturn, expectedVol, classCorr, idiosyncraticVol,
     market, secondary, secondaryTrades, bidsSeed, approvalsSeed, activitySeed, opsLedger, referrals, liquidityAssumptions,
   };
 })();
@@ -2125,19 +2261,32 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
 
   /* ------------------------------------------------ six-class model portfolio */
-  /* Interpolates the published tiers on log AUM, then applies the rule that
-     decides what a family this size can actually own: a private sleeve whose
-     dollar allocation cannot clear its minimum cheque is not a recommendation,
-     it is a rounding error. Those are zeroed and their weight returned to the
-     public sibling, with the arithmetic kept so the screen can show its work. */
-  function modelSix(aum, goalKey) {
-    const g = D.modelMatrix[goalKey] ? goalKey : "balanced";
-    const x = Math.max(0, Math.min(2, Math.log10(Math.max(aum, 1e6) / 1e6)));
-    const lo = x < 1 ? 1 : 10, hi = x < 1 ? 10 : 100, f = x < 1 ? x : x - 1;
-    const A = D.modelMatrix[g][lo], B = D.modelMatrix[g][hi];
+  /* One lever. DW [D]: the nine published portfolios are replaced by a single
+     Engine / Conviction split, which the family sets and can set to 99/1.
 
+     The split is read as a number. Callers that still hold a posture key get
+     the preset behind it, so "balanced" and 10 mean the same thing — the keys
+     survive as shortcuts, not as portfolios.
+
+     Blending the two bucket compositions gives the six-class model. Then the
+     rule that decides what a family this size can actually own: a private
+     class whose dollar allocation cannot clear its minimum cheque is not a
+     recommendation, it is a rounding error. Those are zeroed and their weight
+     returned to the public sibling, with the arithmetic kept so the screen can
+     show its work. */
+  function convPct(split) {
+    if (typeof split === "number" && isFinite(split)) return Math.max(0, Math.min(100, split));
+    const v = D.bucketPresets[split];
+    return v === undefined ? D.bucketPresets.balanced : v;
+  }
+
+  function modelSix(aum, split) {
+    const conv = convPct(split);
+    const eng = 100 - conv;
     const w = {};
-    D.modelClasses.forEach((c) => { w[c.key] = A[c.key] * (1 - f) + B[c.key] * f; });
+    D.modelClasses.forEach((c) => {
+      w[c.key] = (eng * (D.bucketMix.engine[c.key] || 0) + conv * (D.bucketMix.conviction[c.key] || 0)) / 100;
+    });
 
     /* Where a class's weight goes when it cannot be owned. Real assets and
        equity share one risk budget, so real falls back to public equity. */
@@ -2145,20 +2294,18 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     const blocked = {};
     Object.keys(sibling).forEach((k) => {
       const c = D.modelClasses.find((x2) => x2.key === k);
-      const min = c.minBy && c.minBy[g] !== undefined ? c.minBy[g] : c.min;
+      const min = c.min;
       const dollars = (w[k] / 100) * aum;
-      /* the objective can rule it out outright; otherwise the cheque decides */
-      const byGoal = A[k] === 0 && B[k] === 0;
-      if (w[k] <= 0 || byGoal || dollars < min) {
+      if (w[k] <= 0 || dollars < min) {
         blocked[k] = {
-          why: byGoal || w[k] <= 0 ? (g === "preservation" ? "goal" : "size") : "size",
+          why: w[k] <= 0 ? "split" : "size",
           pct: w[k], dollars, min, to: sibling[k],
         };
         w[sibling[k]] += w[k];
         w[k] = 0;
       }
     });
-    return { w, blocked, goal: g, tier: { lo, hi, f } };
+    return { w, blocked, conv, eng, split: conv };
   }
 
   /* The same six buckets, measured on what the family actually holds. */
@@ -2338,14 +2485,14 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
   /* The book split by what capital is for, with the six classes kept one level
      down as disclosure rather than as the organising idea. */
-  function byBucket(ps, goalKey) {
+  function byBucket(ps, split) {
     const t = total(ps);
-    const preset = D.bucketPresets[goalKey] || D.bucketPresets.balanced;
+    const conv = convPct(split);
     return D.buckets.map((b) => {
       const items = ps.filter((p) => b.subs.indexOf(p.sub) >= 0);
       const v = total(items);
       const wt = t ? (v / t) * 100 : 0;
-      const target = preset[b.key] || 0;
+      const target = b.key === "conviction" ? conv : 100 - conv;
       return {
         ...b, items, value: v, wt, target, drift: wt - target, count: items.length,
         unrealized: unrealized(items),
@@ -2379,6 +2526,26 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       effective: hhi ? 1 / hhi : 0,
       topGeo: geos[0] || null, topSector: sectors[0] || null,
       largest: items.slice().sort((a, b) => b.value - a.value)[0] || null,
+    };
+  }
+
+  /* What folding the working balance into Engine costs. Engine carries a
+     7–20% target; the sovereigns, deposits and T-bills now inside it do not
+     earn anything like that. DW confirmed two buckets, so rather than hide
+     this in a third line the product reads it off the book and says it. */
+  const IDLE_SUBS = ["mmf", "tbill", "dep", "fx", "sov"];
+  function engineDrag(ps) {
+    const eng = D.buckets.find((b) => b.key === "engine");
+    const items = ps.filter((p) => eng.subs.indexOf(p.sub) >= 0);
+    const ev = total(items);
+    const idle = items.filter((p) => IDLE_SUBS.indexOf(p.sub) >= 0);
+    const iv = total(idle);
+    const yld = iv ? idle.reduce((a, p) => a + (p.ytm || p.yieldPct || 0) * p.value, 0) / iv : 0;
+    return {
+      engineValue: ev, idleValue: iv, count: idle.length,
+      share: ev ? (iv / ev) * 100 : 0,
+      ofBook: total(ps) ? (iv / total(ps)) * 100 : 0,
+      yield: yld,
     };
   }
 
@@ -2530,6 +2697,21 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     return { c, before, after, target, driftAfter: target === null ? null : after - target };
   }
 
+  /* The same question asked of the bucket the commitment lands in. DW [P]:
+     the buying surface answers to the two buckets, so a ticket says which one
+     it moves before it says which asset class. */
+  function impactBucket(ps, subKey, amount, split) {
+    const b = bucketOf(subKey);
+    if (!b) return null;
+    const t = total(ps) || 1;
+    const held = total(ps.filter((p) => b.subs.indexOf(p.sub) >= 0));
+    const conv = convPct(split);
+    const target = b.key === "conviction" ? conv : 100 - conv;
+    const before = (held / t) * 100;
+    const after = ((held + amount) / t) * 100;
+    return { b, before, after, target, driftAfter: after - target };
+  }
+
   function impact(ps, subKey, amount) {
     const before = bySub(ps).find((s) => s.key === subKey);
     const t = total(ps);
@@ -2547,7 +2729,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     usd, usdC, krwC, krwFull, pct, pp, sgn, sgnUsd, num, localPx, days, fmtDate, fmtTs, monthKey, monthLabel,
     staleness, provLabel, sum, total, byClass, bySub, gaps, unrealized, realizedYTD,
     liquidity90, liquidityProjection, shortfall, coverage, projectMix,
-    modelSix, bySix, sixToFour, sixToSubs, pickForClass, holdingsSix, geoBucket, GEO_BUCKETS, listingDocs, listingView, currentIRR, tradeHistory, impactSix, modelClassOf, modelClassLabel, bucketOf, bucketLabel, byBucket, spread, topHoldings, affiliateExposure, taxLots, eligibility,
+    modelSix, convPct, bySix, sixToFour, sixToSubs, pickForClass, holdingsSix, geoBucket, GEO_BUCKETS, listingDocs, listingView, currentIRR, tradeHistory, impactSix, impactBucket, modelClassOf, modelClassLabel, bucketOf, bucketLabel, byBucket, spread, engineDrag, topHoldings, affiliateExposure, taxLots, eligibility,
     fitFor, subLabel, clsLabel, clsOf, impact, modelWeights, marketContext, scoreFor, suggestAmount,
   };
 })();
@@ -2585,6 +2767,10 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     ops: clone(D.opsLedger),
     referrals: clone(D.referrals),
     mandate: "balanced",
+    /* DW [D]: one Engine / Conviction split replaces the nine model portfolios.
+       `split` is the number the family sets; `mandate` survives only as the
+       nearest posture label and to feed the marketplace scoring path. */
+    split: D.bucketPresets.balanced,
     survey: {},
     uploads: clone(D.uploadFiles),
     exceptions: clone(D.exceptions).map((e) => ({ ...e, resolved: false, value: e.type === "input" ? e.suggestion : e.answer })),
@@ -2683,10 +2869,31 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       emit();
     },
 
+    /* The one model lever. Snaps `mandate` to the nearest posture so the
+       marketplace's scoring, which still reasons in postures, stays coherent. */
+    setSplit(conv) {
+      const v = Math.max(0, Math.min(100, Math.round(conv)));
+      state.split = v;
+      let best = "balanced", d = Infinity;
+      Object.keys(D.bucketPresets).forEach((k) => {
+        const gap = Math.abs(D.bucketPresets[k] - v);
+        if (gap < d) { d = gap; best = k; }
+      });
+      state.mandate = best;
+      emit();
+    },
+
+    commitSplit() {
+      const v = state.split;
+      log("Mandate", "Set the split — Engine " + (100 - v) + " / Conviction " + v, "principal");
+      emit();
+    },
+
     setMandate(key) {
       const m = D.mandates.find((x) => x.key === key);
       if (!m) return;
       state.mandate = key;
+      state.split = D.bucketPresets[key] !== undefined ? D.bucketPresets[key] : state.split;
       // rescale subcategory targets proportionally inside each class
       D.classes.forEach((c) => {
         const old = c.target, next = m.targets[c.key];
@@ -3171,7 +3378,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
         done: st.ingestDone, block: null },
       { k: "reconcile", n: 2, label: "Reconcile", sub: "clear the exceptions", to: "/onboarding/reconcile",
         done: st.ingestDone && cleared, block: st.ingestDone ? null : "Read the files first" },
-      { k: "mandate", n: 3, label: "Mandate", sub: "set the posture", to: "/onboarding/mandate",
+      { k: "mandate", n: 3, label: "Mandate", sub: "set the split", to: "/onboarding/mandate",
         done: false, block: cleared ? null : "Clear the exceptions first" },
     ];
     return (
@@ -3607,7 +3814,8 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     if (!amount) return <div className="note">Enter an amount to see the allocation impact.</div>;
     /* One row: the model class this lands in. The subcategory beneath it is a
        label, not a second allocation to reason about. */
-    const i = u.impactSix(st.positions, subKey, amount, st.mandate);
+    const i = u.impactSix(st.positions, subKey, amount, st.split);
+    const ib = u.impactBucket(st.positions, subKey, amount, st.split);
     if (!i) return null;
     return (
       <div className="panel">
@@ -3616,8 +3824,25 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
         <table className="t dense">
           <thead><tr><th></th><th className="n">Before</th><th className="n">After</th><th className="n">vs model</th></tr></thead>
           <tbody>
+            {/* the bucket first, the asset class beneath it */}
+            {ib && (
+              <tr>
+                <td>
+                  <div className="tname">
+                    <span style={{ display: "inline-flex", gap: 7, alignItems: "center" }}>
+                      <i className="sw" style={{ width: 8, height: 8, display: "inline-block", background: ib.b.color }} />
+                      {ib.b.label}
+                    </span>
+                  </div>
+                  <div className="tsub">target {u.pct(ib.target)} · {ib.b.role.toLowerCase()}</div>
+                </td>
+                <td className="n num">{u.pct(ib.before)}</td>
+                <td className="n num">{u.pct(ib.after)}</td>
+                <td className="n tri num">{u.pp(ib.driftAfter)}</td>
+              </tr>
+            )}
             <tr>
-              <td>
+              <td style={{ paddingLeft: 22 }}>
                 <div className="tname">
                   <span style={{ display: "inline-flex", gap: 7, alignItems: "center" }}>
                     <i className="sw" style={{ width: 8, height: 8, display: "inline-block", background: i.c.color }} />
@@ -3633,7 +3858,8 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
           </tbody>
         </table>
         <div className="why" style={{ borderTop: "1px solid var(--g3)" }}>
-          {i.c.label} would move from {u.pct(i.before)} to {u.pct(i.after)} of total assets.
+          {ib ? ib.b.label + " would move from " + u.pct(ib.before) + " to " + u.pct(ib.after) + " of total assets, through " + i.c.label.toLowerCase() + "."
+              : i.c.label + " would move from " + u.pct(i.before) + " to " + u.pct(i.after) + " of total assets."}
         </div>
       </div>
     );
@@ -4265,7 +4491,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
         <div className="btn-row mt16">
           {open.length > 0 && (
             <Lock>
-              {/* Clearing every exception leaves nothing to look at here, so carry on to the posture. */}
+              {/* Clearing every exception leaves nothing to look at here, so carry on to the split. */}
               <button className="btn p lg"
                 onClick={() => { S.actions.resolveAllExceptions(); S.navigate("/onboarding/mandate"); }}>
                 Apply all {open.length} {open.length === 1 ? "suggestion" : "suggestions"} →
@@ -4290,9 +4516,17 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   /* ----------------------------------------------------------- 3. mandate */
   function Mandate() {
     const st = S.useStore();
-    const [sel, setSel] = useState(st.mandate);
+    /* DW [D]: the objective is one Engine / Conviction split, not a choice
+       between three published portfolios. The postures survive as named
+       points on the control — they are the family's own 95/5, 90/10, 80/20. */
+    const [sel, setSel] = useState(st.split);
     const answered = D.survey.filter((q) => st.survey[q.id] !== undefined).length;
-    const m = D.mandates.find((x) => x.key === sel);
+    const postureOf = (v) => {
+      const k = Object.keys(D.bucketPresets).find((k2) => D.bucketPresets[k2] === v);
+      return (k && D.mandates.find((x) => x.key === k)) || null;
+    };
+    const m = postureOf(sel);
+    const selLabel = m ? m.label : "Engine " + (100 - sel) + " / Conviction " + sel;
     const t = u.total(st.positions);
     const listed = st.positions.filter((x) => x.liq === "Daily").length;
 
@@ -4302,12 +4536,12 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
         {/* the authority note stays — it explains why the cards are locked for this account */}
         {st.account === "successor" && (
           <div className="sub mt8" style={{ maxWidth: "74ch" }}>
-            <b>The Principal settles this one</b> — you can look at the three postures, but choosing between them is theirs.
+            <b>The Principal settles this one</b> — you can move the split to see what it implies, but setting it is theirs.
           </div>
         )}
 
         {/* what the three files turned into, stated beside the choice it governs */}
-        <div className="grid mt16" style={{ gridTemplateColumns: "0.85fr repeat(" + D.mandates.length + ", 1fr)" }}>
+        <div className="grid mt16" style={{ gridTemplateColumns: "0.85fr 2fr" }}>
           <div className="panel" style={{ background: "var(--g4)", display: "flex", flexDirection: "column", justifyContent: "center", padding: "14px 16px" }}>
             <div className="lbl">Reconciled book</div>
             <div className="num" style={{ fontSize: 27, fontWeight: 600, letterSpacing: "-.025em", marginTop: 4, lineHeight: 1.1 }}>
@@ -4321,26 +4555,62 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
             </div>
             <hr className="hr" style={{ margin: "10px 0" }} />
             <div className="tri" style={{ fontSize: 11, lineHeight: 1.5 }}>
-              The posture applies to this, and the model is drawn for a book this size.
+              The split applies to this, and the model is drawn for a book this size.
             </div>
           </div>
-          {D.mandates.map((x) => (
-            <button key={x.key} className="panel" onClick={() => setSel(x.key)}
-              style={{ textAlign: "left", cursor: "pointer", padding: 14, borderColor: sel === x.key ? "var(--navy)" : "var(--g3)", background: sel === x.key ? "var(--navy-wash)" : "var(--paper)" }}>
-              <div className="between">
-                <h2>{x.label}</h2>
-                {sel === x.key && <span className="bdg hanwha"><i className="pt" />Selected</span>}
+
+          {/* DW [D]: one question, asked once. END-STATE. */}
+          <div className="panel">
+            <div className="panel-hd">
+              <div>
+                <h3>How much of this is conviction?</h3>
+                <div className="tri" style={{ fontSize: 11.5, marginTop: 2 }}>
+                  Engine compounds. Conviction is the part you choose yourself.
+                </div>
               </div>
-              <div className="num mt8" style={{ fontSize: 18, fontWeight: 600 }}>{x.core}/{x.alpha}</div>
-              <div className="tri" style={{ fontSize: 11 }}>Core / Alpha</div>
-              <div className="sub mt8" style={{ fontSize: 12, lineHeight: 1.5 }}>{x.line}</div>
-            </button>
-          ))}
+              <span className="tri" style={{ fontSize: 11 }}>{selLabel}</span>
+            </div>
+            <div className="splitlever" style={{ borderBottom: 0 }}>
+              <div className="sl-hd">
+                <div className="sl-read">
+                  <span className="sl-a num">{100 - sel}</span>
+                  <span className="sl-sep">/</span>
+                  <span className="sl-b num">{sel}</span>
+                </div>
+                <div className="sl-leg">
+                  <span><i style={{ background: "#1B2A4A" }} />Engine · {u.usdC(((100 - sel) / 100) * t)}</span>
+                  <span><i style={{ background: "#9A7B2E" }} />Conviction · {u.usdC((sel / 100) * t)}</span>
+                </div>
+              </div>
+              <div className="sl-track">
+                <div className="sl-chips">
+                  {[1, 5, 10, 20, 35].map((v) => {
+                    const pm = postureOf(v);
+                    return (
+                      <button key={v} onClick={() => setSel(v)} className={sel === v ? "on" : ""}
+                        title={pm ? pm.line : "Set the split to " + (100 - v) + " / " + v}
+                        style={{ left: "calc(" + ((v / 40) * 100) + "% + " + ((0.5 - v / 40) * 16).toFixed(1) + "px)" }}>
+                        {(100 - v) + " / " + v}
+                      </button>
+                    );
+                  })}
+                </div>
+                <input type="range" min="0" max="40" step="1" value={sel}
+                  onChange={(e) => setSel(+e.target.value)} />
+              </div>
+              <div className="lever-note">
+                <span style={{ flex: 1 }}>
+                  {m ? <><b>{m.label}</b> — {m.line}</>
+                     : <>A split of the family's own. Nothing on the platform requires it to match a published posture.</>}
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="grid mt16" style={{ gridTemplateColumns: "1fr 1fr" }}>
           <div className="panel">
-            <div className="panel-hd"><h3>Implied target allocation</h3><span className="tri" style={{ fontSize: 11 }}>{m.label}</span></div>
+            <div className="panel-hd"><h3>Implied target allocation</h3><span className="tri" style={{ fontSize: 11 }}>{selLabel}</span></div>
             <div className="panel-bd tight">
               <table className="t">
                 <thead><tr><th>Asset class</th><th className="n">Target</th><th className="n">Current</th><th className="n">vs target</th></tr></thead>
@@ -4373,7 +4643,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                   <span className="bdg plain">Optional</span>
                 </div>
                 <div className="tri" style={{ fontSize: 11.5, marginTop: 2 }}>
-                  The posture is enough to start.
+                  The split is enough to start.
                 </div>
               </div>
               <div className="right" style={{ whiteSpace: "nowrap" }}>
@@ -4424,16 +4694,16 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
           </div>
         </div>
 
-        {/* what the chosen posture would compound to, against the book as it stands */}
+        {/* what the chosen split would compound to, against the book as it stands */}
         <div className="panel mt16">
           <GrowthFan positions={st.positions} modelClasses={u.sixToFour(u.modelSix(t, sel).w)}
-            modelLabel={m.label} collapsible assumptions={false} />
+            modelLabel={selLabel} collapsible assumptions={false} />
         </div>
 
         <div className="btn-row mt16">
           <Lock>
-            <button className="btn p lg" onClick={() => { S.actions.setMandate(sel); S.navigate("/portfolio"); }}>
-              Confirm mandate and open the portfolio →
+            <button className="btn p lg" onClick={() => { S.actions.setSplit(sel); S.actions.commitSplit(); S.navigate("/portfolio"); }}>
+              Confirm the split and open the portfolio →
             </button>
           </Lock>
           <button className="btn lg" onClick={() => S.navigate("/onboarding/reconcile")}>Back</button>
@@ -4540,6 +4810,15 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     const t = u.total(positions);
 
     const ideas = [];
+    /* The two-bucket decision put the working balance inside Engine. Rather
+       than hide the drag in a third line, say what it costs. */
+    const drag = u.engineDrag(positions);
+    if (drag.share > 12) ideas.push({
+      t: u.usdC(drag.idleValue) + " of Engine earns " + u.pct(drag.yield),
+      d: "Engine carries a 7–20% target. " + u.pct(drag.share) + " of it sits in sovereigns, deposits and T-bills across " + drag.count + " lines — "
+        + u.pct(drag.ofBook) + " of the whole book. Some of that is spending and capital calls and has to stay. The rest is a decision nobody made.",
+      to: "/portfolio?tab=liq", cta: "See what is actually committed",
+    });
     if (aff.wt > 5) ideas.push({
       t: "One company carries " + u.pct(aff.wt) + " of the book",
       d: aff.items.map((i) => i.name).join(", ") + ". The family's wealth and its income move together. Nothing here is uncorrelated with it.",
@@ -4596,16 +4875,16 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
             classes survive one level down as disclosure — what is inside a
             bucket — rather than as the organising idea. END-STATE. */}
         <div className="buckets mt16">
-          {u.byBucket(positions, S.get().mandate).map((b) => {
+          {u.byBucket(positions, S.get().split).map((b) => {
             const sp = u.spread(positions, b.subs);
             const open = !!bOpen[b.key];
             return (
-              <div key={b.key} className={"bk" + (b.key === "reserve" ? " bk-reserve" : "")}>
+              <div key={b.key} className="bk">
                 <div className="bk-hd clickable" onClick={() => setBOpen({ ...bOpen, [b.key]: !open })}>
                   <div className="bk-id">
                     <i style={{ background: b.color }} />
                     <div>
-                      <div className="bk-name">{b.label}{b.proposal && <span className="bdg plain" style={{ marginLeft: 7 }}>proposal</span>}</div>
+                      <div className="bk-name">{b.label}</div>
                       <div className="bk-role">{b.role} · {b.band}</div>
                     </div>
                   </div>
@@ -4742,11 +5021,12 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     const st = S.useStore();
     const t = u.total(positions);
     const [aum, setAum] = useState(t);
-    const [goal, setGoal] = useState(st.mandate);
-    React.useEffect(() => { setGoal(st.mandate); }, [st.mandate]);
+    /* DW [D]: one Engine / Conviction split replaces the nine model portfolios. */
+    const [conv, setConv] = useState(st.split);
+    React.useEffect(() => { setConv(st.split); }, [st.split]);
     const [open, setOpen] = useState({});
     const [path, setPath] = useState(false);
-    const whatIf = goal !== st.mandate;
+    const whatIf = conv !== st.split;
 
     const MAXX = 100;                                   // $1M … $100M end to end
     const THUMB = 16;                                   // native range thumb, for chip alignment
@@ -4754,7 +5034,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     const fromPos = (v) => 1e6 * Math.pow(MAXX, v);
     const short = (a) => a % 1e6 === 0 ? "$" + (a / 1e6) + "M" : u.usdC(a);
 
-    const six = u.modelSix(aum, goal);
+    const six = u.modelSix(aum, conv);
     const heldSix = u.bySix(positions);
     const model = { classes: u.sixToFour(six.w), subs: u.sixToSubs(six.w) };
     const [hover, setHover] = useState(null);
@@ -4764,8 +5044,14 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     }));
     const inPlay = sixRows.filter((r) => !r.blocked);
     const ruledOut = sixRows.filter((r) => r.blocked);
-    const mandate = D.mandates.find((x) => x.key === st.mandate) || D.mandates[1];
-    const selected = D.mandates.find((x) => x.key === goal) || mandate;
+    /* A split that happens to sit on a preset keeps the family's own name for
+       it; anything else is simply the two numbers. */
+    const postureOf = (v) => {
+      const k = Object.keys(D.bucketPresets).find((k2) => D.bucketPresets[k2] === v);
+      return (k && D.mandates.find((x) => x.key === k)) || null;
+    };
+    const splitName = (v) => (100 - v) + " / " + v;
+    const selLabel = (postureOf(conv) || {}).label || "Engine " + splitName(conv);
     const confirmed = st.activity.find((a) => a.kind === "Mandate");
     const atToday = Math.abs(aum - t) < 1e5;
     const cls = u.byClass(positions);
@@ -4787,76 +5073,74 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
             <div>
               <h3>Model portfolio</h3>
               <div className="tri" style={{ fontSize: 11.5, marginTop: 2 }}>
-                Two settings decide the shape below: what the family is trying to do, and how much it has.
+                One setting decides the shape below.
               </div>
             </div>
             <button className="btn sm" onClick={() => setPath(true)}>Rebalancing path</button>
           </div>
 
-          {/* the two levers, side by side and labelled as such */}
-          <div className="levers">
-            <div className="lever">
-              <div className="lbl">1 · Objective</div>
-              <div className="mt8">
-                <Seg options={D.mandates.map((g) => ({ v: g.key, label: g.label }))} value={goal} onChange={setGoal} />
+          {/* DW [D]: one lever. The split is the model — everything below is
+              derived from it. The size row underneath is a what-if, not a
+              second axis: it only exists so the minimum-cheque arithmetic can
+              be seen at sizes the family has not reached. END-STATE. */}
+          <div className="splitlever">
+            <div className="sl-hd">
+              <div className="lbl">The split</div>
+              <div className="sl-read">
+                <span className="sl-a num">{100 - conv}</span>
+                <span className="sl-sep">/</span>
+                <span className="sl-b num">{conv}</span>
               </div>
-              {whatIf ? (
-                <div className="lever-note warn">
-                  <span style={{ flex: 1 }}>A what-if. The family's mandate is <b>{mandate.label}</b>.</span>
-                  <span className="btn-row">
-                    <button className="link g" onClick={() => setGoal(st.mandate)}>Discard</button>
-                    
-                      <button className="btn sm p" onClick={() => S.actions.setMandate(goal)}>Adopt as mandate</button>
-                    
-                  </span>
-                </div>
-              ) : (
-                <div className="lever-note">
-                  <span style={{ flex: 1 }}>
-                    The family's mandate · <b>{mandate.core} / {mandate.alpha}</b> Core / Alpha
-                    {confirmed ? " · confirmed " + u.fmtDate(confirmed.ts) : ""}
-                  </span>
-                  
-                    <button className="link g" onClick={() => S.navigate("/onboarding/mandate")}>Refine with 8 questions</button>
-                  
-                </div>
-              )}
-              <div className="tri" style={{ fontSize: 11.5, marginTop: 6 }}>{selected.line}</div>
+              <div className="sl-leg">
+                <span><i style={{ background: "#1B2A4A" }} />Engine</span>
+                <span><i style={{ background: "#9A7B2E" }} />Conviction</span>
+              </div>
             </div>
 
-            <div className="lever">
-              <div className="sizehd">
-                <div className="lbl">2 · Size</div>
-                <span className="aumval num">{short(aum)}</span>
+            <div className="sl-track">
+              <div className="sl-chips">
+                {[1, 5, 10, 20, 35].map((v) => (
+                  <button key={v} onClick={() => setConv(v)} className={conv === v ? "on" : ""}
+                    title={(postureOf(v) || {}).label || "Set the split to " + splitName(v)}
+                    style={{ left: "calc(" + ((v / 40) * 100) + "% + " + ((0.5 - v / 40) * 16).toFixed(1) + "px)" }}>
+                    {splitName(v)}
+                  </button>
+                ))}
               </div>
-              {/* The chips sit above the rail and on the thumb's own centres.
-                  A range thumb travels from T/2 to width − T/2, so each chip is
-                  offset by (0.5 − p)·T to follow it rather than the raw track. */}
-              <div className="track mt8">
-                <div className="ticks">
-                  {[1e6, 10e6, 100e6].map((a) => {
-                    const f = pos(a);
-                    return (
-                      <button key={a} onClick={() => setAum(a)}
-                        className={Math.abs(aum - a) < 1e5 ? "on" : ""}
-                        title={"Model the " + short(a) + " tier"}
-                        style={{ left: "calc(" + (f * 100) + "% + " + ((0.5 - f) * THUMB).toFixed(1) + "px)" }}>
-                        {short(a)}
-                      </button>
-                    );
-                  })}
-                </div>
-                <input type="range" min="0" max="1000" step="1" value={Math.round(pos(aum) * 1000)}
-                  onChange={(e) => setAum(Math.round(fromPos(+e.target.value / 1000) / 1e5) * 1e5)} />
+              <input type="range" min="0" max="40" step="1" value={conv}
+                onChange={(e) => setConv(+e.target.value)} />
+            </div>
+
+            {whatIf ? (
+              <div className="lever-note warn">
+                <span style={{ flex: 1 }}>A what-if. The family's split is <b>Engine {splitName(st.split)}</b>.</span>
+                <span className="btn-row">
+                  <button className="link g" onClick={() => setConv(st.split)}>Discard</button>
+                  <button className="btn sm p" onClick={() => { S.actions.setSplit(conv); S.actions.commitSplit(); }}>Adopt this split</button>
+                </span>
               </div>
+            ) : (
               <div className="lever-note">
                 <span style={{ flex: 1 }}>
-                  {atToday
-                    ? <>Today's assets. Click a tier below or drag the slider to any size between them.</>
-                    : <>A what-if — today's assets are {short(t)}.</>}
+                  The family's split · <b>{selLabel}</b>
+                  {confirmed ? " · confirmed " + u.fmtDate(confirmed.ts) : ""}
                 </span>
-                {!atToday && <button className="link g" onClick={() => setAum(t)}>Back to today</button>}
+                <button className="link g" onClick={() => S.navigate("/onboarding/mandate")}>Refine with 8 questions</button>
               </div>
+            )}
+
+            <div className="sl-size">
+              <span className="lbl">Model at</span>
+              {[1e6, 10e6, t, 100e6].map((a, i2) => (
+                <button key={i2} onClick={() => setAum(a)}
+                  className={"chip" + (Math.abs(aum - a) < 1e5 ? " on" : "")}>
+                  {i2 === 2 ? "Today · " + short(a) : short(a)}
+                </button>
+              ))}
+              <span className="spacer" />
+              <span className="tri" style={{ fontSize: 11 }}>
+                {atToday ? "Minimum cheque sizes are applied at today's assets." : "A what-if — today's assets are " + short(t) + "."}
+              </span>
             </div>
           </div>
 
@@ -4927,7 +5211,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
               {ruledOut.length > 0 && (
                 <div className="ruledout">
                   <div className="lbl" style={{ marginBottom: 8 }}>
-                    Not recommended at {short(aum)} · {selected.label}
+                    Not recommended at {short(aum)} · Engine {splitName(conv)}
                   </div>
                   {ruledOut.map((c) => (
                     <div key={c.key} className="ro-item">
@@ -4937,7 +5221,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                         <span className="tri num" style={{ fontSize: 11.5 }}>
                           {c.blocked.why === "size" && c.blocked.pct > 0
                             ? u.pct(c.blocked.pct) + " would be " + u.usdC(c.blocked.dollars) + " · minimum " + u.usdC(c.blocked.min)
-                            : "0% at this size and objective"}
+                            : "0% at this split"}
                         </span>
                         <span style={{ flex: 1 }} />
                         <span className="tri" style={{ fontSize: 11 }}>
@@ -4953,13 +5237,13 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
           </div>
 
           {/* what the two mixes would compound to, if the assumptions hold */}
-          <GrowthFan positions={positions} modelClasses={model.classes} modelLabel={selected.label}
+          <GrowthFan positions={positions} modelClasses={model.classes} modelLabel={"Engine " + splitName(conv)}
             collapsible defaultOpen={false} />
           <div style={{ padding: "8px 14px", borderTop: "1px solid var(--g3)", fontSize: 11, color: "var(--g2)" }}>
             Class and subcategory only — never individual securities.
           </div>
         </div>
-        {path && <PathModal rows={flat} t={t} model={{ label: selected.label + " · " + short(aum) }} onClose={() => setPath(false)} />}
+        {path && <PathModal rows={flat} t={t} model={{ label: "Engine " + splitName(conv) + " · " + short(aum) }} onClose={() => setPath(false)} />}
       </>
     );
   }
@@ -5610,7 +5894,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     const clsTotal = u.total(all);
     const subs = u.bySub(st.positions).filter((s) => s.cls === key && (!group || group.subs.indexOf(s.key) >= 0));
     const info = u.byClass(st.positions).find((c) => c.key === key);
-    const gRow = group ? u.holdingsSix(st.positions, st.mandate).find((r) => r.key === group.key) : null;
+    const gRow = group ? u.holdingsSix(st.positions, st.split).find((r) => r.key === group.key) : null;
 
     return (
       <div className="wrap page">
@@ -5709,7 +5993,14 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
           <div className="tname">{m.name}</div>
           <div className="tsub" style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
             <span>{m.ticker ? <span className="mono">{m.ticker}</span> : m.manager}</span>
-            {m.hanwha && <span className="bdg hanwha"><i className="pt" />Hanwha-sourced</span>}
+            {/* DW [P]: Hanwha's involvement is the trust signal, so say which
+                kind it is rather than flagging every row the same way. */}
+            {m.source
+              ? <span className="bdg src" style={{ borderColor: (D.sourceTypes.find((x) => x.key === m.source) || {}).color }}>
+                  <i className="pt" style={{ background: (D.sourceTypes.find((x) => x.key === m.source) || {}).color }} />
+                  {(D.sourceTypes.find((x) => x.key === m.source) || {}).label}
+                </span>
+              : m.hanwha && <span className="bdg hanwha"><i className="pt" />Hanwha-sourced</span>}
           </div>
         </td>
         <td>{u.subLabel(m.fills)}<div className="tsub">{u.modelClassLabel(m.fills)}</div></td>
@@ -5754,7 +6045,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
   function Marketplace({ route }) {
     const st = S.useStore();
-    const [f, setF] = useState({ cls: "", liq: "", sector: "", geo: "", ret: "" });
+    const [f, setF] = useState({ cls: "", src: "", liq: "", sector: "", geo: "", ret: "" });
     const [q, setQ] = useState("");
     const [act, setAct] = useState(null);
     const [ask, setAsk] = useState("");
@@ -5778,6 +6069,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
         const mc = D.modelClasses.find((c) => c.key === f.cls);
         if (!mc || mc.subs.indexOf(m.fills) < 0) return false;
       }
+      if (f.src && m.source !== f.src) return false;
       if (f.liq && m.liq !== f.liq) return false;
       if (f.sector && m.sector !== f.sector) return false;
       if (f.geo && u.geoBucket(m.geo) !== f.geo) return false;
@@ -5823,6 +6115,10 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                   <div className="f-item"><label className="f"><span>Asset class</span>
                     <select value={f.cls} onChange={(e) => setF({ ...f, cls: e.target.value })}>
                       <option value="">Any</option>{D.modelClasses.map((c) => <option key={c.key} value={c.key}>{c.label}</option>)}
+                    </select></label></div>
+                  <div className="f-item"><label className="f"><span>Source</span>
+                    <select value={f.src} onChange={(e) => setF({ ...f, src: e.target.value })}>
+                      <option value="">Any</option>{D.sourceTypes.map((c) => <option key={c.key} value={c.key}>{c.label}</option>)}
                     </select></label></div>
                   <div className="f-item"><label className="f"><span>Liquidity</span>
                     <select value={f.liq} onChange={(e) => setF({ ...f, liq: e.target.value })}>
@@ -5875,24 +6171,24 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
           {/* sidebar */}
           <div style={{ width: 280, flexShrink: 0 }}>
+            {/* DW [P]: the buying surface answers to the same two buckets as
+                the portfolio. The six classes stay one level down. END-STATE. */}
             <Panel title="Allocation context">
-              <table className="t dense">
-                <thead><tr><th>Class</th><th className="n">Now</th><th className="n">Model</th></tr></thead>
-                <tbody>
-                  {u.holdingsSix(st.positions, st.mandate).map((c) => (
-                    <tr key={c.key} style={c.blocked ? { opacity: .5 } : null}>
-                      <td>
-                        <span style={{ display: "inline-flex", gap: 7, alignItems: "center" }}>
-                          <i className="sw" style={{ width: 8, height: 8, display: "inline-block", background: c.color }} />
-                          <span className="tname" style={{ fontSize: 12 }}>{c.label}</span>
-                        </span>
-                      </td>
-                      <td className="n num">{u.pct(c.wt)}</td>
-                      <td className="n num tri">{c.blocked ? "—" : u.pct(c.model)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              {u.byBucket(st.positions, st.split).map((b) => (
+                <div key={b.key} className="mkb">
+                  <div className="mkb-hd">
+                    <i style={{ background: b.color }} />
+                    <span className="mkb-n">{b.label}</span>
+                    <span className="spacer" />
+                    <span className="num mkb-w">{u.pct(b.wt)}</span>
+                  </div>
+                  <div className="bk-bar"><i style={{ width: Math.min(100, b.wt) + "%", background: b.color }} />
+                    <b style={{ left: Math.min(100, b.target) + "%" }} /></div>
+                  <div className="mkb-ft tri">
+                    target {u.pct(b.target)} · {u.pp(b.drift)}
+                  </div>
+                </div>
+              ))}
               <button className="btn sm block mt8" onClick={() => S.navigate("/portfolio")}>Open the model</button>
             </Panel>
 
@@ -5990,13 +6286,13 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     const ctx = u.marketContext(st.positions, st.mandate, st.realizedClosed);
     const sc = u.scoreFor(m, ctx);
     /* stated in the six model classes, not the subcategory beneath them */
-    const mc = u.impactSix(st.positions, m.fills, 0, st.mandate);
+    const mc = u.impactSix(st.positions, m.fills, 0, st.split);
     const mcDrift = mc && mc.target !== null ? mc.target - mc.before : 0;
     const gapWord = (x) => u.num(Math.abs(x), 1) + "pp " + (x > 0 ? "below" : "above") + " the model";
     const needsProposal = st.account === "successor" && !isListed;
 
     const tabs = [{ k: "thesis", label: isListed ? "Overview" : "Thesis" }, { k: "terms", label: "Terms" }, { k: "docs", label: "Documents", n: m.docs.length }]
-      .concat(m.hanwha ? [{ k: "hanwha", label: "Hanwha's position" }] : [])
+
 ;
 
     return (
@@ -6007,7 +6303,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
             <div className="row tight" style={{ alignItems: "center" }}>
               <span className="bdg plain">{u.subLabel(m.fills)}</span>
               <span className="bdg plain">{m.liq}{m.term && m.term !== "—" ? " · " + m.term : ""}</span>
-              {m.hanwha && <span className="bdg hanwha"><i className="pt" />Hanwha-originated</span>}
+              {m.hanwha && <span className="bdg hanwha"><i className="pt" />{(D.sourceTypes.find((x) => x.key === m.source) || {}).label || "Hanwha-originated"}</span>}
             </div>
             <h1 className="mt8">{m.name}</h1>
             <div className="sub mt8">{m.ticker ? <span className="mono">{m.ticker}</span> : m.manager} · {m.sector} · {m.geo}</div>
@@ -6057,6 +6353,38 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
           </Agent>
         </div>
 
+        {/* DW [P]: Hanwha's role and its diligence are the trust argument, so
+            they sit on the page rather than behind the last tab. The source
+            type says what kind of involvement this is. END-STATE. */}
+        {m.hanwha && (() => {
+          const stp = D.sourceTypes.find((x) => x.key === m.source);
+          const dd = m.dd || (m.source ? D.dueDiligence[m.source] : null);
+          return (
+            <div className="hwrole mt16" style={{ borderLeftColor: stp ? stp.color : "var(--navy)" }}>
+              <div className="hw-hd">
+                <span className="hw-k">{stp ? stp.label : "Hanwha-sourced"}</span>
+                <span className="spacer" />
+                <span className="tri" style={{ fontSize: 11 }}>Member allocation · {m.avail}</span>
+              </div>
+              <div className="hw-role">{m.role || m.anchor}</div>
+              <div className="hw-grid">
+                <div className="hw-col">
+                  <div className="lbl">Hanwha's own position</div>
+                  <div className="hw-t">{m.anchor}</div>
+                  <div className="tri mt8" style={{ fontSize: 11 }}>Identical terms — no preferential economics.</div>
+                </div>
+                <div className="hw-col">
+                  <div className="lbl">What was checked</div>
+                  {dd
+                    ? <ul className="hw-dd">{dd.map((x, i2) => <li key={i2}>{x}</li>)}</ul>
+                    : <div className="tri mt8" style={{ fontSize: 11.5 }}>Reviewed by the originating desk.</div>}
+                </div>
+              </div>
+              {stp && <div className="hw-ft tri">{stp.note}</div>}
+            </div>
+          );
+        })()}
+
         <div className="grid mt16" style={{ gridTemplateColumns: "1.6fr 1fr", alignItems: "start" }}>
           <div className="panel">
             <Tabs tabs={tabs} active={tab} onChange={setTab} />
@@ -6084,27 +6412,11 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                   </table>
                 )
               )}
-              {tab === "hanwha" && (
-                <div>
-                  <div className="note ok" style={{ fontSize: 12.5 }}>
-                    <b>Hanwha Life holds an anchor position in this instrument, on the same terms.</b>
-                  </div>
-                  <div className="prose mt12">{m.anchor}</div>
-                  <table className="t dense mt16">
-                    <tbody>
-                      <tr><td className="tri" style={{ width: 200 }}>Anchor investor</td><td className="tname">Hanwha Life Insurance</td></tr>
-                      <tr><td className="tri">Terms</td><td className="tname">Identical — no preferential economics</td></tr>
-                      <tr><td className="tri">Originated by</td><td className="tname">{m.manager || "Hanwha"}</td></tr>
-                      <tr><td className="tri">Member allocation</td><td className="tname">{m.avail}</td></tr>
-                    </tbody>
-                  </table>
-                </div>
-              )}
             </div>
           </div>
 
           <div>
-            <Panel title="Transaction" sub={isListed ? "Order ticket · same-day settlement" : "Subscription · closes " + (m.closing === "Quarterly close" ? "at the next quarterly close" : u.fmtDate(m.closing))}>
+            <Panel title="Transaction" sub={isListed ? "Order ticket · same-day settlement" : "Subscription · " + (m.closing === "Quarterly close" ? "closes at the next quarterly close" : m.closing === "Continuous" ? "open continuously" : m.closing === "Monthly close" ? "closes at the next monthly close" : "closes " + u.fmtDate(m.closing))}>
               <div className="kv">
                 {/* DW [D]: tokenised from day one — which is what removes the
                     minimum and makes fractional diversification possible. */}
@@ -6409,7 +6721,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     const sc = u.listingView(l, ctx).sc;
     const hist = u.tradeHistory(l.id, st.trades, l.askPct);
     const gap = u.bySub(st.positions).find((x) => x.key === l.sub);
-    const mc = u.impactSix(st.positions, l.sub, 0, st.mandate);
+    const mc = u.impactSix(st.positions, l.sub, 0, st.split);
     const mcDrift = mc && mc.target !== null ? mc.target - mc.before : 0;
     const gapWord = (x) => u.num(Math.abs(x || 0), 1) + "pp " + ((x || 0) > 0 ? "below" : "above") + " the model";
     const why = u.listingView(l, ctx).why;
@@ -6713,13 +7025,13 @@ Two ways in: take the ask and it settles immediately, or bid below it and wait f
         return [
           "Concentration is the position, and " + (sp.topGeo ? sp.topGeo.v + " at " + u.pct(sp.topGeo.wt) : "the largest geography") + " is the position this book has taken, whether or not it was chosen.",
           "A regime change is survivable only if it can be acted on. " + u.usdC(liq.within90) + " is reachable inside 90 days against " + u.usdC(u.total(ps)) + " of assets.",
-          "Nothing here expresses a view on rates. Duration sits in the reserve by default rather than by decision.",
+          "Nothing here expresses a view on rates. Duration sits inside Engine by default rather than by decision.",
         ];
       } },
     { key: "parity", who: "Risk-balanced", after: "after Dalio",
       q: "Is risk spread, or just capital?",
       read: (ps) => {
-        const b = u.byBucket(ps, S.get().mandate);
+        const b = u.byBucket(ps, S.get().split);
         const eng = b.find((x) => x.key === "engine"), con = b.find((x) => x.key === "conviction");
         const sp = u.spread(ps);
         return [

@@ -147,7 +147,7 @@
         <div className="btn-row mt16">
           {open.length > 0 && (
             <Lock>
-              {/* Clearing every exception leaves nothing to look at here, so carry on to the posture. */}
+              {/* Clearing every exception leaves nothing to look at here, so carry on to the split. */}
               <button className="btn p lg"
                 onClick={() => { S.actions.resolveAllExceptions(); S.navigate("/onboarding/mandate"); }}>
                 Apply all {open.length} {open.length === 1 ? "suggestion" : "suggestions"} →
@@ -172,9 +172,17 @@
   /* ----------------------------------------------------------- 3. mandate */
   function Mandate() {
     const st = S.useStore();
-    const [sel, setSel] = useState(st.mandate);
+    /* DW [D]: the objective is one Engine / Conviction split, not a choice
+       between three published portfolios. The postures survive as named
+       points on the control — they are the family's own 95/5, 90/10, 80/20. */
+    const [sel, setSel] = useState(st.split);
     const answered = D.survey.filter((q) => st.survey[q.id] !== undefined).length;
-    const m = D.mandates.find((x) => x.key === sel);
+    const postureOf = (v) => {
+      const k = Object.keys(D.bucketPresets).find((k2) => D.bucketPresets[k2] === v);
+      return (k && D.mandates.find((x) => x.key === k)) || null;
+    };
+    const m = postureOf(sel);
+    const selLabel = m ? m.label : "Engine " + (100 - sel) + " / Conviction " + sel;
     const t = u.total(st.positions);
     const listed = st.positions.filter((x) => x.liq === "Daily").length;
 
@@ -184,12 +192,12 @@
         {/* the authority note stays — it explains why the cards are locked for this account */}
         {st.account === "successor" && (
           <div className="sub mt8" style={{ maxWidth: "74ch" }}>
-            <b>The Principal settles this one</b> — you can look at the three postures, but choosing between them is theirs.
+            <b>The Principal settles this one</b> — you can move the split to see what it implies, but setting it is theirs.
           </div>
         )}
 
         {/* what the three files turned into, stated beside the choice it governs */}
-        <div className="grid mt16" style={{ gridTemplateColumns: "0.85fr repeat(" + D.mandates.length + ", 1fr)" }}>
+        <div className="grid mt16" style={{ gridTemplateColumns: "0.85fr 2fr" }}>
           <div className="panel" style={{ background: "var(--g4)", display: "flex", flexDirection: "column", justifyContent: "center", padding: "14px 16px" }}>
             <div className="lbl">Reconciled book</div>
             <div className="num" style={{ fontSize: 27, fontWeight: 600, letterSpacing: "-.025em", marginTop: 4, lineHeight: 1.1 }}>
@@ -203,26 +211,62 @@
             </div>
             <hr className="hr" style={{ margin: "10px 0" }} />
             <div className="tri" style={{ fontSize: 11, lineHeight: 1.5 }}>
-              The posture applies to this, and the model is drawn for a book this size.
+              The split applies to this, and the model is drawn for a book this size.
             </div>
           </div>
-          {D.mandates.map((x) => (
-            <button key={x.key} className="panel" onClick={() => setSel(x.key)}
-              style={{ textAlign: "left", cursor: "pointer", padding: 14, borderColor: sel === x.key ? "var(--navy)" : "var(--g3)", background: sel === x.key ? "var(--navy-wash)" : "var(--paper)" }}>
-              <div className="between">
-                <h2>{x.label}</h2>
-                {sel === x.key && <span className="bdg hanwha"><i className="pt" />Selected</span>}
+
+          {/* DW [D]: one question, asked once. END-STATE. */}
+          <div className="panel">
+            <div className="panel-hd">
+              <div>
+                <h3>How much of this is conviction?</h3>
+                <div className="tri" style={{ fontSize: 11.5, marginTop: 2 }}>
+                  Engine compounds. Conviction is the part you choose yourself.
+                </div>
               </div>
-              <div className="num mt8" style={{ fontSize: 18, fontWeight: 600 }}>{x.core}/{x.alpha}</div>
-              <div className="tri" style={{ fontSize: 11 }}>Core / Alpha</div>
-              <div className="sub mt8" style={{ fontSize: 12, lineHeight: 1.5 }}>{x.line}</div>
-            </button>
-          ))}
+              <span className="tri" style={{ fontSize: 11 }}>{selLabel}</span>
+            </div>
+            <div className="splitlever" style={{ borderBottom: 0 }}>
+              <div className="sl-hd">
+                <div className="sl-read">
+                  <span className="sl-a num">{100 - sel}</span>
+                  <span className="sl-sep">/</span>
+                  <span className="sl-b num">{sel}</span>
+                </div>
+                <div className="sl-leg">
+                  <span><i style={{ background: "#1B2A4A" }} />Engine · {u.usdC(((100 - sel) / 100) * t)}</span>
+                  <span><i style={{ background: "#9A7B2E" }} />Conviction · {u.usdC((sel / 100) * t)}</span>
+                </div>
+              </div>
+              <div className="sl-track">
+                <div className="sl-chips">
+                  {[1, 5, 10, 20, 35].map((v) => {
+                    const pm = postureOf(v);
+                    return (
+                      <button key={v} onClick={() => setSel(v)} className={sel === v ? "on" : ""}
+                        title={pm ? pm.line : "Set the split to " + (100 - v) + " / " + v}
+                        style={{ left: "calc(" + ((v / 40) * 100) + "% + " + ((0.5 - v / 40) * 16).toFixed(1) + "px)" }}>
+                        {(100 - v) + " / " + v}
+                      </button>
+                    );
+                  })}
+                </div>
+                <input type="range" min="0" max="40" step="1" value={sel}
+                  onChange={(e) => setSel(+e.target.value)} />
+              </div>
+              <div className="lever-note">
+                <span style={{ flex: 1 }}>
+                  {m ? <><b>{m.label}</b> — {m.line}</>
+                     : <>A split of the family's own. Nothing on the platform requires it to match a published posture.</>}
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="grid mt16" style={{ gridTemplateColumns: "1fr 1fr" }}>
           <div className="panel">
-            <div className="panel-hd"><h3>Implied target allocation</h3><span className="tri" style={{ fontSize: 11 }}>{m.label}</span></div>
+            <div className="panel-hd"><h3>Implied target allocation</h3><span className="tri" style={{ fontSize: 11 }}>{selLabel}</span></div>
             <div className="panel-bd tight">
               <table className="t">
                 <thead><tr><th>Asset class</th><th className="n">Target</th><th className="n">Current</th><th className="n">vs target</th></tr></thead>
@@ -255,7 +299,7 @@
                   <span className="bdg plain">Optional</span>
                 </div>
                 <div className="tri" style={{ fontSize: 11.5, marginTop: 2 }}>
-                  The posture is enough to start.
+                  The split is enough to start.
                 </div>
               </div>
               <div className="right" style={{ whiteSpace: "nowrap" }}>
@@ -306,16 +350,16 @@
           </div>
         </div>
 
-        {/* what the chosen posture would compound to, against the book as it stands */}
+        {/* what the chosen split would compound to, against the book as it stands */}
         <div className="panel mt16">
           <GrowthFan positions={st.positions} modelClasses={u.sixToFour(u.modelSix(t, sel).w)}
-            modelLabel={m.label} collapsible assumptions={false} />
+            modelLabel={selLabel} collapsible assumptions={false} />
         </div>
 
         <div className="btn-row mt16">
           <Lock>
-            <button className="btn p lg" onClick={() => { S.actions.setMandate(sel); S.navigate("/portfolio"); }}>
-              Confirm mandate and open the portfolio →
+            <button className="btn p lg" onClick={() => { S.actions.setSplit(sel); S.actions.commitSplit(); S.navigate("/portfolio"); }}>
+              Confirm the split and open the portfolio →
             </button>
           </Lock>
           <button className="btn lg" onClick={() => S.navigate("/onboarding/reconcile")}>Back</button>

@@ -227,19 +227,32 @@
 
 
   /* ------------------------------------------------ six-class model portfolio */
-  /* Interpolates the published tiers on log AUM, then applies the rule that
-     decides what a family this size can actually own: a private sleeve whose
-     dollar allocation cannot clear its minimum cheque is not a recommendation,
-     it is a rounding error. Those are zeroed and their weight returned to the
-     public sibling, with the arithmetic kept so the screen can show its work. */
-  function modelSix(aum, goalKey) {
-    const g = D.modelMatrix[goalKey] ? goalKey : "balanced";
-    const x = Math.max(0, Math.min(2, Math.log10(Math.max(aum, 1e6) / 1e6)));
-    const lo = x < 1 ? 1 : 10, hi = x < 1 ? 10 : 100, f = x < 1 ? x : x - 1;
-    const A = D.modelMatrix[g][lo], B = D.modelMatrix[g][hi];
+  /* One lever. DW [D]: the nine published portfolios are replaced by a single
+     Engine / Conviction split, which the family sets and can set to 99/1.
 
+     The split is read as a number. Callers that still hold a posture key get
+     the preset behind it, so "balanced" and 10 mean the same thing — the keys
+     survive as shortcuts, not as portfolios.
+
+     Blending the two bucket compositions gives the six-class model. Then the
+     rule that decides what a family this size can actually own: a private
+     class whose dollar allocation cannot clear its minimum cheque is not a
+     recommendation, it is a rounding error. Those are zeroed and their weight
+     returned to the public sibling, with the arithmetic kept so the screen can
+     show its work. */
+  function convPct(split) {
+    if (typeof split === "number" && isFinite(split)) return Math.max(0, Math.min(100, split));
+    const v = D.bucketPresets[split];
+    return v === undefined ? D.bucketPresets.balanced : v;
+  }
+
+  function modelSix(aum, split) {
+    const conv = convPct(split);
+    const eng = 100 - conv;
     const w = {};
-    D.modelClasses.forEach((c) => { w[c.key] = A[c.key] * (1 - f) + B[c.key] * f; });
+    D.modelClasses.forEach((c) => {
+      w[c.key] = (eng * (D.bucketMix.engine[c.key] || 0) + conv * (D.bucketMix.conviction[c.key] || 0)) / 100;
+    });
 
     /* Where a class's weight goes when it cannot be owned. Real assets and
        equity share one risk budget, so real falls back to public equity. */
@@ -247,20 +260,18 @@
     const blocked = {};
     Object.keys(sibling).forEach((k) => {
       const c = D.modelClasses.find((x2) => x2.key === k);
-      const min = c.minBy && c.minBy[g] !== undefined ? c.minBy[g] : c.min;
+      const min = c.min;
       const dollars = (w[k] / 100) * aum;
-      /* the objective can rule it out outright; otherwise the cheque decides */
-      const byGoal = A[k] === 0 && B[k] === 0;
-      if (w[k] <= 0 || byGoal || dollars < min) {
+      if (w[k] <= 0 || dollars < min) {
         blocked[k] = {
-          why: byGoal || w[k] <= 0 ? (g === "preservation" ? "goal" : "size") : "size",
+          why: w[k] <= 0 ? "split" : "size",
           pct: w[k], dollars, min, to: sibling[k],
         };
         w[sibling[k]] += w[k];
         w[k] = 0;
       }
     });
-    return { w, blocked, goal: g, tier: { lo, hi, f } };
+    return { w, blocked, conv, eng, split: conv };
   }
 
   /* The same six buckets, measured on what the family actually holds. */
@@ -440,14 +451,14 @@
 
   /* The book split by what capital is for, with the six classes kept one level
      down as disclosure rather than as the organising idea. */
-  function byBucket(ps, goalKey) {
+  function byBucket(ps, split) {
     const t = total(ps);
-    const preset = D.bucketPresets[goalKey] || D.bucketPresets.balanced;
+    const conv = convPct(split);
     return D.buckets.map((b) => {
       const items = ps.filter((p) => b.subs.indexOf(p.sub) >= 0);
       const v = total(items);
       const wt = t ? (v / t) * 100 : 0;
-      const target = preset[b.key] || 0;
+      const target = b.key === "conviction" ? conv : 100 - conv;
       return {
         ...b, items, value: v, wt, target, drift: wt - target, count: items.length,
         unrealized: unrealized(items),
@@ -481,6 +492,26 @@
       effective: hhi ? 1 / hhi : 0,
       topGeo: geos[0] || null, topSector: sectors[0] || null,
       largest: items.slice().sort((a, b) => b.value - a.value)[0] || null,
+    };
+  }
+
+  /* What folding the working balance into Engine costs. Engine carries a
+     7–20% target; the sovereigns, deposits and T-bills now inside it do not
+     earn anything like that. DW confirmed two buckets, so rather than hide
+     this in a third line the product reads it off the book and says it. */
+  const IDLE_SUBS = ["mmf", "tbill", "dep", "fx", "sov"];
+  function engineDrag(ps) {
+    const eng = D.buckets.find((b) => b.key === "engine");
+    const items = ps.filter((p) => eng.subs.indexOf(p.sub) >= 0);
+    const ev = total(items);
+    const idle = items.filter((p) => IDLE_SUBS.indexOf(p.sub) >= 0);
+    const iv = total(idle);
+    const yld = iv ? idle.reduce((a, p) => a + (p.ytm || p.yieldPct || 0) * p.value, 0) / iv : 0;
+    return {
+      engineValue: ev, idleValue: iv, count: idle.length,
+      share: ev ? (iv / ev) * 100 : 0,
+      ofBook: total(ps) ? (iv / total(ps)) * 100 : 0,
+      yield: yld,
     };
   }
 
@@ -632,6 +663,21 @@
     return { c, before, after, target, driftAfter: target === null ? null : after - target };
   }
 
+  /* The same question asked of the bucket the commitment lands in. DW [P]:
+     the buying surface answers to the two buckets, so a ticket says which one
+     it moves before it says which asset class. */
+  function impactBucket(ps, subKey, amount, split) {
+    const b = bucketOf(subKey);
+    if (!b) return null;
+    const t = total(ps) || 1;
+    const held = total(ps.filter((p) => b.subs.indexOf(p.sub) >= 0));
+    const conv = convPct(split);
+    const target = b.key === "conviction" ? conv : 100 - conv;
+    const before = (held / t) * 100;
+    const after = ((held + amount) / t) * 100;
+    return { b, before, after, target, driftAfter: after - target };
+  }
+
   function impact(ps, subKey, amount) {
     const before = bySub(ps).find((s) => s.key === subKey);
     const t = total(ps);
@@ -649,7 +695,7 @@
     usd, usdC, krwC, krwFull, pct, pp, sgn, sgnUsd, num, localPx, days, fmtDate, fmtTs, monthKey, monthLabel,
     staleness, provLabel, sum, total, byClass, bySub, gaps, unrealized, realizedYTD,
     liquidity90, liquidityProjection, shortfall, coverage, projectMix,
-    modelSix, bySix, sixToFour, sixToSubs, pickForClass, holdingsSix, geoBucket, GEO_BUCKETS, listingDocs, listingView, currentIRR, tradeHistory, impactSix, modelClassOf, modelClassLabel, bucketOf, bucketLabel, byBucket, spread, topHoldings, affiliateExposure, taxLots, eligibility,
+    modelSix, convPct, bySix, sixToFour, sixToSubs, pickForClass, holdingsSix, geoBucket, GEO_BUCKETS, listingDocs, listingView, currentIRR, tradeHistory, impactSix, impactBucket, modelClassOf, modelClassLabel, bucketOf, bucketLabel, byBucket, spread, engineDrag, topHoldings, affiliateExposure, taxLots, eligibility,
     fitFor, subLabel, clsLabel, clsOf, impact, modelWeights, marketContext, scoreFor, suggestAmount,
   };
 })();

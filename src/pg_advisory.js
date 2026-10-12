@@ -25,13 +25,13 @@
         return [
           "Concentration is the position, and " + (sp.topGeo ? sp.topGeo.v + " at " + u.pct(sp.topGeo.wt) : "the largest geography") + " is the position this book has taken, whether or not it was chosen.",
           "A regime change is survivable only if it can be acted on. " + u.usdC(liq.within90) + " is reachable inside 90 days against " + u.usdC(u.total(ps)) + " of assets.",
-          "Nothing here expresses a view on rates. Duration sits in the reserve by default rather than by decision.",
+          "Nothing here expresses a view on rates. Duration sits inside Engine by default rather than by decision.",
         ];
       } },
     { key: "parity", who: "Risk-balanced", after: "after Dalio",
       q: "Is risk spread, or just capital?",
       read: (ps) => {
-        const b = u.byBucket(ps, S.get().mandate);
+        const b = u.byBucket(ps, S.get().split);
         const eng = b.find((x) => x.key === "engine"), con = b.find((x) => x.key === "conviction");
         const sp = u.spread(ps);
         return [

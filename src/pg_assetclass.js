@@ -112,7 +112,7 @@
     const clsTotal = u.total(all);
     const subs = u.bySub(st.positions).filter((s) => s.cls === key && (!group || group.subs.indexOf(s.key) >= 0));
     const info = u.byClass(st.positions).find((c) => c.key === key);
-    const gRow = group ? u.holdingsSix(st.positions, st.mandate).find((r) => r.key === group.key) : null;
+    const gRow = group ? u.holdingsSix(st.positions, st.split).find((r) => r.key === group.key) : null;
 
     return (
       <div className="wrap page">

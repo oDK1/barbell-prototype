@@ -577,7 +577,6 @@ table.t td.val .krw{font-weight:400}
 .bk{border:1px solid var(--g3);background:var(--paper);border-left:3px solid var(--g3)}
 .bk:nth-child(1){border-left-color:#1B2A4A}
 .bk:nth-child(2){border-left-color:#9A7B2E}
-.bk.bk-reserve{border-left-color:var(--g2);background:#FCFBF8}
 .bk-hd{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:13px 15px 9px;cursor:pointer}
 .bk-id{display:flex;gap:11px;align-items:flex-start}
 .bk-id>i{width:10px;height:10px;margin-top:5px;flex-shrink:0;display:block}
@@ -602,3 +601,83 @@ table.t td.val .krw{font-weight:400}
 .lens-l:first-of-type{border-top:0}
 .lens-n{flex-shrink:0;width:18px;height:18px;border-radius:50%;background:var(--navy-wash);color:var(--navy);
   font-size:10.5px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;margin-top:2px}
+
+/* ---------- the split lever (DW [D]: one control replaces nine portfolios) ---
+   The readout is the point of the screen, so it is set larger than anything
+   else in the panel and the two numbers are coloured as their buckets. The
+   rail beneath runs 0–40, which covers 99/1 at one end and a book that is a
+   third conviction at the other. */
+.splitlever{padding:14px;border-bottom:1px solid var(--g3)}
+.sl-hd{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.sl-read{display:flex;align-items:baseline;gap:6px;line-height:1}
+.sl-read .sl-a{font-size:34px;font-weight:600;letter-spacing:-.03em;color:#1B2A4A}
+.sl-read .sl-sep{font-size:22px;color:var(--g2)}
+.sl-read .sl-b{font-size:34px;font-weight:600;letter-spacing:-.03em;color:#9A7B2E}
+.sl-leg{display:flex;gap:14px;font-size:11px;color:var(--g1)}
+.sl-leg span{display:inline-flex;align-items:center;gap:6px}
+.sl-leg i{width:9px;height:9px;display:inline-block}
+.sl-track{padding:0 8px;margin-top:12px}
+.sl-track input[type=range]{display:block;width:100%;margin:0;padding:0;accent-color:#9A7B2E}
+.sl-chips{position:relative;height:24px;margin-bottom:2px}
+.sl-chips button{position:absolute;top:0;transform:translateX(-50%);border:1px solid var(--g3);background:var(--paper);
+  padding:2px 8px;font:inherit;font-size:10.5px;font-weight:500;color:var(--g1);
+  cursor:pointer;line-height:1.5;border-radius:var(--r);white-space:nowrap}
+.sl-chips button:hover{border-color:var(--ink);color:var(--ink)}
+.sl-chips button.on{background:var(--ink);border-color:var(--ink);color:#fff;font-weight:600}
+/* Size is demoted to a row of chips: a what-if on the minimum-cheque rule,
+   not a second axis of the model. */
+.sl-size{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;
+  padding-top:10px;border-top:1px solid var(--g3)}
+.sl-size .chip{border:1px solid var(--g3);background:var(--paper);padding:2px 9px;font:inherit;
+  font-size:10.5px;font-weight:500;color:var(--g1);cursor:pointer;border-radius:var(--r);white-space:nowrap}
+.sl-size .chip:hover{border-color:var(--ink);color:var(--ink)}
+.sl-size .chip.on{background:var(--ink);border-color:var(--ink);color:#fff;font-weight:600}
+.sl-size .spacer{flex:1}
+@media (max-width:560px){ .sl-read .sl-a,.sl-read .sl-b{font-size:27px} }
+
+/* Allocation context in the marketplace sidebar: the same two buckets the
+   portfolio is organised by, at sidebar width. */
+.mkb{padding:9px 0;border-bottom:1px solid var(--g3)}
+.mkb:last-of-type{border-bottom:0}
+.mkb-hd{display:flex;align-items:center;gap:7px;font-size:12px}
+.mkb-hd i{width:9px;height:9px;display:inline-block;flex-shrink:0}
+.mkb-hd .spacer{flex:1}
+.mkb-n{font-weight:600}
+.mkb-w{font-weight:600}
+.mkb-ft{font-size:11px;margin-top:5px}
+.mkb .bk-bar{margin-top:6px}
+
+/* Source badge. One outline per source type, coloured by it, so the board
+   reads as four kinds of listing rather than one flag repeated. */
+.bdg.src{border:1px solid var(--g3);background:var(--paper);color:var(--g1);font-weight:600}
+
+/* ---- Hanwha's role, promoted out of the last tab (DW [P]) ----------------
+   Ruled off with the source type's own colour so the four kinds of listing
+   are distinguishable at a glance on the deal page as well as the board. */
+.hwrole{border:1px solid var(--g3);border-left:3px solid var(--navy);background:var(--paper)}
+.hw-hd{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--g3);background:#FCFBF8}
+.hw-hd .spacer{flex:1}
+.hw-k{font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;font-weight:600;color:var(--navy)}
+.hw-role{padding:12px 14px;font-size:13.5px;line-height:1.6;color:var(--ink);font-weight:500}
+.hw-grid{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--g3)}
+.hw-col{padding:12px 14px}
+.hw-col:first-child{border-right:1px solid var(--g3)}
+.hw-t{font-size:12.5px;line-height:1.55;color:var(--ink-2);margin-top:6px}
+.hw-dd{margin:6px 0 0;padding-left:16px;font-size:12px;line-height:1.7;color:var(--ink-2)}
+.hw-ft{padding:9px 14px;border-top:1px solid var(--g3);background:var(--g4);font-size:11px;line-height:1.55}
+@media (max-width:900px){ .hw-grid{grid-template-columns:1fr} .hw-col:first-child{border-right:0;border-bottom:1px solid var(--g3)} }
+
+/* On a phone the preset chips cannot sit on the rail without the end ones
+   hanging off it, so they become an ordinary wrapping row instead. */
+@media (max-width:560px){
+  .sl-chips{display:flex;flex-wrap:wrap;gap:6px;height:auto;margin-bottom:8px}
+  .sl-chips button{position:static;transform:none;left:auto !important}
+}
+
+/* Three equal step columns do not fit a phone: the sub-labels push the last
+   one past the edge. Narrow the padding and let the labels wrap. */
+@media (max-width:560px){
+  .steps .step{padding-left:9px;padding-right:9px;column-gap:7px;min-width:0}
+  .steps .step .l,.steps .step .s{min-width:0;overflow-wrap:break-word}
+  .steps .step .s{font-size:10px;line-height:1.35}
+}

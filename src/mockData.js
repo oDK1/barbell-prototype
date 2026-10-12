@@ -294,43 +294,45 @@
 
   /* ===================================================== risk / return buckets
      DW [P]: organise the product by risk and return, not by asset class.
+     Confirmed two buckets — an earlier third "Reserve" line was dropped.
 
-     Bucket 1 and Bucket 2 are his. `reserve` is a PROPOSAL: his two buckets
-     describe capital that is invested, and a 42-position book still holds
-     sovereigns, IG and cash that are neither compounding at 7–20% nor
-     conviction. Treating them as a working balance rather than forcing them
-     into a bucket keeps both buckets honest. Open question for DW.
+     Consequence, stated rather than hidden: the working balance a family must
+     hold — sovereigns, deposits, T-bills — now sits inside Engine, whose
+     target is 7–20%. It drags. That is not a flaw in the model; it is the
+     most useful thing the two-bucket view surfaces, and the improvement
+     panel reads it off the book directly.
 
-     The mapping from subcategory to bucket is also a proposal: DW gave
+     The mapping from subcategory to bucket is a proposal: DW gave
      illustrative examples, not a taxonomy. Role, not instrument type, decides
      — diversified compounding vs concentrated upside. */
   const buckets = [
     { key: "engine", label: "Engine", color: "#1B2A4A",
       role: "Compounding capital",
       band: "7–20% target",
-      note: "Diversified, repeatable return. Absolute-return and yield strategies that do not depend on being right about one thing.",
-      subs: ["pubeq", "pcred", "struct", "re", "infra"] },
+      note: "Diversified, repeatable return, plus the working balance beneath it. Nothing here depends on being right about one thing.",
+      subs: ["pubeq", "pcred", "struct", "re", "infra", "sov", "ig", "mmf", "tbill", "dep", "fx"] },
     { key: "conviction", label: "Conviction", color: "#9A7B2E",
       role: "Upside you choose",
       band: "High return, mid risk",
-      note: "Concentrated positions taken on the family's own view. Judged on the thesis, not on a benchmark.",
+      note: "Concentrated positions taken on the family's own view. Judged on the thesis, not against a benchmark.",
       subs: ["pe", "vc", "preipo", "comm"] },
-    { key: "reserve", label: "Reserve", color: "#A9A396",
-      role: "Spendable, committed",
-      band: "Liquidity, not return",
-      note: "Capital calls, spending and the floor beneath them. Sized by obligations, not by a target return.",
-      subs: ["sov", "ig", "mmf", "tbill", "dep", "fx"], proposal: true },
   ];
 
-  /* Illustrative bucket splits behind each posture. DW [P]: the split is
-     personal — 99/1 is his example — so these are starting points a client
-     moves, not fixed models. */
-  const bucketPresets = {
-    preservation: { engine: 70, conviction: 5,  reserve: 25 },
-    balanced:     { engine: 78, conviction: 12, reserve: 10 },
-    growth:       { engine: 68, conviction: 25, reserve: 7 },
-  };
+  /* The split is the only model lever. DW [P]: it is personal — 99/1 is his
+     example — so these three are shortcuts on a continuous control, not
+     portfolios. They carry the family's own 95/5, 90/10, 80/20 numbers, which
+     turn out to be exactly an Engine / Conviction split. */
+  const bucketPresets = { preservation: 5, balanced: 10, growth: 20 };
 
+  /* What each bucket is made of, in the six classes. The model portfolio is
+     these two compositions blended at whatever the slider says — which is how
+     one control replaces a nine-cell matrix. Engine draws only on classes its
+     own subcategories can reach; Conviction only on private equity and the
+     commodity line. Each row sums to 100. */
+  const bucketMix = {
+    engine:     { pubeq: 34, priveq: 0,  pubdebt: 30, privdebt: 12, real: 12, cash: 12 },
+    conviction: { pubeq: 0,  priveq: 75, pubdebt: 0,  privdebt: 0,  real: 25, cash: 0  },
+  };
   /* ------------------------------------------------- six-class model framework */
   /* The model is stated in six classes, equity and debt each split public /
      private, so the implementation question ("through what vehicle?") sits
@@ -356,40 +358,19 @@
       note: "MMF, T-bills, deposits, FX" },
   ];
 
-  /* Nine published portfolios. The objective sets the risk budget; the tier
-     decides how that budget is implemented. Read down a column to watch a
-     tier substitute private exposure for public as minimums become clearable. */
-  const modelMatrix = {
-    preservation: {
-      1:   { pubeq: 20, priveq: 0,  pubdebt: 60, privdebt: 0,  real: 5,  cash: 15 },
-      10:  { pubeq: 20, priveq: 0,  pubdebt: 52, privdebt: 8,  real: 5,  cash: 15 },
-      100: { pubeq: 17, priveq: 3,  pubdebt: 42, privdebt: 18, real: 5,  cash: 15 },
-    },
-    balanced: {
-      1:   { pubeq: 55, priveq: 0,  pubdebt: 35, privdebt: 0,  real: 5,  cash: 5 },
-      10:  { pubeq: 45, priveq: 10, pubdebt: 30, privdebt: 5,  real: 5,  cash: 5 },
-      100: { pubeq: 35, priveq: 15, pubdebt: 25, privdebt: 10, real: 10, cash: 5 },
-    },
-    growth: {
-      1:   { pubeq: 75, priveq: 0,  pubdebt: 15, privdebt: 0,  real: 5,  cash: 5 },
-      10:  { pubeq: 60, priveq: 15, pubdebt: 10, privdebt: 5,  real: 5,  cash: 5 },
-      100: { pubeq: 45, priveq: 25, pubdebt: 10, privdebt: 5,  real: 10, cash: 5 },
-    },
-  };
-
   /* Why a class is not recommended, by whichever rule excluded it. */
   const modelExcuses = {
     real: {
-      size: "Property and infrastructure enter through funds that start at $500,000. Below that cheque the allocation buys one building at one address — a concentration, not a diversifier. Under this objective the weight does more work in public equity until the book can carry a diversified real-asset position.",
-      goal: "Not held under this objective at this size.",
+      size: "Property and infrastructure enter through funds that start at $500,000. Below that cheque the allocation buys one building at one address — a concentration, not a diversifier. The weight does more work in public equity until the book can carry a diversified real-asset position.",
+      split: "Real assets enter through Conviction. At this split the slice is too small to clear a fund minimum.",
     },
     priveq: {
-      size: "A ten-year lock-up behind a $250,000 minimum. At this size that cheque is a concentrated bet on one fund in one vintage — the opposite of what the sleeve is for. Listed equity carries the same market exposure, daily.",
-      goal: "Capital that has to be spendable cannot sit in a ten-year lock-up. The objective rules this out before size does.",
+      size: "A ten-year lock-up behind a $250,000 minimum. At this size that cheque is a concentrated bet on one fund in one vintage — the opposite of what the bucket is for. Listed equity carries the same market exposure, daily.",
+      split: "Conviction is set to zero. Private equity is the bucket's main instrument, so nothing is allocated to it.",
     },
     privdebt: {
       size: "Direct lending funds start at $500,000 and gate redemptions quarterly. Below that cheque a public credit ETF buys the same spread with daily liquidity and no gate.",
-      goal: "Quarterly gates sit badly with a mandate built on being able to spend.",
+      split: "Not reachable at this split.",
     },
   };
 
@@ -559,6 +540,34 @@
 
   /* ---------------------------------------------------------- marketplace */
   /* One schema for everything. `kind` only changes the transaction mechanic. */
+  /* ===================================================== where a listing comes from
+     DW [P]: listings are not only Hanwha's own direct deals. They also include
+     funds Hanwha works with or creates through its LP position, and DeFi or
+     co-created products. DW [P]: Hanwha's involvement is the trust signal, so
+     the source is stated on the row, not buried in a tab.
+
+     Names below the group's own are placeholders. No real third-party manager,
+     protocol or counterparty is named. */
+  const sourceTypes = [
+    { key: "direct", label: "Hanwha direct", short: "Direct", color: "#1B2A4A",
+      note: "Originated by Hanwha. The group holds the same instrument on the same terms as members." },
+    { key: "fund", label: "Fund · Hanwha LP", short: "LP access", color: "#5A74A0",
+      note: "A third-party fund Hanwha is an LP in. The member tranche is carved out of Hanwha's own commitment — which is the only reason the minimum is reachable at this size." },
+    { key: "cocreated", label: "Co-created", short: "Co-created", color: "#9A7B2E",
+      note: "Built by Hanwha with the manager for this platform. The structure does not exist elsewhere and the terms were set by Hanwha's own participation." },
+    { key: "defi", label: "Digital", short: "Digital", color: "#3F7183",
+      note: "On-chain yield, wrapped by Hanwha into a vehicle a Korean family office can hold, custody and report. Hanwha carries the protocol diligence and the operational risk." },
+  ];
+
+  /* What was actually checked, by source type, where a listing does not carry
+     its own list. Stated as work done, not as a guarantee. */
+  const dueDiligence = {
+    direct: ["Credit and structure reviewed by the originating desk", "Hanwha balance sheet committed on identical terms", "Independent valuation on file"],
+    fund: ["Manager reviewed under Hanwha's LP diligence", "Track record verified against audited fund accounts", "Side-letter terms extended to the member tranche"],
+    cocreated: ["Structure designed and priced by Hanwha", "Counterparty credit reviewed by the group", "Hanwha retains a first-loss or anchor position"],
+    defi: ["Protocol code audited by two independent firms", "Custody through a regulated Korean qualified custodian", "Counterparty and bridge risk reviewed by the group's digital asset desk", "Daily proof-of-reserve reconciliation"],
+  };
+
   const market = [
     /* ---- Sovereign / duration ---------------------------------------- */
     { id: "m01", kind: "listed", name: "US Treasury 4.125% 15-Aug-2036", ticker: "US91282CMR9", fills: "sov", cls: "debt",
@@ -605,6 +614,7 @@
       why: "Government-guaranteed KRW credit at a 91bp spread over the KTB curve, in exchange for holding to maturity.",
       sector: "Government", geo: "Korea", ccy: "KRW", manager: "Korea Housing Finance Corporation", closing: "2026-10-08",
       hanwha: true, anchor: "Hanwha Life holds ₩400B of the same programme across recent vintages.",
+      source: "direct", role: "Hanwha Life anchored the programme and Hanwha Securities arranged the placement.",
       overview: "Senior tranche of a government-guaranteed residential mortgage securitisation. Sovereign-equivalent credit with a 91bp pickup over the on-the-run KTB, in exchange for holding to maturity. Fills the duration gap in the reporting currency without an FX overlay.",
       terms: [["Yield to maturity", "4.62%"], ["Guarantee", "Korea Housing Finance Corporation (government-backed)"], ["Term", "3 years, no early redemption"], ["Minimum", "₩700,000,000 (≈$500,000)"], ["Coupon", "Quarterly"], ["Closing", "8 October 2026"]],
       docs: [["Programme prospectus", "PDF · 96pp"], ["Pool characteristics", "XLSX"], ["Guarantee terms", "PDF · 12pp"]],
@@ -616,6 +626,7 @@
       why: "Senior secured against contracted data centre cash flows, on the same security package as the Facility I position already held.",
       sector: "Infrastructure", geo: "United States", ccy: "USD", manager: "Northgate Capital Partners", closing: "2026-10-30",
       hanwha: true, anchor: "Hanwha Life holds $180M of the senior tranche on identical terms.",
+      source: "direct", role: "Originated by Hanwha's infrastructure credit desk; the group took the senior tranche first.",
       overview: "Senior secured lending against a 220MW US hyperscale data center platform, 94% contracted to two investment-grade tenants on 12-year leases. First-lien on the operating entity, 55% LTV on an independent appraisal, cash sweep above 1.35x DSCR. The family already holds the Facility I position at $2.39M; this is the same borrower, same security package, one tranche later.",
       terms: [["Target return", "9.2% (SOFR + 475bps, 4.0% floor)"], ["Term", "5 years, no extension"], ["Security", "First lien, 55% LTV"], ["Minimum", "$1,000,000"], ["Distribution", "Quarterly cash"], ["Closing", "30 October 2026"], ["Fees", "1.0% management, no carry"]],
       docs: [["Information memorandum", "PDF · 64pp"], ["Credit agreement (draft)", "PDF · 212pp"], ["Third-party appraisal", "PDF · 38pp"], ["Tenant lease summary", "XLSX"]],
@@ -626,10 +637,50 @@
       why: "8.4% target with quarterly liquidity; the family holds Fund II and the reporting line is identical.",
       sector: "Diversified", geo: "United States", ccy: "USD", manager: "Meridian Credit", closing: "Quarterly close",
       hanwha: true, anchor: "Hanwha Life holds $150M in the same evergreen vehicle, redeemable on the same quarterly terms.",
+      source: "fund", role: "Hanwha has been an LP in Meridian's credit vehicles since Fund I. The member tranche sits inside that relationship.",
       overview: "Diversified senior secured lending to sponsor-backed mid-market borrowers, 128 positions, average hold 1.4% of the fund. Evergreen structure with quarterly redemption at NAV subject to a 5% gate.",
       terms: [["Target return", "8.4% net"], ["Liquidity", "Quarterly, 90 days' notice, 5% gate"], ["Minimum", "$500,000"], ["Fees", "1.25% / 10% over 6%"], ["Leverage", "0.85x"]],
       docs: [["Private placement memorandum", "PDF · 118pp"], ["Q2 2026 investor letter", "PDF · 12pp"]],
       qa: [["How did the gate behave in 2024?", "Redemptions were met in full in every quarter since inception; the gate has never been applied."]] },
+    /* ---- DW [P]: listings beyond Hanwha's own direct deals ---------------
+       Three placeholders standing for the three sources DW named that the
+       board did not previously carry: a product Hanwha co-created, on-chain
+       yield wrapped for a Korean family office, and an emerging-market
+       deposit programme. Names, counterparties and figures are invented. */
+    { id: "m43", kind: "private", name: "Hanwha Korea Income Participation Note 2026-A", fills: "struct", cls: "debt",
+      ret: "8.8% target", retNum: 8.8, liq: "Quarterly", term: "4yr · quarterly put", min: 0, avail: "₩90B tranche open", fit: 87,
+      why: "Engine-grade yield with a quarterly put — co-created, so the terms are Hanwha's own rather than a distributor's.",
+      sector: "Structured", geo: "Korea", ccy: "KRW", manager: "Hanwha Securities", closing: "Quarterly close",
+      hanwha: true, anchor: "Hanwha Life holds the ₩300B first-loss tranche beneath this note.",
+      source: "cocreated", role: "Designed, priced and issued by Hanwha. The note did not exist before this platform asked for it.",
+      dd: ["Structure designed and priced in-house", "Hanwha Life holds the first-loss tranche beneath members", "Underlying collateral pool reviewed quarterly by the group's credit committee", "Independent pricing agent appointed"],
+      overview: "A participation note referencing a diversified pool of Korean mid-market receivables, with Hanwha Life holding a first-loss tranche beneath the member tranche. Built for this platform: the quarterly put and the absence of a minimum are both consequences of Hanwha taking the subordinate position.",
+      terms: [["Target return", "8.8% net"], ["Put", "Quarterly at par, 10 business days' notice"], ["Subordination", "Hanwha Life first loss, ₩300B"], ["Sizing", "Fractional — any amount"], ["Fees", "0.75%, no carry"]],
+      docs: [["Term sheet", "PDF · 11pp"], ["Collateral pool summary", "PDF · 26pp"], ["Issuer disclosure", "PDF · 46pp"]], qa: [] },
+
+    { id: "m44", kind: "private", name: "Aegis Tokenised USD Yield Programme", fills: "struct", cls: "debt",
+      ret: "9.6% target", retNum: 9.6, liq: "Daily", term: "Open-ended", min: 0, avail: "Open", fit: 79,
+      why: "On-chain lending yield at daily liquidity, wrapped so it can be custodied and reported like any other line.",
+      sector: "Digital Assets", geo: "United States", ccy: "USD", manager: "Aegis Digital (placeholder)", closing: "Continuous",
+      hanwha: true, anchor: "Hanwha holds $25M in the same programme and carries the operational risk of the wrapper.",
+      source: "defi", role: "Hanwha selected the venues, built the feeder vehicle and stands between members and the protocol.",
+      dd: ["Protocol code audited by two independent firms", "Custody through a regulated Korean qualified custodian", "Counterparty and bridge risk reviewed by the group's digital asset desk", "Daily proof-of-reserve reconciliation", "Hanwha capital invested on identical terms"],
+      overview: "Over-collateralised USD lending across a small set of audited on-chain venues, held through a Hanwha feeder so the family's exposure is a single reportable line rather than a wallet. Yield is variable and has ranged from 6.1% to 14.3% over the last twenty-four months.",
+      terms: [["Target return", "9.6%, variable"], ["Liquidity", "Daily, same-day settlement"], ["Collateralisation", "Over-collateralised, 142% weighted"], ["Sizing", "Fractional — any amount"], ["Custody", "Regulated Korean qualified custodian"], ["Fees", "0.90%"]],
+      docs: [["Programme memorandum", "PDF · 38pp"], ["Audit reports (2)", "PDF · 94pp"], ["Custody and wrapper structure", "PDF · 16pp"], ["Historical yield series", "XLSX"]],
+      qa: [["What is the worst case here?", "Loss of principal through a protocol failure or a custody failure. Over-collateralisation protects against borrower default, not against a flaw in the venue itself."]] },
+
+    { id: "m45", kind: "private", name: "Emerging Markets Deposit Programme — Series 4", fills: "ig", cls: "debt",
+      ret: "9.1% target", retNum: 9.1, liq: "Quarterly", term: "2yr rolling", min: 0, avail: "Open", fit: 81,
+      why: "Bank deposit yield well above the Korean curve, spread across six jurisdictions rather than taken in one.",
+      sector: "Financials", geo: "Asia", ccy: "USD", manager: "Hanwha Securities", closing: "Monthly close",
+      hanwha: true, anchor: "Hanwha Life places $400M across the same bank panel each quarter.",
+      source: "cocreated", role: "Hanwha assembled the bank panel, negotiated the rates and places member capital alongside its own.",
+      dd: ["Each bank reviewed against the group's own counterparty limits", "Deposits spread across six jurisdictions, no bank above 25%", "Rates negotiated on the group's aggregate volume", "Reviewed quarterly by the group's treasury"],
+      overview: "Term deposits placed across a panel of emerging-market banks, aggregated so that a family-office ticket earns the rate the group's volume commands. Currency risk is hedged to USD; the credit risk is the banks'.",
+      terms: [["Target return", "9.1% net of hedging"], ["Liquidity", "Quarterly, 30 days' notice"], ["Concentration", "No single bank above 25%"], ["Sizing", "Fractional — any amount"], ["Hedging", "Fully hedged to USD"]],
+      docs: [["Programme terms", "PDF · 22pp"], ["Bank panel and limits", "PDF · 9pp"]], qa: [] },
+
     { id: "m08", kind: "listed", name: "Invesco Senior Loan ETF", ticker: "BKLN", fills: "pcred", cls: "debt",
       ret: "7.60% yield", retNum: 7.6, liq: "Daily", term: "Open-ended", min: 1000, avail: "Continuous", fit: 76,
       why: "Floating-rate senior loans with daily liquidity — the same credit risk without the lock-up.",
@@ -660,6 +711,7 @@
       why: "Second phase of an asset the family already owns, at the same entry basis as Hanwha Life.",
       sector: "Data Centers", geo: "Korea", ccy: "USD", manager: "Hanwha Asset Management", closing: "2026-11-14",
       hanwha: true, anchor: "Hanwha Life is the anchor investor at $220M, subscribed at the same price and terms as members.",
+      source: "direct", role: "Developed and financed by Hanwha; the group remains the largest equity holder.",
       overview: "Second phase of the Songdo campus: 180MW of contracted capacity with a signed 15-year offtake from a global cloud operator. Phase I, which the family already holds at $2.34M, is 100% leased and distributing at a 7.4% cash yield.",
       terms: [["Target IRR", "13.5% gross / 11.8% net"], ["Cash yield", "6.2% from year 3"], ["Term", "8 years"], ["Minimum", "$750,000"], ["Fees", "1.5% / 15% over 8%"], ["Closing", "14 November 2026"]],
       docs: [["Investment memorandum", "PDF · 88pp"], ["Offtake agreement summary", "PDF · 14pp"], ["Power supply agreement", "PDF · 22pp"], ["Phase I performance", "PDF · 9pp"]],
@@ -670,6 +722,7 @@
       why: "$300,000 minimum, quarterly cash from year one; Co-Invest I is marking at 1.08x.",
       sector: "Logistics", geo: "Korea", ccy: "KRW", manager: "Hanwha Asset Management", closing: "2026-12-05",
       hanwha: true, anchor: "Hanwha Life holds 40% of the REIT's equity alongside co-investors.",
+      source: "cocreated", role: "Structured by Hanwha with the REIT manager so that member tickets could sit alongside the group's own 40%.",
       overview: "Cold-chain and last-mile logistics assets in the Seoul metropolitan area, 91% occupied on a weighted 6.2-year lease term. Distributions quarterly from year 1.",
       terms: [["Target IRR", "9.8%"], ["Cash yield", "5.9% from year 1"], ["Term", "6 years"], ["Minimum", "$300,000"], ["Fees", "1.2% / 12% over 7%"], ["Closing", "5 December 2026"]],
       docs: [["Co-investment memorandum", "PDF · 52pp"], ["Asset schedule", "XLSX"], ["Valuation report", "PDF · 30pp"]],
@@ -721,6 +774,7 @@
       why: "Access tranche in a fund that is otherwise closed; sits inside the Alpha sleeve's remaining capacity.",
       sector: "Technology", geo: "United States", ccy: "USD", manager: "Meridian Venture Partners", closing: "2026-10-15",
       hanwha: true, anchor: "Hanwha Life is the cornerstone LP in Fund XII at $60M; the member tranche is carved out of that commitment.",
+      source: "fund", role: "Hanwha is the cornerstone LP. The access tranche exists because of that position and not otherwise.",
       overview: "Early-stage US venture fund, twelfth vintage. Funds VIII–X are marking at 4.2x, 3.1x and 2.4x net. The tranche exists because the GP reserved capacity for platform investors; the family could not access this fund directly at a $250K commitment.",
       terms: [["Target", "3.1x net / 22% net IRR"], ["Term", "10 years + 2 one-year extensions"], ["Minimum", "$250,000"], ["Fees", "2.0% / 20% over 8%"], ["Drawdown", "Over 4 years, ~25% per year"], ["Closing", "15 October 2026"]],
       docs: [["Fund XII PPM", "PDF · 142pp"], ["Track record — Funds VIII-XI", "PDF · 24pp"], ["LPA (tranche)", "PDF · 96pp"], ["Side letter", "PDF · 6pp"]],
@@ -731,6 +785,7 @@
       why: "Averages into an existing Series F position at a 12% discount to the last primary round.",
       sector: "Aerospace", geo: "United States", ccy: "USD", manager: "Direct block", closing: "2026-10-22",
       hanwha: true, anchor: "Hanwha Life took $40M of the same secondary block at $186.00 — the price members pay.",
+      source: "direct", role: "Sourced by Hanwha's pre-IPO desk from a selling employee holder; the group took the larger half of the block.",
       overview: "Secondary block in a large private aerospace manufacturer, sold by an early employee holder. Priced at $186/share against the Series G primary at $211. The family holds the Series F block at $820K, entered at $142.",
       terms: [["Price", "$186.00 per share"], ["Discount to last round", "11.8%"], ["Minimum", "$500,000"], ["Transfer", "Company right of first refusal, 30 days"], ["Closing", "22 October 2026"]],
       docs: [["Company overview", "PDF · 46pp"], ["Cap table summary", "PDF · 8pp"], ["ROFR waiver process", "PDF · 4pp"], ["Audited financials 2025", "PDF · 62pp"]],
@@ -741,6 +796,7 @@
       why: "Growth-stage AI infrastructure; the family holds SPV I, marked at 1.35x after 17 months.",
       sector: "Technology", geo: "United States", ccy: "USD", manager: "Helios Partners", closing: "2026-11-01",
       hanwha: true, anchor: "Hanwha Life holds $45M of the same Series D, subscribed alongside the SPV at the round price.",
+      source: "cocreated", role: "The SPV was formed by Hanwha to carry member capital into a round the group was already taking.",
       overview: "Single-asset SPV into the Series D of a GPU cloud operator with $310M of contracted revenue. Concentrated: one company, one round, no diversification.",
       terms: [["Target", "4.0x"], ["Structure", "Single-asset SPV"], ["Minimum", "$250,000"], ["Fees", "0% management / 10% carry"], ["Closing", "1 November 2026"]],
       docs: [["SPV memorandum", "PDF · 28pp"], ["Company deck", "PDF · 34pp"], ["Series D term sheet", "PDF · 12pp"]],
@@ -750,6 +806,7 @@
       why: "Core open-end property; the family holds Fund IV and the exposure would be duplicative.",
       sector: "Diversified RE", geo: "Asia-Pacific", ccy: "USD", manager: "Pacific Core", closing: "Quarterly close",
       hanwha: true, anchor: "Hanwha Life holds $210M in the fund and stands in the same quarterly redemption queue.",
+      source: "fund", role: "Hanwha has stood in the same redemption queue as members since Fund III.",
       overview: "Core open-end Asia-Pacific property fund. Shown because the family holds Fund IV.",
       terms: [["Target return", "8.1% net"], ["Liquidity", "Quarterly queue"], ["Minimum", "$500,000"], ["Fees", "1.0% / no carry"]],
       docs: [["PPM", "PDF · 104pp"]], qa: [] },
@@ -956,7 +1013,7 @@
     KRW, TODAY, family, accounts, classes, subs, positions,
     uploadFiles, ingestSteps, exceptions, mandates, survey, modelPortfolios,
     capitalCalls, distributions, benchmark, performance, attribution, modelGoals, ALT_SUBS,
-    modelClasses, modelMatrix, modelExcuses, buckets, bucketPresets, expectedReturn, expectedVol, classCorr, idiosyncraticVol,
+    sourceTypes, dueDiligence, modelClasses, modelExcuses, buckets, bucketPresets, bucketMix, expectedReturn, expectedVol, classCorr, idiosyncraticVol,
     market, secondary, secondaryTrades, bidsSeed, approvalsSeed, activitySeed, opsLedger, referrals, liquidityAssumptions,
   };
 })();

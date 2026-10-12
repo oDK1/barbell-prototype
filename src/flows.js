@@ -11,7 +11,8 @@
     if (!amount) return <div className="note">Enter an amount to see the allocation impact.</div>;
     /* One row: the model class this lands in. The subcategory beneath it is a
        label, not a second allocation to reason about. */
-    const i = u.impactSix(st.positions, subKey, amount, st.mandate);
+    const i = u.impactSix(st.positions, subKey, amount, st.split);
+    const ib = u.impactBucket(st.positions, subKey, amount, st.split);
     if (!i) return null;
     return (
       <div className="panel">
@@ -20,8 +21,25 @@
         <table className="t dense">
           <thead><tr><th></th><th className="n">Before</th><th className="n">After</th><th className="n">vs model</th></tr></thead>
           <tbody>
+            {/* the bucket first, the asset class beneath it */}
+            {ib && (
+              <tr>
+                <td>
+                  <div className="tname">
+                    <span style={{ display: "inline-flex", gap: 7, alignItems: "center" }}>
+                      <i className="sw" style={{ width: 8, height: 8, display: "inline-block", background: ib.b.color }} />
+                      {ib.b.label}
+                    </span>
+                  </div>
+                  <div className="tsub">target {u.pct(ib.target)} · {ib.b.role.toLowerCase()}</div>
+                </td>
+                <td className="n num">{u.pct(ib.before)}</td>
+                <td className="n num">{u.pct(ib.after)}</td>
+                <td className="n tri num">{u.pp(ib.driftAfter)}</td>
+              </tr>
+            )}
             <tr>
-              <td>
+              <td style={{ paddingLeft: 22 }}>
                 <div className="tname">
                   <span style={{ display: "inline-flex", gap: 7, alignItems: "center" }}>
                     <i className="sw" style={{ width: 8, height: 8, display: "inline-block", background: i.c.color }} />
@@ -37,7 +55,8 @@
           </tbody>
         </table>
         <div className="why" style={{ borderTop: "1px solid var(--g3)" }}>
-          {i.c.label} would move from {u.pct(i.before)} to {u.pct(i.after)} of total assets.
+          {ib ? ib.b.label + " would move from " + u.pct(ib.before) + " to " + u.pct(ib.after) + " of total assets, through " + i.c.label.toLowerCase() + "."
+              : i.c.label + " would move from " + u.pct(i.before) + " to " + u.pct(i.after) + " of total assets."}
         </div>
       </div>
     );

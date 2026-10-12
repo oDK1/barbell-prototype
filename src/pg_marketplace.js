@@ -222,7 +222,7 @@
             {/* DW [P]: the buying surface answers to the same two buckets as
                 the portfolio. The six classes stay one level down. END-STATE. */}
             <Panel title="Allocation context">
-              {u.byBucket(st.positions, st.band, st.splitPinned ? st.split : null).map((b) => (
+              {u.byBucket(st.positions, 100 - st.anchorPct).map((b) => (
                 <div key={b.key} className="mkb">
                   <div className="mkb-hd">
                     <i style={{ background: b.color }} />

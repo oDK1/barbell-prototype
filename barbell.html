@@ -740,6 +740,11 @@ tr.rung-below td{opacity:.62}
 .th-note{font-size:11px;line-height:1.5}
 @media (max-width:560px){ .themes{grid-template-columns:1fr} .shelf{height:96px} .rl{font-size:9px} }
 
+/* The cash floor sits first in the basket and is styled as the floor it is. */
+tr.rung-cash td{background:#FCFBF8}
+.th.fixed{cursor:default;opacity:.8;border-style:dashed}
+.th.fixed:hover{border-color:var(--g3)}
+
 </style>
 </head>
 <body>
@@ -1134,48 +1139,48 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   const positions = [
     /* ---- EQUITY · Public (12) ------------------------------------------- */
     { id: "p01", name: "Hanmi Chemical Holdings Co., Ltd.", ticker: "004370.KS", cls: "equity", sub: "pubeq", grp: "KR listed",
-      bucket: "conviction", theme: "family",
+      bucket: "conviction", theme: "legacy",
       sleeve: "core", prov: "live", value: 4243219, cost: 2610000, qty: 29865, px: 196500, ccy: "KRW", pxUsd: 142.08, chg: 0.82,
       sector: "Materials", geo: "Korea", liq: "Daily", acquired: "2009-06-12", realizedYTD: 0, affiliate: true,
       src: { file: "Holdings_Master_2026Q3.xlsx", cell: "Sheet1!B14" },
       note: "Family operating company. Board seat held by the Principal." },
     { id: "p02", name: "Samsung Electronics Co., Ltd.", ticker: "005930.KS", cls: "equity", sub: "pubeq", grp: "KR listed",
-      bucket: "conviction", theme: "listed",
+      bucket: "conviction", theme: "pubtech",
       sleeve: "core", prov: "live", value: 1979838, cost: 1452000, qty: 37250, px: 73500, ccy: "KRW", pxUsd: 53.15, chg: -0.41,
       sector: "Info Tech", geo: "Korea", liq: "Daily", acquired: "2016-03-02", realizedYTD: 84000,
       src: { file: "Holdings_Master_2026Q3.xlsx", cell: "Sheet1!B15" } },
     { id: "p03", name: "SK hynix Inc.", ticker: "000660.KS", cls: "equity", sub: "pubeq", grp: "KR listed",
-      bucket: "conviction", theme: "compute",
+      bucket: "conviction", theme: "pubtech",
       sleeve: "core", prov: "live", value: 859908, cost: 498000, qty: 6090, px: 195300, ccy: "KRW", pxUsd: 141.20, chg: 1.94,
       sector: "Info Tech", geo: "Korea", liq: "Daily", acquired: "2021-11-08", realizedYTD: 0,
       src: { file: "Holdings_Master_2026Q3.xlsx", cell: "Sheet1!B16" } },
     { id: "p04", name: "NVIDIA Corporation", ticker: "NVDA", cls: "equity", sub: "pubeq", grp: "US listed",
-      bucket: "conviction", theme: "compute",
+      bucket: "conviction", theme: "pubtech",
       sleeve: "core", prov: "live", value: 2140000, cost: 742000, qty: 10000, px: 214.00, ccy: "USD", pxUsd: 214.00, chg: 1.12,
       sector: "Info Tech", geo: "United States", liq: "Daily", acquired: "2022-10-14", realizedYTD: 312000,
       src: { file: "Holdings_Master_2026Q3.xlsx", cell: "Sheet1!B21" } },
     { id: "p05", name: "Microsoft Corporation", ticker: "MSFT", cls: "equity", sub: "pubeq", grp: "US listed",
-      bucket: "conviction", theme: "listed",
+      bucket: "conviction", theme: "pubtech",
       sleeve: "core", prov: "live", value: 1619379, cost: 1104000, qty: 3330, px: 486.30, ccy: "USD", pxUsd: 486.30, chg: 0.34,
       sector: "Info Tech", geo: "United States", liq: "Daily", acquired: "2020-05-19", realizedYTD: 0,
       src: { file: "Holdings_Master_2026Q3.xlsx", cell: "Sheet1!B22" } },
     { id: "p06", name: "Apple Inc.", ticker: "AAPL", cls: "equity", sub: "pubeq", grp: "US listed",
-      bucket: "conviction", theme: "listed",
+      bucket: "conviction", theme: "pubtech",
       sleeve: "core", prov: "live", value: 1180800, cost: 861000, qty: 4500, px: 262.40, ccy: "USD", pxUsd: 262.40, chg: -0.28,
       sector: "Info Tech", geo: "United States", liq: "Daily", acquired: "2019-08-07", realizedYTD: 0,
       src: { file: "Holdings_Master_2026Q3.xlsx", cell: "Sheet1!B23" } },
     { id: "p07", name: "Alphabet Inc. Class A", ticker: "GOOGL", cls: "equity", sub: "pubeq", grp: "US listed",
-      bucket: "conviction", theme: "listed",
+      bucket: "conviction", theme: "pubtech",
       sleeve: "alpha", prov: "live", value: 690305, cost: 488000, qty: 3260, px: 211.75, ccy: "USD", pxUsd: 211.75, chg: 0.61,
       sector: "Comm Services", geo: "United States", liq: "Daily", acquired: "2024-02-21", realizedYTD: 0,
       src: { file: "Holdings_Master_2026Q3.xlsx", cell: "Sheet1!B24" } },
     { id: "p08", name: "Taiwan Semiconductor Mfg. (ADR)", ticker: "TSM", cls: "equity", sub: "pubeq", grp: "US listed",
-      bucket: "conviction", theme: "compute",
+      bucket: "conviction", theme: "pubtech",
       sleeve: "core", prov: "live", value: 739475, cost: 412000, qty: 2750, px: 268.90, ccy: "USD", pxUsd: 268.90, chg: 1.47,
       sector: "Info Tech", geo: "Taiwan", liq: "Daily", acquired: "2023-01-30", realizedYTD: 0,
       src: { file: "Holdings_Master_2026Q3.xlsx", cell: "Sheet1!B25" } },
     { id: "p09", name: "Toyota Motor Corporation", legacy: "TOYOTA (JPY口座) — 東証", ticker: "7203.T", cls: "equity", sub: "pubeq", grp: "US listed",
-      bucket: "conviction", theme: "listed",
+      bucket: "conviction", theme: "legacy",
       sleeve: "core", prov: "live", value: 676800, cost: 585000, qty: 30000, px: 3320, ccy: "JPY", pxUsd: 22.56, chg: -0.62,
       sector: "Consumer Disc.", geo: "Japan", liq: "Daily", acquired: "2018-09-11", realizedYTD: 0, fxFlag: true,
       src: { file: "Holdings_Master_2026Q3.xlsx", cell: "Sheet2!D7" },
@@ -1195,40 +1200,40 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
     /* ---- EQUITY · Private (7) ------------------------------------------- */
     { id: "p13", name: "Woori Industrial Buyout Co-Invest II", cls: "equity", sub: "pe", grp: "Buyout co-invest",
-      bucket: "conviction", theme: "private",
+      bucket: "conviction", theme: "legacy",
       sleeve: "core", prov: "hanwha", value: 1848698, cost: 1400000, ccy: "USD", liq: "Locked", term: "2029 wind-down",
       sector: "Industrials", geo: "Korea", asOf: "2026-06-30", acquired: "2022-05-18", onBarbell: true, vintage: "2022",
       src: { file: "PE_Capital_Calls_v7_FINAL.xlsx", cell: "Fund List!A4" },
       note: "Hanwha-originated. Capital account pushed from the platform." },
     { id: "p14", name: "Sunrise Growth Partners IV, L.P.", cls: "equity", sub: "pe", grp: "Growth",
-      bucket: "conviction", theme: "private",
+      bucket: "conviction", theme: "venture",
       sleeve: "alpha", prov: "hanwha", value: 1220000, cost: 950000, ccy: "USD", liq: "Locked", term: "2031 term",
       sector: "Diversified", geo: "United States", asOf: "2026-06-30", acquired: "2023-09-01", onBarbell: true, vintage: "2023",
       src: { file: "PE_Capital_Calls_v7_FINAL.xlsx", cell: "Fund List!A5" } },
     { id: "p15", name: "Foundry Venture Partners VII, L.P.", cls: "equity", sub: "vc", grp: "Funds",
-      bucket: "conviction", theme: "private",
+      bucket: "conviction", theme: "venture",
       sleeve: "alpha", prov: "hanwha", value: 1050000, cost: 900000, ccy: "USD", liq: "Locked", term: "2033 term",
       sector: "Technology", geo: "United States", asOf: "2026-06-30", acquired: "2024-03-14", onBarbell: true, vintage: "2024",
       unfunded: 1400000,
       src: { file: "PE_Capital_Calls_v7_FINAL.xlsx", cell: "Fund List!A6" } },
     { id: "p16", name: "Daol Ventures Korea Fund III", cls: "equity", sub: "vc", grp: "Funds",
-      bucket: "conviction", theme: "private",
+      bucket: "conviction", theme: "venture",
       sleeve: "alpha", prov: "hanwha", value: 680000, cost: 600000, ccy: "USD", liq: "Locked", term: "2032 term",
       sector: "Technology", geo: "Korea", asOf: "2026-06-30", acquired: "2023-02-09", onBarbell: true, vintage: "2023",
       unfunded: 320000,
       src: { file: "PE_Capital_Calls_v7_FINAL.xlsx", cell: "Fund List!A7" } },
     { id: "p17", name: "Helios AI Infrastructure SPV I", cls: "equity", sub: "vc", grp: "Direct SPV",
-      bucket: "conviction", theme: "compute",
+      bucket: "conviction", theme: "gpu",
       sleeve: "alpha", prov: "hanwha", value: 540000, cost: 400000, ccy: "USD", liq: "Locked", term: "Exit-driven",
       sector: "Technology", geo: "United States", asOf: "2026-06-30", acquired: "2026-05-22", onBarbell: true, vintage: "2026",
       src: { file: "PE_Capital_Calls_v7_FINAL.xlsx", cell: "Fund List!A8" } },
     { id: "p18", name: "Aeris Aerospace — Series F secondary block", cls: "equity", sub: "preipo", grp: "Pre-IPO",
-      bucket: "conviction", theme: "frontier",
+      bucket: "conviction", theme: "privtech",
       sleeve: "alpha", prov: "hanwha", value: 820000, cost: 640000, ccy: "USD", liq: "Locked", term: "Until listing",
       sector: "Aerospace", geo: "United States", asOf: "2026-08-31", acquired: "2025-01-16", onBarbell: true, vintage: "2025",
       src: { file: "PE_Capital_Calls_v7_FINAL.xlsx", cell: "Fund List!A9" } },
     { id: "p19", name: "Viva Republica (Toss) common — 2023 block", legacy: "비바리퍼블리카 구주 (2023년 매입)", cls: "equity", sub: "preipo", grp: "Pre-IPO",
-      bucket: "conviction", theme: "private",
+      bucket: "conviction", theme: "privtech",
       sleeve: "alpha", prov: "self", value: 440000, cost: 440000, ccy: "USD", liq: "Locked", term: "Until listing",
       sector: "Fintech", geo: "Korea", asOf: "2026-03-31", acquired: "2023-06-30", onBarbell: false, vintage: "2023",
       src: { file: "PE_Capital_Calls_v7_FINAL.xlsx", cell: "Sheet3!C22" },
@@ -1311,7 +1316,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       yieldPct: 7.4,
       src: { file: "PE_Capital_Calls_v7_FINAL.xlsx", cell: "Fund List!A18" } },
     { id: "p35", name: "Gold bullion — KRX custody account", cls: "real", sub: "comm", grp: "Commodities",
-      bucket: "conviction", theme: "resources",
+      bucket: "conviction", theme: "legacy",
       sleeve: "core", prov: "live", value: 1410000, cost: 980000, qty: 340, px: 5735000, ccy: "KRW", pxUsd: 4147.06, chg: 0.37,
       sector: "Precious Metals", geo: "Korea", liq: "Daily", acquired: "2020-08-19", realizedYTD: 0,
       src: { file: "Holdings_Master_2026Q3.xlsx", cell: "Sheet1!B72" } },
@@ -1409,31 +1414,40 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   const SHELF_FLOOR = 5;   /* below this a holding is not on the shelf at all */
   const SHELF_CEIL  = 15;
 
-  /* ================================================= conviction themes
-     Bucket 2 is not an asset class either. It is a set of things the family
-     has a view about, and the family picks the ones it wants exposure to.
-     DW [P] named startup deals, emerging-market real estate and resources,
-     emerging art, quantum, space, sports teams and collectibles; the user
-     added compute, top private companies and top listed technology.
+  /* The fund that always sits beneath the basket. A minimum dollar amount is
+     held here whatever the target yield, so that a capital call never forces
+     a sale out of a locked fund. It is part of the anchor, and it drags —
+     which the screen shows rather than hides. */
+  const cashFund = { name: "Cash reserve", yield: 3.8, liq: "Daily", vol: 0.4,
+    inside: "Money market funds, T-bills and bank deposits." };
 
-     `culture` is carried because DW named it, and flagged: art, collectibles
-     and sports teams are not securities, and the platform transacts through
-     the group's BD/ATS. That is an open question, not a solved one. */
+  /* ================================================= conviction exposures
+     Bucket 2 is a menu of things to have a view about, not an asset class.
+     The family picks the exposures it wants and the marketplace ranks against
+     them. `legacy` is not on the menu: it is where holdings land that the
+     family would not choose today, which is worth being able to see.
+
+     The last three are flagged. None of them is a security, and how they
+     would list on the group's BD/ATS is unresolved. */
   const themes = [
-    { key: "compute", label: "Compute and AI infrastructure", color: "#1B2A4A",
-      note: "The physical layer under AI — silicon, GPU capacity, the data centres and power behind it." },
-    { key: "listed", label: "Listed companies held by name", color: "#3F7183",
-      note: "Single listed companies held because of the company, not as a slice of an index." },
-    { key: "private", label: "Private companies before listing", color: "#5A74A0",
-      note: "Venture, growth and pre-IPO. Priced by rounds rather than by a market." },
-    { key: "frontier", label: "Frontier science and space", color: "#85AEBC",
-      note: "Quantum, space and defence technology. Long-dated, binary, and uncorrelated with everything else here." },
-    { key: "resources", label: "Resources and emerging-market real assets", color: "#9A7B2E",
-      note: "Metals, energy, and property and infrastructure outside developed markets." },
-    { key: "culture", label: "Art, collectibles and sport", color: "#A9A396", flagged: true,
-      note: "Emerging art, collectibles, sports teams. None of these are securities, and how they would list on the group's BD/ATS is unresolved." },
-    { key: "family", label: "The family's own company", color: "#6B5316", fixed: true,
-      note: "Held before the platform existed. Not a theme that was chosen — but a concentrated equity view all the same, and it belongs where it can be seen." },
+    { key: "privtech", label: "Private leading tech companies", color: "#5A74A0",
+      note: "Late-stage private technology, before it lists." },
+    { key: "pubtech", label: "Public leading tech companies", color: "#1B2A4A",
+      note: "Listed technology held by name, because of the company — not as a slice of an index." },
+    { key: "gpu", label: "GPU clusters and compute", color: "#3F7183",
+      note: "Compute capacity itself: clusters, the data centres around them, and the power underneath." },
+    { key: "venture", label: "Leading venture funds", color: "#85AEBC",
+      note: "Access to funds that are otherwise closed, through Hanwha's own LP positions." },
+    { key: "hedge", label: "Leading hedge funds", color: "#6B7F8C",
+      note: "Managers whose return is skill rather than market direction, at ticket sizes a family office cannot normally reach." },
+    { key: "artists", label: "Emerging artists", color: "#9A7B2E", flagged: true,
+      note: "Work by artists before the secondary market finds them." },
+    { key: "teams", label: "Sports teams", color: "#A98C3E", flagged: true,
+      note: "Minority stakes in clubs and franchises." },
+    { key: "players", label: "Sports players", color: "#C0A765", flagged: true,
+      note: "Participations in future earnings of individual athletes." },
+    { key: "legacy", label: "Held before the platform", color: "#A9A396", fixed: true,
+      note: "Concentrated positions the family already carries that do not match anything on the menu. Not chosen today — but a view all the same." },
   ];
 
   /* ===================================================== risk / return buckets
@@ -2157,7 +2171,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     KRW, TODAY, family, accounts, classes, subs, positions,
     uploadFiles, ingestSteps, exceptions, mandates, survey, modelPortfolios,
     capitalCalls, distributions, benchmark, performance, attribution, modelGoals, ALT_SUBS,
-    sourceTypes, dueDiligence, anchorShelf, SHELF_FLOOR, SHELF_CEIL, themes, modelClasses, modelExcuses, buckets, bucketPresets, bucketMix, RISK_BASE, expectedReturn, expectedVol, classCorr, idiosyncraticVol,
+    sourceTypes, dueDiligence, anchorShelf, cashFund, SHELF_FLOOR, SHELF_CEIL, themes, modelClasses, modelExcuses, buckets, bucketPresets, bucketMix, RISK_BASE, expectedReturn, expectedVol, classCorr, idiosyncraticVol,
     market, secondary, secondaryTrades, bidsSeed, approvalsSeed, activitySeed, opsLedger, referrals, liquidityAssumptions,
   };
 })();
@@ -2616,12 +2630,11 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
      return decides the rung, and the sector decides the theme. Themes are
      matched on what the offering is about, not on its asset class. */
   const THEME_BY_SECTOR = {
-    "Data Centers": "compute", "Infrastructure": "compute", "Digital Assets": "compute",
-    "Technology": "private", "Info Tech": "listed", "Comm Services": "listed",
-    "Aerospace": "frontier", "Fintech": "private",
-    "Precious Metals": "resources", "Materials": "resources", "Energy": "resources",
-    "Real Estate": "resources", "Diversified RE": "resources", "Logistics": "resources",
+    "Technology": "privtech", "Fintech": "privtech", "Aerospace": "privtech",
+    "Info Tech": "pubtech", "Comm Services": "pubtech",
+    "Data Centers": "gpu", "Infrastructure": "gpu", "Digital Assets": "gpu",
   };
+  const THEME_BY_SUB = { vc: "venture", pe: "venture", preipo: "privtech", comm: "legacy" };
   function offerBucket(m) { return bucketKeyOf({ sub: m.fills, bucket: m.bucket }); }
   function offerRung(m) {
     const r = typeof m.retNum === "number" ? m.retNum : 0;
@@ -2630,8 +2643,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   }
   function offerTheme(m) {
     if (m.theme) return m.theme;
-    const k = THEME_BY_SECTOR[m.sector];
-    return k || "private";
+    return THEME_BY_SECTOR[m.sector] || THEME_BY_SUB[m.fills || m.sub] || "privtech";
   }
   /* The one line a row needs: which bucket, and where inside it. */
   function offerPlace(m) {
@@ -2648,12 +2660,62 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     };
   }
 
+  /* ------------------------------------------------ building the anchor ----
+     The family states a target yield; the basket is built for it. A minimum
+     dollar amount is always held in the cash fund, so the rest of the anchor
+     has to carry the whole target on its own — asking for 8% while $1.5M sits
+     at 3.8% is not an 8% problem for the remainder.
+
+     The basket is a tent across the shelf: full weight on the fund nearest
+     the centre, falling away either side, so the result is a spread of funds
+     rather than a single bet. The centre is solved by bisection until the
+     weighted mean clears what the remainder has to earn. Near the ends of the
+     shelf the tent is clipped, which narrows the basket on its own — asking
+     for exactly 5% gets you Anchor 5 and nothing else, and that is correct. */
+  const TENT = 4;
+  function tentWeights(c) {
+    const raw = D.anchorShelf.map((f) => Math.max(0, 1 - Math.abs(f.band - c) / TENT));
+    const sum = raw.reduce((a, b) => a + b, 0);
+    if (!sum) return D.anchorShelf.map(() => 0);
+    return raw.map((x) => x / sum);
+  }
+  function tentMean(c) {
+    const w = tentWeights(c);
+    return w.reduce((a, x, i) => a + x * D.anchorShelf[i].band, 0);
+  }
+
+  function buildAnchor(anchorValue, target, cashFloor) {
+    const cash = Math.max(0, Math.min(cashFloor, anchorValue));
+    const rest = Math.max(0, anchorValue - cash);
+    if (rest <= 0) {
+      return { cash, rest: 0, rows: [], blended: D.cashFund.yield, needed: 0,
+        reachable: target <= D.cashFund.yield + 0.05, cashPct: 100 };
+    }
+    /* what the non-cash remainder has to earn for the whole anchor to hit target */
+    const needed = (target * anchorValue - D.cashFund.yield * cash) / rest;
+    /* the centre can sit outside the shelf; the tent clips and the basket narrows */
+    let lo = D.SHELF_FLOOR - TENT + 0.5, hi = D.SHELF_CEIL + TENT - 0.5;
+    const reachable = needed >= tentMean(lo) - 0.01 && needed <= tentMean(hi) + 0.01;
+    for (let k = 0; k < 44; k++) {
+      const m = (lo + hi) / 2;
+      if (tentMean(m) < needed) lo = m; else hi = m;
+    }
+    const c = (lo + hi) / 2;
+    const w = tentWeights(c);
+    const rows = D.anchorShelf
+      .map((f, i) => ({ ...f, pct: w[i] * 100, ofAnchor: (w[i] * rest / anchorValue) * 100, value: w[i] * rest }))
+      .filter((r) => r.pct > 0.05);
+    const blended = (tentMean(c) * rest + D.cashFund.yield * cash) / anchorValue;
+    return { cash, rest, rows, blended, needed, centre: c, reachable,
+      cashPct: (cash / anchorValue) * 100, spread: rows.length };
+  }
+
   /* The four-class mix a rung and a split imply — used only to drive the
      projection, which has to reason in classes to reach a volatility. It is
      never shown as an allocation. A higher rung means the anchor reaches for
      return through equity-like risk rather than through duration. */
-  function modelFour(band, conv) {
-    const b = Math.max(D.SHELF_FLOOR, Math.min(D.SHELF_CEIL, band)) - D.SHELF_FLOOR;
+  function modelFour(target, conv) {
+    const b = Math.max(D.SHELF_FLOOR, Math.min(D.SHELF_CEIL, target)) - D.SHELF_FLOOR;
     const a = (100 - conv) / 100;
     return {
       equity: a * (5 + b * 3) + conv,
@@ -2716,7 +2778,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   /* The anchor laid out as the shelf it is: one row per rung the family
      actually holds something on, plus the capital sitting below the lowest
      fund. `target` marks the rung the family has chosen. */
-  function anchorLadder(ps, band) {
+  function anchorLadder(ps, chosen) {
     const eng = inBucket(ps, "engine");
     const t = total(ps) || 1;
     const ev = total(eng) || 1;
@@ -2724,7 +2786,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       const items = eng.filter((p) => rungOf(p) === f.band);
       const v = total(items);
       return { ...f, items, value: v, count: items.length,
-        wt: (v / t) * 100, ofAnchor: (v / ev) * 100, chosen: f.band === band };
+        wt: (v / t) * 100, ofAnchor: (v / ev) * 100, chosen: f.band === chosen };
     });
     const below = eng.filter((p) => rungOf(p) === null);
     const bv = total(below);
@@ -2763,10 +2825,10 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
      exposure bought as an index slice stays in the Anchor. The disclosure one
      level down is the shelf for the Anchor and the themes for Conviction —
      never a list of asset classes. */
-  function byBucket(ps, band, convOverride) {
+  function byBucket(ps, convShare) {
     const t = total(ps);
-    const b0 = Math.max(D.SHELF_FLOOR, Math.min(D.SHELF_CEIL, band === undefined ? D.RISK_BASE.band : band));
-    const conv = convOverride === undefined || convOverride === null ? splitForBand(b0) : convOverride;
+    const conv = convShare === undefined || convShare === null ? D.RISK_BASE.conviction
+      : Math.max(0, Math.min(100, convShare));
     return D.buckets.map((b) => {
       const items = inBucket(ps, b.key);
       const v = total(items);
@@ -3001,7 +3063,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     usd, usdC, krwC, krwFull, pct, pp, sgn, sgnUsd, num, localPx, days, fmtDate, fmtTs, monthKey, monthLabel,
     staleness, provLabel, sum, total, byClass, bySub, gaps, unrealized, realizedYTD,
     liquidity90, liquidityProjection, shortfall, coverage, projectMix,
-    modelSix, convPct, bySix, sixToFour, sixToSubs, pickForClass, holdingsSix, geoBucket, GEO_BUCKETS, listingDocs, listingView, currentIRR, tradeHistory, impactSix, impactBucket, modelClassOf, modelClassLabel, bucketOf, bucketLabel, byBucket, spread, engineDrag, posReturn, rungOf, bucketKeyOf, inBucket, splitForBand, modelFour, anchorLadder, offerBucket, offerRung, offerTheme, offerPlace, byTheme, SUB_RETURN, topHoldings, affiliateExposure, taxLots, eligibility,
+    modelSix, convPct, bySix, sixToFour, sixToSubs, pickForClass, holdingsSix, geoBucket, GEO_BUCKETS, listingDocs, listingView, currentIRR, tradeHistory, impactSix, impactBucket, modelClassOf, modelClassLabel, bucketOf, bucketLabel, byBucket, spread, engineDrag, posReturn, rungOf, bucketKeyOf, inBucket, splitForBand, modelFour, buildAnchor, anchorLadder, offerBucket, offerRung, offerTheme, offerPlace, byTheme, SUB_RETURN, topHoldings, affiliateExposure, taxLots, eligibility,
     fitFor, subLabel, clsLabel, clsOf, impact, modelWeights, marketContext, scoreFor, suggestAmount,
   };
 })();
@@ -3039,16 +3101,16 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     ops: clone(D.opsLedger),
     referrals: clone(D.referrals),
     mandate: "balanced",
-    /* One control: `band` is the rung of the anchor shelf the family asks for,
-       5 to 15. Raising it raises the return asked of the anchor and, inversely,
-       shrinks it — `split` (the conviction share) follows unless the family
-       overrides it, which is how a 99/1 stays expressible. `themes` is what
-       Conviction is pointed at. `mandate` survives only as the nearest posture
-       label and to feed the marketplace's scoring path. */
-    band: D.RISK_BASE.band,
-    split: D.RISK_BASE.conviction,
-    splitPinned: false,
-    themes: D.themes.filter((t) => !t.flagged).map((t) => t.key),
+    /* Three settings, and only the first two are choices the family makes.
+       `anchorPct` is how much of the net worth sits in the anchor —
+       conviction is whatever is left over, never set directly. `targetYield`
+       is what the anchor is asked to earn, and the basket of funds is built
+       for it. `cashFloor` is the minimum always held in the cash fund, so a
+       capital call never forces a sale. */
+    anchorPct: 90,
+    targetYield: D.RISK_BASE.band,
+    cashFloor: 1500000,
+    themes: ["privtech", "pubtech", "gpu", "venture"],
     survey: {},
     uploads: clone(D.uploadFiles),
     exceptions: clone(D.exceptions).map((e) => ({ ...e, resolved: false, value: e.type === "input" ? e.suggestion : e.answer })),
@@ -3104,12 +3166,16 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   }
 
   /* --------------------------------------------------------------- actions */
+  /* Conviction is the leftover, never a setting of its own. */
+  function convShare() { return 100 - state.anchorPct; }
+
   /* The marketplace's scoring still reasons in postures, so keep the nearest
-     one in step with whatever the split has become. */
+     one in step with whatever the leftover has become. */
   function syncPosture() {
     let best = "balanced", d = Infinity;
+    const v = convShare();
     Object.keys(D.bucketPresets).forEach((k) => {
-      const gap = Math.abs(D.bucketPresets[k] - state.split);
+      const gap = Math.abs(D.bucketPresets[k] - v);
       if (gap < d) { d = gap; best = k; }
     });
     state.mandate = best;
@@ -3160,36 +3226,38 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
     /* The one model lever. Snaps `mandate` to the nearest posture so the
        marketplace's scoring, which still reasons in postures, stays coherent. */
-    /* The primary lever. Moves the anchor up or down the shelf and, unless the
-       family has pinned a split of its own, moves the split with it. */
-    setBand(b) {
-      const v = Math.max(D.SHELF_FLOOR, Math.min(D.SHELF_CEIL, Math.round(b)));
-      state.band = v;
-      if (!state.splitPinned) state.split = BB.u.splitForBand(v);
+    /* How much of the net worth the anchor carries. Conviction follows as
+       the remainder — it is never set directly. */
+    setAnchorPct(v) {
+      state.anchorPct = Math.max(40, Math.min(100, Math.round(v)));
       syncPosture();
       emit();
     },
 
+    /* What the anchor is asked to earn. The basket is rebuilt for it. */
+    setTargetYield(v) {
+      state.targetYield = Math.max(D.SHELF_FLOOR, Math.min(D.SHELF_CEIL, Math.round(v * 10) / 10));
+      emit();
+    },
+
+    /* The minimum that always stays in the cash fund. */
+    setCashFloor(v) {
+      state.cashFloor = Math.max(0, Math.round(v));
+      emit();
+    },
+
     toggleTheme(key) {
+      const th = D.themes.find((x) => x.key === key);
+      if (th && th.fixed) return;          /* legacy is not on the menu */
       const i = state.themes.indexOf(key);
       if (i >= 0) state.themes = state.themes.filter((k) => k !== key);
       else state.themes = state.themes.concat([key]);
       emit();
     },
 
-    unpinSplit() { state.splitPinned = false; state.split = BB.u.splitForBand(state.band); syncPosture(); emit(); },
-
-    setSplit(conv) {
-      const v = Math.max(0, Math.min(100, Math.round(conv)));
-      state.split = v;
-      state.splitPinned = v !== BB.u.splitForBand(state.band);
-      syncPosture();
-      emit();
-    },
-
     commitSplit() {
-      log("Mandate", "Anchor " + state.band + "% target · " + (100 - state.split) + " / " + state.split
-        + " · " + state.themes.length + " themes", "principal");
+      log("Mandate", "Anchor " + state.anchorPct + "% of assets targeting " + state.targetYield
+        + "% · conviction " + convShare() + "% across " + state.themes.length + " exposures", "principal");
       emit();
     },
 
@@ -3197,8 +3265,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       const m = D.mandates.find((x) => x.key === key);
       if (!m) return;
       state.mandate = key;
-      state.split = D.bucketPresets[key] !== undefined ? D.bucketPresets[key] : state.split;
-      state.splitPinned = true;
+      state.anchorPct = D.bucketPresets[key] !== undefined ? 100 - D.bucketPresets[key] : state.anchorPct;
       // rescale subcategory targets proportionally inside each class
       D.classes.forEach((c) => {
         const old = c.target, next = m.targets[c.key];
@@ -4120,7 +4187,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     const st = S.get();
     if (!amount) return <div className="note">Enter an amount to see the allocation impact.</div>;
     const place = u.offerPlace(offering || { fills: subKey, retNum: null, sector: null });
-    const bk = u.byBucket(st.positions, st.band, st.splitPinned ? st.split : null);
+    const bk = u.byBucket(st.positions, 100 - st.anchorPct);
     const row = bk.find((b) => b.key === place.bucket);
     if (!row) return null;
     const t = u.total(st.positions) || 1;
@@ -4821,22 +4888,23 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   /* ----------------------------------------------------------- 3. mandate */
   function Mandate() {
     const st = S.useStore();
-    /* One question at onboarding: what return is this capital asked for? The
-       anchor's rung carries the split with it, so a first customer sets one
-       number rather than an allocation. */
-    const [band, setBand] = useState(st.band);
-    const sel = u.splitForBand(band);
+    /* Two questions at onboarding: how much of the net worth the anchor
+       carries, and what it is asked to earn. Conviction is the leftover and
+       is never asked for. The basket behind the target is built, not chosen. */
+    const [pctA, setPctA] = useState(st.anchorPct);
+    const [yld, setYld] = useState(st.targetYield);
+    const sel = 100 - pctA;
     const answered = D.survey.filter((q) => st.survey[q.id] !== undefined).length;
     const postureOf = (v) => {
       const k = Object.keys(D.bucketPresets).find((k2) => D.bucketPresets[k2] === v);
       return (k && D.mandates.find((x) => x.key === k)) || null;
     };
     const m = postureOf(sel);
-    const fund = D.anchorShelf.find((f) => f.band === band) || D.anchorShelf[0];
-    const selLabel = m ? m.label : "Anchor " + band + "% · " + (100 - sel) + " / " + sel;
-    const lad = u.anchorLadder(st.positions, band);
-    const themeRows = u.byTheme(st.positions, st.themes);
     const t = u.total(st.positions);
+    const built = u.buildAnchor((pctA / 100) * t, yld, st.cashFloor);
+    const selLabel = pctA + "% anchor at " + yld.toFixed(1) + "%";
+    const lad = u.anchorLadder(st.positions, null);
+    const themeRows = u.byTheme(st.positions, st.themes);
     const listed = st.positions.filter((x) => x.liq === "Daily").length;
 
     return (
@@ -4868,61 +4936,70 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
             </div>
           </div>
 
-          {/* One question, asked once. The shelf is the answer, and the split
-              falls out of it rather than being asked for separately. END-STATE. */}
+          {/* Two questions, asked once. The basket behind the target is built
+              for it — a first customer never picks a fund. END-STATE. */}
           <div className="panel">
             <div className="panel-hd">
               <div>
-                <h3>What is this capital asked for?</h3>
+                <h3>How much of this is the anchor, and what should it earn?</h3>
                 <div className="tri" style={{ fontSize: 11.5, marginTop: 2 }}>
-                  Pick the return the anchor targets. Everything else follows from it.
+                  Whatever the anchor does not take becomes the conviction sleeve.
                 </div>
               </div>
               <span className="tri" style={{ fontSize: 11 }}>{selLabel}</span>
             </div>
+
+            <div className="splitlever" style={{ borderBottom: "1px solid var(--g3)" }}>
+              <div className="sl-hd">
+                <div className="lbl">1 · In the anchor</div>
+                <div className="sl-read"><span className="sl-a num">{pctA}</span><span className="sl-sep">%</span></div>
+                <div className="sl-leg">
+                  <span><i style={{ background: "#1B2A4A" }} />Anchor {u.usdC((pctA / 100) * t)}</span>
+                  <span><i style={{ background: "#9A7B2E" }} />Conviction {u.usdC((sel / 100) * t)} · the rest</span>
+                </div>
+              </div>
+              <div className="sl-track">
+                <div className="sl-chips">
+                  {[50, 70, 80, 90, 100].map((v) => {
+                    const f2 = (v - 40) / 60;
+                    return (
+                      <button key={v} onClick={() => setPctA(v)} className={pctA === v ? "on" : ""}
+                        style={{ left: "calc(" + (f2 * 100) + "% + " + ((0.5 - f2) * 16).toFixed(1) + "px)" }}>{v}%</button>
+                    );
+                  })}
+                </div>
+                <input type="range" min="40" max="100" step="1" value={pctA}
+                  onChange={(e) => setPctA(+e.target.value)} />
+              </div>
+            </div>
+
             <div className="splitlever" style={{ borderBottom: 0 }}>
               <div className="sl-hd">
-                <div className="sl-read">
-                  <span className="sl-a num">{band}</span>
-                  <span className="sl-sep">%</span>
-                </div>
-                <div className="sl-leg">
-                  <span><b>{fund.name}</b> · {fund.liq} · vol {u.pct(fund.vol)}</span>
-                </div>
+                <div className="lbl">2 · Target yield</div>
+                <div className="sl-read"><span className="sl-a num">{yld.toFixed(1)}</span><span className="sl-sep">%</span></div>
+                <div className="sl-leg"><span>built from <b>{built.rows.length}</b> funds plus the cash reserve</span></div>
               </div>
               <div className="sl-track">
                 <div className="sl-chips">
                   {[5, 7, 9, 11, 13, 15].map((v) => {
                     const f2 = (v - D.SHELF_FLOOR) / (D.SHELF_CEIL - D.SHELF_FLOOR);
-                    const pm = postureOf(u.splitForBand(v));
                     return (
-                      <button key={v} onClick={() => setBand(v)} className={band === v ? "on" : ""}
-                        title={pm ? pm.line : "Ask the anchor for " + v + "%"}
-                        style={{ left: "calc(" + (f2 * 100) + "% + " + ((0.5 - f2) * 16).toFixed(1) + "px)" }}>
-                        {v}%
-                      </button>
+                      <button key={v} onClick={() => setYld(v)} className={Math.abs(yld - v) < 0.05 ? "on" : ""}
+                        style={{ left: "calc(" + (f2 * 100) + "% + " + ((0.5 - f2) * 16).toFixed(1) + "px)" }}>{v}%</button>
                     );
                   })}
                 </div>
-                <input type="range" min={D.SHELF_FLOOR} max={D.SHELF_CEIL} step="1" value={band}
-                  onChange={(e) => setBand(+e.target.value)} />
+                <input type="range" min={D.SHELF_FLOOR * 10} max={D.SHELF_CEIL * 10} step="1" value={Math.round(yld * 10)}
+                  onChange={(e) => setYld(+e.target.value / 10)} />
               </div>
-              <div className="sl-inside tri">{fund.inside}</div>
-              <div className="sl-split">
-                <div className="ss-l">
-                  <span className="lbl">Which makes the book</span>
-                  <span className="ss-read num">
-                    <b style={{ color: "#1B2A4A" }}>{100 - sel}</b> / <b style={{ color: "#9A7B2E" }}>{sel}</b>
-                  </span>
-                  <span className="tri" style={{ fontSize: 11 }}>
-                    anchor {u.usdC(((100 - sel) / 100) * t)} · conviction {u.usdC((sel / 100) * t)}
-                  </span>
-                </div>
+              <div className="sl-inside tri">
+                {u.usdC(built.cash)} always stays in the cash reserve at {u.pct(D.cashFund.yield)}, so the
+                other {u.usdC(built.rest)} has to earn <b>{u.pct(built.needed)}</b>.
               </div>
               <div className="lever-note">
                 <span style={{ flex: 1 }}>
                   {m ? <><b>{m.label}</b> — {m.line}</>
-                     : <>A setting of the family's own. Asking for more makes the anchor smaller, not just busier.</>}
+                     : <>A setting of the family's own. The basket is built for it; no fund is picked by hand.</>}
                 </span>
               </div>
             </div>
@@ -4935,14 +5012,14 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
             <div>
               <h3>What do you want a view on?</h3>
               <div className="tri" style={{ fontSize: 11.5, marginTop: 2 }}>
-                Picking a theme does not buy anything. It tells the marketplace what to rank first.
+                Picking an exposure does not buy anything. It tells the marketplace what to rank first.
               </div>
             </div>
             <span className="tri" style={{ fontSize: 11 }}>{st.themes.length} picked</span>
           </div>
           <div className="panel-bd">
             <div className="themes">
-              {themeRows.map((th) => {
+              {themeRows.filter((th) => !th.fixed).map((th) => {
                 const on = st.themes.indexOf(th.key) >= 0;
                 return (
                   <button key={th.key} className={"th" + (on ? " on" : "") + (th.count ? " held" : "")}
@@ -4971,13 +5048,13 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
               <table className="t">
                 <thead><tr><th>Bucket</th><th className="n">Asked for</th><th className="n">Today</th><th className="n">Gap</th></tr></thead>
                 <tbody>
-                  {u.byBucket(st.positions, band, sel).map((b) => (
+                  {u.byBucket(st.positions, sel).map((b) => (
                     <tr key={b.key}>
                       <td>
                         <span className="legend" style={{ display: "inline-flex", gap: 8, alignItems: "center" }}>
                           <i className="sw" style={{ width: 9, height: 9, display: "inline-block", background: b.color }} />{b.label}
                         </span>
-                        <div className="tsub">{b.key === "engine" ? fund.name + " · " + fund.inside.slice(0, 54) + "…" : b.role}</div>
+                        <div className="tsub">{b.key === "engine" ? "targeting " + yld.toFixed(1) + "% across " + (built.rows.length + 1) + " funds" : "whatever the anchor does not take"}</div>
                       </td>
                       <td className="n num">{u.pct(b.target)}</td>
                       <td className="n num">{u.pct(b.wt)}</td>
@@ -5059,13 +5136,13 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
         {/* what the chosen split would compound to, against the book as it stands */}
         <div className="panel mt16">
-          <GrowthFan positions={st.positions} modelClasses={u.modelFour(band, sel)}
+          <GrowthFan positions={st.positions} modelClasses={u.modelFour(yld, sel)}
             modelLabel={selLabel} collapsible assumptions={false} />
         </div>
 
         <div className="btn-row mt16">
           <Lock>
-            <button className="btn p lg" onClick={() => { S.actions.setBand(band); S.actions.commitSplit(); S.navigate("/portfolio"); }}>
+            <button className="btn p lg" onClick={() => { S.actions.setAnchorPct(pctA); S.actions.setTargetYield(yld); S.actions.commitSplit(); S.navigate("/portfolio"); }}>
               Confirm and open the portfolio →
             </button>
           </Lock>
@@ -5175,7 +5252,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     const ideas = [];
     /* The shelf's own finding, read off the book: capital sitting below the
        lowest fund on it is capital nobody gave a job to. */
-    const lad = u.anchorLadder(positions, st.band);
+    const lad = u.anchorLadder(positions, null);
     if (lad.below.wt > 8) ideas.push({
       t: u.usdC(lad.below.value) + " is earning " + u.pct(lad.below.earns),
       d: lad.below.count + " holdings sit below Anchor 5, the lowest fund on the shelf — "
@@ -5184,7 +5261,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       to: "/portfolio?tab=liq", cta: "See what is actually committed",
     });
     /* Conviction that was arrived at rather than chosen. */
-    const cb = u.byBucket(positions, st.band, st.splitPinned ? st.split : null)[1];
+    const cb = u.byBucket(positions, 100 - st.anchorPct)[1];
     if (cb.drift > 5) ideas.push({
       t: "Conviction is " + u.pct(cb.wt) + ", not " + u.pct(cb.target),
       d: cb.count + " positions are held on a view rather than for a return profile. That is "
@@ -5241,7 +5318,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     const t = u.total(positions);
     const st = S.useStore();
     const [bOpen, setBOpen] = useState({});
-    const lad = u.anchorLadder(positions, st.band);
+    const lad = u.anchorLadder(positions, null);
     const themeRows = u.byTheme(positions, st.themes);
 
     return (
@@ -5251,7 +5328,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
             across, and Conviction opens onto the themes it is pointed at.
             END-STATE. */}
         <div className="buckets mt16">
-          {u.byBucket(positions, st.band, st.splitPinned ? st.split : null).map((b) => {
+          {u.byBucket(positions, 100 - st.anchorPct).map((b) => {
             const sp = u.spread(b.items, null);
             const open = !!bOpen[b.key];
             const isAnchor = b.key === "engine";
@@ -5264,7 +5341,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                       <div className="bk-name">{b.label}</div>
                       <div className="bk-role">
                         {isAnchor
-                          ? "Asked for " + st.band + "% · earning " + u.pct(lad.blended)
+                          ? "Asked for " + st.targetYield + "% · earning " + u.pct(lad.blended)
                           : b.role + " · " + themeRows.filter((x) => x.count > 0).length + " themes held"}
                       </div>
                     </div>
@@ -5368,128 +5445,141 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   }
 
   /* ------------------------------------------------- the model, in two parts */
-  /* There is no asset allocation here and no donut of asset classes. The model
-     is two answers: which rung of the shelf the anchor is asked to hit, and
-     which themes conviction is pointed at. Everything else follows. */
+  /* Two settings the family makes, and one that follows. How much sits in the
+     anchor; what the anchor is asked to earn; and conviction, which is simply
+     what is left. There is no asset allocation anywhere on this screen. */
   function ModelPanel({ positions }) {
     const st = S.useStore();
     const t = u.total(positions);
-    const [band, setBand] = useState(st.band);
-    const [conv, setConv] = useState(st.split);
-    const [pinned, setPinned] = useState(st.splitPinned);
-    React.useEffect(() => { setBand(st.band); setConv(st.split); setPinned(st.splitPinned); },
-      [st.band, st.split, st.splitPinned]);
+    const [pctA, setPctA] = useState(st.anchorPct);
+    const [yld, setYld] = useState(st.targetYield);
+    const [floor, setFloor] = useState(st.cashFloor);
+    React.useEffect(() => { setPctA(st.anchorPct); setYld(st.targetYield); setFloor(st.cashFloor); },
+      [st.anchorPct, st.targetYield, st.cashFloor]);
     const [path, setPath] = useState(false);
 
-    /* moving the rung moves the split with it, unless the family has pinned one */
-    const onBand = (b) => { setBand(b); if (!pinned) setConv(u.splitForBand(b)); };
-    const implied = u.splitForBand(band);
-    const whatIf = band !== st.band || conv !== st.split;
-
-    const lad = u.anchorLadder(positions, band);
+    const conv = 100 - pctA;
+    const anchorValue = (pctA / 100) * t;
+    const built = u.buildAnchor(anchorValue, yld, floor);
+    const lad = u.anchorLadder(positions, null);
     const themeRows = u.byTheme(positions, st.themes);
-    const bk = u.byBucket(positions, band, conv);
+    const bk = u.byBucket(positions, conv);
     const anchorRow = bk[0], convRow = bk[1];
-    const fund = D.anchorShelf.find((f) => f.band === band) || D.anchorShelf[0];
-    const modelClasses = u.modelFour(band, conv);
+    const whatIf = pctA !== st.anchorPct || yld !== st.targetYield || floor !== st.cashFloor;
     const confirmed = st.activity.find((a) => a.kind === "Mandate");
 
     const THUMB = 16;
-    const fb = (b) => (b - D.SHELF_FLOOR) / (D.SHELF_CEIL - D.SHELF_FLOOR);
-    const postureOf = (v) => {
-      const k = Object.keys(D.bucketPresets).find((k2) => D.bucketPresets[k2] === v);
-      return (k && D.mandates.find((x) => x.key === k)) || null;
-    };
-
-    /* the shelf drawn as a shelf: one column per rung, height is what is held */
-    const maxWt = Math.max(1, ...lad.rows.map((r) => r.ofAnchor), lad.below.ofAnchor);
+    const fy = (v) => (v - D.SHELF_FLOOR) / (D.SHELF_CEIL - D.SHELF_FLOOR);
+    const maxBar = Math.max(1, ...built.rows.map((r) => r.pct), built.cashPct);
 
     return (
       <>
         <div className="panel mt16" id="model-panel">
           <div className="panel-hd">
             <div>
-              <h3>The anchor</h3>
+              <h3>How this book is built</h3>
               <div className="tri" style={{ fontSize: 11.5, marginTop: 2 }}>
-                One question: what return is this capital asked for?
+                Two settings. Conviction is whatever the anchor does not take.
               </div>
             </div>
             <button className="btn sm" onClick={() => setPath(true)}>What to do about it</button>
           </div>
 
-          {/* the one lever — the rung, which carries the split with it */}
+          {/* 1 — how much of the net worth the anchor carries */}
           <div className="splitlever">
             <div className="sl-hd">
-              <div className="lbl">Target return</div>
+              <div className="lbl">1 · In the anchor</div>
               <div className="sl-read">
-                <span className="sl-a num">{band}</span>
+                <span className="sl-a num">{pctA}</span>
                 <span className="sl-sep">%</span>
               </div>
               <div className="sl-leg">
-                <span><b>{fund.name}</b> · {fund.liq} · vol {u.pct(fund.vol)}</span>
+                <span><i style={{ background: "#1B2A4A" }} />Anchor {u.usdC(anchorValue)}</span>
+                <span><i style={{ background: "#9A7B2E" }} />Conviction {u.usdC((conv / 100) * t)} · the rest</span>
               </div>
             </div>
-
             <div className="sl-track">
               <div className="sl-chips">
-                {[5, 7, 9, 11, 13, 15].map((v) => {
-                  const pm = postureOf(u.splitForBand(v));
-                  return (
-                    <button key={v} onClick={() => onBand(v)} className={band === v ? "on" : ""}
-                      title={pm ? pm.label + " · " + (100 - u.splitForBand(v)) + " / " + u.splitForBand(v) : "Ask the anchor for " + v + "%"}
-                      style={{ left: "calc(" + (fb(v) * 100) + "% + " + ((0.5 - fb(v)) * THUMB).toFixed(1) + "px)" }}>
-                      {v}%
-                    </button>
-                  );
-                })}
+                {[50, 70, 80, 90, 100].map((v) => (
+                  <button key={v} onClick={() => setPctA(v)} className={pctA === v ? "on" : ""}
+                    title={v === 100 ? "No conviction sleeve at all" : v + " / " + (100 - v)}
+                    style={{ left: "calc(" + (((v - 40) / 60) * 100) + "% + " + ((0.5 - (v - 40) / 60) * THUMB).toFixed(1) + "px)" }}>
+                    {v}%
+                  </button>
+                ))}
               </div>
-              <input type="range" min={D.SHELF_FLOOR} max={D.SHELF_CEIL} step="1" value={band}
-                onChange={(e) => onBand(+e.target.value)} />
+              <input type="range" min="40" max="100" step="1" value={pctA}
+                onChange={(e) => setPctA(+e.target.value)} />
             </div>
-            <div className="sl-inside tri">{fund.inside}</div>
+          </div>
 
-            {/* the split is the consequence, not a second question */}
+          {/* 2 — what the anchor is asked to earn */}
+          <div className="splitlever">
+            <div className="sl-hd">
+              <div className="lbl">2 · Target yield</div>
+              <div className="sl-read">
+                <span className="sl-a num" style={{ color: "#1B2A4A" }}>{yld.toFixed(1)}</span>
+                <span className="sl-sep">%</span>
+              </div>
+              <div className="sl-leg">
+                <span>built from <b>{built.rows.length}</b> funds plus the cash reserve</span>
+              </div>
+            </div>
+            <div className="sl-track">
+              <div className="sl-chips">
+                {[5, 7, 9, 11, 13, 15].map((v) => (
+                  <button key={v} onClick={() => setYld(v)} className={Math.abs(yld - v) < 0.05 ? "on" : ""}
+                    style={{ left: "calc(" + (fy(v) * 100) + "% + " + ((0.5 - fy(v)) * THUMB).toFixed(1) + "px)" }}>
+                    {v}%
+                  </button>
+                ))}
+              </div>
+              <input type="range" min={D.SHELF_FLOOR * 10} max={D.SHELF_CEIL * 10} step="1" value={Math.round(yld * 10)}
+                onChange={(e) => setYld(+e.target.value / 10)} />
+            </div>
+
+            {/* the cash floor sits with the yield, because it is what makes the
+                rest of the basket work harder */}
             <div className="sl-split">
               <div className="ss-l">
-                <span className="lbl">Which makes the book</span>
-                <span className="ss-read num"><b style={{ color: "#1B2A4A" }}>{100 - conv}</b> / <b style={{ color: "#9A7B2E" }}>{conv}</b></span>
-                <span className="tri" style={{ fontSize: 11 }}>anchor / conviction</span>
+                <span className="lbl">Always in cash</span>
+                <span className="ss-read num">{u.usdC(floor)}</span>
+                <span className="tri" style={{ fontSize: 11 }}>
+                  {u.pct(built.cashPct)} of the anchor at {u.pct(D.cashFund.yield)}
+                </span>
               </div>
               <span className="spacer" />
-              {pinned ? (
-                <span className="btn-row">
-                  <span className="tri" style={{ fontSize: 11 }}>split set by hand · {implied} implied at {band}%</span>
-                  <button className="link g" onClick={() => { setPinned(false); setConv(implied); }}>Let it follow</button>
-                </span>
-              ) : (
-                <button className="link g" onClick={() => setPinned(true)}>Set the split by hand</button>
-              )}
+              <span className="btn-row">
+                {[0, 1500000, 3000000, 5000000].map((v) => (
+                  <button key={v} className={"chip" + (floor === v ? " on" : "")} onClick={() => setFloor(v)}>
+                    {v === 0 ? "None" : u.usdC(v)}
+                  </button>
+                ))}
+              </span>
             </div>
-            {pinned && (
-              <div className="sl-track" style={{ marginTop: 8 }}>
-                <input type="range" min="0" max="60" step="1" value={conv}
-                  onChange={(e) => setConv(+e.target.value)} />
-              </div>
-            )}
+            <div className="sl-inside tri">
+              Holding {u.usdC(floor)} at {u.pct(D.cashFund.yield)} means the other {u.usdC(built.rest)} has to
+              earn <b>{u.pct(built.needed)}</b> for the anchor to return {yld.toFixed(1)}%.
+              {!built.reachable && " That is past the top of the shelf — the basket is as high as it goes."}
+            </div>
 
             {whatIf ? (
               <div className="lever-note warn">
                 <span style={{ flex: 1 }}>
-                  A what-if. The family asks for <b>{st.band}%</b> at <b>{100 - st.split} / {st.split}</b>.
+                  A what-if. The family holds <b>{st.anchorPct}%</b> in the anchor at <b>{st.targetYield}%</b>.
                 </span>
                 <span className="btn-row">
-                  <button className="link g" onClick={() => { setBand(st.band); setConv(st.split); setPinned(st.splitPinned); }}>Discard</button>
+                  <button className="link g" onClick={() => { setPctA(st.anchorPct); setYld(st.targetYield); setFloor(st.cashFloor); }}>Discard</button>
                   <button className="btn sm p" onClick={() => {
-                    S.actions.setBand(band);
-                    if (pinned) S.actions.setSplit(conv); else S.actions.unpinSplit();
-                    S.actions.commitSplit();
+                    S.actions.setAnchorPct(pctA); S.actions.setTargetYield(yld);
+                    S.actions.setCashFloor(floor); S.actions.commitSplit();
                   }}>Adopt this</button>
                 </span>
               </div>
             ) : (
               <div className="lever-note">
                 <span style={{ flex: 1 }}>
-                  The family asks the anchor for <b>{band}%</b>
+                  <b>{pctA}%</b> in the anchor at <b>{yld.toFixed(1)}%</b> · <b>{conv}%</b> conviction
                   {confirmed ? " · confirmed " + u.fmtDate(confirmed.ts) : ""}
                 </span>
                 <button className="link g" onClick={() => S.navigate("/onboarding/mandate")}>Refine with 8 questions</button>
@@ -5497,115 +5587,135 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
             )}
           </div>
 
-          {/* where the anchor actually sits against the rung it was asked for */}
+          {/* the basket that target buys — built, not chosen */}
           <div className="shelfwrap">
             <div className="shelf-hd">
-              <span className="lbl">The shelf</span>
+              <span className="lbl">The basket this builds</span>
               <span className="tri" style={{ fontSize: 11.5 }}>
-                {u.usdC(lad.anchorValue)} of anchor, blended at <b>{u.pct(lad.blended)}</b> against {band}% asked for
+                {u.usdC(anchorValue)} across {built.rows.length + 1} funds, blended at <b>{u.pct(built.blended)}</b>
               </span>
             </div>
-            <div className="shelf">
-              {lad.below.count > 0 && (
-                <div className="rung off" style={{ flex: 1 }}>
-                  <div className="rb-wrap"><div className="rb" style={{ height: (lad.below.ofAnchor / maxWt) * 100 + "%" }} /></div>
-                  <div className="rl">below</div>
-                  <div className="rv num">{u.pct(lad.below.ofAnchor, 0)}</div>
-                </div>
-              )}
-              {lad.rows.map((f) => (
-                <div key={f.band} className={"rung" + (f.chosen ? " on" : "") + (f.count ? "" : " empty")} style={{ flex: 1 }}
-                  title={f.name + " · " + f.inside}>
-                  <div className="rb-wrap"><div className="rb" style={{ height: (f.ofAnchor / maxWt) * 100 + "%" }} /></div>
-                  <div className="rl">{f.band}</div>
-                  <div className="rv num">{f.count ? u.pct(f.ofAnchor, 0) : ""}</div>
-                </div>
-              ))}
-            </div>
+            <table className="t dense">
+              <thead><tr><th style={{ width: 150 }}>Fund</th><th>What it holds</th>
+                <th className="n" style={{ width: 90 }}>Target</th>
+                <th style={{ width: "22%" }}>Weight</th>
+                <th className="n" style={{ width: 80 }}>Of anchor</th>
+                <th className="n" style={{ width: 110 }}>Amount</th></tr></thead>
+              <tbody>
+                <tr className="rung-cash">
+                  <td><span className="rung-n">{D.cashFund.name}</span>
+                    <div className="tsub">{D.cashFund.liq} · floor</div></td>
+                  <td className="tsub">{D.cashFund.inside}</td>
+                  <td className="n num tri">{u.pct(D.cashFund.yield)}</td>
+                  <td><div className="wbar"><i style={{ width: (built.cashPct / maxBar) * 100 + "%", background: "#A9A396" }} /></div></td>
+                  <td className="n num">{u.pct(built.cashPct)}</td>
+                  <td className="n num">{u.usd(built.cash)}</td>
+                </tr>
+                {built.rows.map((f) => (
+                  <tr key={f.band}>
+                    <td><span className="rung-n">{f.name}</span>
+                      <div className="tsub">{f.liq} · vol {u.pct(f.vol)}</div></td>
+                    <td className="tsub">{f.inside}</td>
+                    <td className="n num tri">{u.pct(f.band)}</td>
+                    <td><div className="wbar"><i style={{ width: (f.pct / maxBar) * 100 + "%", background: "#1B2A4A" }} /></div></td>
+                    <td className="n num">{u.pct(f.ofAnchor)}</td>
+                    <td className="n num">{u.usd(f.value)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
             <div className="shelf-ft tri">
-              {lad.below.count > 0
-                ? <>{u.usdC(lad.below.value)} sits below the lowest fund on the shelf, earning {u.pct(lad.below.earns)}. It is not in the anchor — it is next to it.</>
-                : <>Every anchor holding sits on a rung.</>}
+              The basket is built for the target, not picked from a list. Raising the target narrows it toward the
+              top of the shelf; lowering it narrows it toward the bottom.
+              {lad.below.count > 0 && <> Against this, <b>{u.usdC(lad.below.value)}</b> of what is held today
+                earns {u.pct(lad.below.earns)} — under Anchor 5, so it clears neither the target nor the basket's lowest fund.</>}
             </div>
           </div>
 
-          {/* conviction is a set of choices, not a weight */}
+          {/* conviction is a menu, not a weight */}
           <div className="themewrap">
             <div className="shelf-hd">
-              <span className="lbl">Conviction themes</span>
+              <span className="lbl">3 · What conviction is pointed at</span>
               <span className="tri" style={{ fontSize: 11.5 }}>
-                {u.usdC(convRow.value)} · {u.pct(convRow.wt)} of the book against {u.pct(convRow.target)} asked for
+                {u.usdC(convRow.value)} held · {u.pct(convRow.wt)} of the book against {u.pct(conv)} left for it
               </span>
             </div>
             <div className="themes">
-              {themeRows.map((th) => {
+              {themeRows.filter((th) => !th.fixed || th.count > 0).map((th) => {
                 const on = st.themes.indexOf(th.key) >= 0;
                 return (
-                  <button key={th.key} className={"th" + (on ? " on" : "") + (th.count ? " held" : "")}
-                    onClick={() => S.actions.toggleTheme(th.key)} title={th.note}>
+                  <button key={th.key} className={"th" + (on ? " on" : "") + (th.count ? " held" : "") + (th.fixed ? " fixed" : "")}
+                    onClick={() => S.actions.toggleTheme(th.key)} title={th.note}
+                    disabled={th.fixed}>
                     <span className="th-hd">
-                      <i style={{ background: th.color, opacity: on ? 1 : .3 }} />
+                      <i style={{ background: th.color, opacity: on || th.fixed ? 1 : .3 }} />
                       <span className="th-n">{th.label}</span>
                       {th.flagged && <span className="bdg plain">open question</span>}
                     </span>
-                    <span className="th-v num">{th.count ? u.pct(th.wt) + " · " + u.usdC(th.value) : (on ? "picked, nothing held" : "not picked")}</span>
+                    <span className="th-v num">
+                      {th.count ? u.pct(th.wt) + " · " + u.usdC(th.value) : (on ? "picked, nothing held" : "not picked")}
+                    </span>
                     <span className="th-note tri">{th.note}</span>
                   </button>
                 );
               })}
             </div>
             <div className="shelf-ft tri">
-              Picking a theme does not buy anything. It tells the marketplace what to rank first.
+              Picking an exposure does not buy anything. It tells the marketplace what to rank first.
             </div>
           </div>
 
-          {/* what the anchor and the themes would compound to, if the assumptions hold */}
-          <GrowthFan positions={positions} modelClasses={modelClasses}
-            modelLabel={"Anchor " + band + "% · " + (100 - conv) + " / " + conv}
+          <GrowthFan positions={positions} modelClasses={u.modelFour(yld, conv)}
+            modelLabel={pctA + "% anchor at " + yld.toFixed(1) + "%"}
             collapsible defaultOpen={false} />
           <div style={{ padding: "8px 14px", borderTop: "1px solid var(--g3)", fontSize: 11, color: "var(--g2)" }}>
-            Returns shown for funds are targets, and for holdings are expectations. Neither is a promise.
+            Fund returns are targets and holding returns are expectations. Neither is a promise.
           </div>
         </div>
         {path && <PathModal positions={positions} lad={lad} bk={bk} themeRows={themeRows}
-          band={band} t={t} onClose={() => setPath(false)} />}
+          built={built} yld={yld} t={t} onClose={() => setPath(false)} />}
       </>
     );
   }
 
   /* --------------------------------------------------- what to do about it */
-  /* Four questions, in the order they cost the family money: capital below the
-     shelf, the anchor sitting off the rung it was asked for, the split, and
-     themes picked with nothing in them. Each one ends in a marketplace ask. */
-  function PathModal({ positions, lad, bk, themeRows, band, t, onClose }) {
-    const anchorRow = bk[0], convRow = bk[1];
+  function PathModal({ positions, lad, bk, themeRows, built, yld, t, onClose }) {
+    const convRow = bk[1];
     const items = [];
 
     if (lad.below.count > 0) items.push({
-      t: u.usdC(lad.below.value) + " is below the shelf",
-      d: lad.below.count + " holdings earning " + u.pct(lad.below.earns) + " — less than Anchor 5, the lowest fund on the shelf. "
-        + "Some of it is spending money and capital calls. The rest is capital that was never given a job.",
+      t: u.usdC(lad.below.value) + " earns " + u.pct(lad.below.earns),
+      d: lad.below.count + " holdings return less than Anchor 5, the lowest fund on the shelf. "
+        + u.usdC(built.cash) + " of that is the cash floor and belongs there. The rest was never given a job.",
       cta: "Find anchor funds", to: "/marketplace?ask=" + encodeURIComponent("daily liquidity yield"),
     });
 
-    const gap = lad.blended - band;
+    const gap = lad.blended - yld;
     if (Math.abs(gap) > 0.75) items.push({
-      t: "The anchor blends at " + u.pct(lad.blended) + ", not " + band + "%",
+      t: "What is held blends at " + u.pct(lad.blended) + ", not " + yld.toFixed(1) + "%",
       d: gap < 0
-        ? "It is " + u.pp(gap) + " short of what was asked for. Moving capital up the shelf closes it; so does lowering the rung, which is the more honest fix if the risk is not wanted."
-        : "It is " + u.pp(gap) + " ahead of what was asked for, which means more risk is being carried than the family said it wanted.",
+        ? "It is " + u.pp(gap) + " short of the target. Moving capital into the basket closes it; so does lowering the target, which is the more honest fix if the risk is not wanted."
+        : "It is " + u.pp(gap) + " ahead of the target, which means more risk is being carried than the family asked for.",
       cta: "Open the marketplace", to: "/marketplace",
     });
 
     if (Math.abs(convRow.drift) > 2) items.push({
-      t: "Conviction is " + u.pct(convRow.wt) + " against " + u.pct(convRow.target),
+      t: "Conviction is " + u.pct(convRow.wt) + " against " + u.pct(convRow.target) + " left for it",
       d: convRow.drift > 0
-        ? "Single-name equity and private positions add up to more of a view than the family said it wanted. Nothing is wrong with that — but it was not chosen as a number."
-        : "There is room for " + u.usdC((Math.abs(convRow.drift) / 100) * t) + " more conviction than is currently held.",
-      cta: convRow.drift > 0 ? "Review the themes" : "Find something", to: "/marketplace",
+        ? "Single-name equity and private positions add up to more of a view than the anchor setting leaves room for. Nothing is wrong with that — but it was arrived at, not chosen."
+        : "There is room for " + u.usdC((Math.abs(convRow.drift) / 100) * t) + " more conviction than is held.",
+      cta: "Review the exposures", to: "/portfolio#model-panel",
     });
 
-    themeRows.filter((th) => th.picked && th.count === 0).forEach((th) => items.push({
+    const legacy = themeRows.find((x) => x.key === "legacy");
+    if (legacy && legacy.count > 0) items.push({
+      t: u.usdC(legacy.value) + " sits outside every exposure on the menu",
+      d: legacy.count + " positions the family would not choose today but still carries"
+        + (legacy.largest ? ", the largest being " + legacy.largest.name : "") + ".",
+      cta: "See them", to: "/portfolio",
+    });
+
+    themeRows.filter((th) => th.picked && th.count === 0 && !th.fixed).forEach((th) => items.push({
       t: th.label + " is picked, and empty",
       d: th.note + " Fractional tokenised sizing means a position here no longer has to clear a fund minimum to be worth taking.",
       cta: "Find " + th.label.toLowerCase(), to: "/marketplace?ask=" + encodeURIComponent(th.label),
@@ -5632,6 +5742,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       </Modal>
     );
   }
+
 
   function ProvenancePanel({ positions, openSignal }) {
     const [edit, setEdit] = useState(null);
@@ -6531,7 +6642,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
             {/* DW [P]: the buying surface answers to the same two buckets as
                 the portfolio. The six classes stay one level down. END-STATE. */}
             <Panel title="Allocation context">
-              {u.byBucket(st.positions, st.band, st.splitPinned ? st.split : null).map((b) => (
+              {u.byBucket(st.positions, 100 - st.anchorPct).map((b) => (
                 <div key={b.key} className="mkb">
                   <div className="mkb-hd">
                     <i style={{ background: b.color }} />
@@ -6644,7 +6755,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     const sc = u.scoreFor(m, ctx);
     /* stated in the six model classes, not the subcategory beneath them */
     const place = u.offerPlace(m);
-    const bRow = u.byBucket(st.positions, st.band, st.splitPinned ? st.split : null)
+    const bRow = u.byBucket(st.positions, 100 - st.anchorPct)
       .find((b) => b.key === place.bucket);
     const mcDrift = bRow ? bRow.target - bRow.wt : 0;
     const gapWord = (x) => u.num(Math.abs(x), 1) + "pp " + (x > 0 ? "below" : "above") + " the model";
@@ -7102,7 +7213,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     const gap = u.bySub(st.positions).find((x) => x.key === l.sub);
     const liveIRR = u.currentIRR(l);
     const place = u.offerPlace({ fills: l.sub, retNum: liveIRR ? liveIRR.irr : null, sector: l.sector });
-    const bRow = u.byBucket(st.positions, st.band, st.splitPinned ? st.split : null)
+    const bRow = u.byBucket(st.positions, 100 - st.anchorPct)
       .find((b) => b.key === place.bucket);
     const mcDrift = bRow ? bRow.target - bRow.wt : 0;
     const gapWord = (x) => u.num(Math.abs(x || 0), 1) + "pp " + ((x || 0) > 0 ? "below" : "above") + " the model";
@@ -7414,7 +7525,7 @@ Two ways in: take the ask and it settles immediately, or bid below it and wait f
     { key: "parity", who: "Risk-balanced", after: "after Dalio",
       q: "Is risk spread, or just capital?",
       read: (ps) => {
-        const b = u.byBucket(ps, S.get().band, S.get().splitPinned ? S.get().split : null);
+        const b = u.byBucket(ps, 100 - S.get().anchorPct);
         const eng = b.find((x) => x.key === "engine"), con = b.find((x) => x.key === "conviction");
         const sp = u.spread(ps);
         return [

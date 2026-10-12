@@ -728,3 +728,8 @@ tr.rung-below td{opacity:.62}
 .th-v{font-size:11.5px;color:var(--g1);font-weight:600}
 .th-note{font-size:11px;line-height:1.5}
 @media (max-width:560px){ .themes{grid-template-columns:1fr} .shelf{height:96px} .rl{font-size:9px} }
+
+/* The cash floor sits first in the basket and is styled as the floor it is. */
+tr.rung-cash td{background:#FCFBF8}
+.th.fixed{cursor:default;opacity:.8;border-style:dashed}
+.th.fixed:hover{border-color:var(--g3)}

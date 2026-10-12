@@ -450,12 +450,11 @@
      return decides the rung, and the sector decides the theme. Themes are
      matched on what the offering is about, not on its asset class. */
   const THEME_BY_SECTOR = {
-    "Data Centers": "compute", "Infrastructure": "compute", "Digital Assets": "compute",
-    "Technology": "private", "Info Tech": "listed", "Comm Services": "listed",
-    "Aerospace": "frontier", "Fintech": "private",
-    "Precious Metals": "resources", "Materials": "resources", "Energy": "resources",
-    "Real Estate": "resources", "Diversified RE": "resources", "Logistics": "resources",
+    "Technology": "privtech", "Fintech": "privtech", "Aerospace": "privtech",
+    "Info Tech": "pubtech", "Comm Services": "pubtech",
+    "Data Centers": "gpu", "Infrastructure": "gpu", "Digital Assets": "gpu",
   };
+  const THEME_BY_SUB = { vc: "venture", pe: "venture", preipo: "privtech", comm: "legacy" };
   function offerBucket(m) { return bucketKeyOf({ sub: m.fills, bucket: m.bucket }); }
   function offerRung(m) {
     const r = typeof m.retNum === "number" ? m.retNum : 0;
@@ -464,8 +463,7 @@
   }
   function offerTheme(m) {
     if (m.theme) return m.theme;
-    const k = THEME_BY_SECTOR[m.sector];
-    return k || "private";
+    return THEME_BY_SECTOR[m.sector] || THEME_BY_SUB[m.fills || m.sub] || "privtech";
   }
   /* The one line a row needs: which bucket, and where inside it. */
   function offerPlace(m) {
@@ -482,12 +480,62 @@
     };
   }
 
+  /* ------------------------------------------------ building the anchor ----
+     The family states a target yield; the basket is built for it. A minimum
+     dollar amount is always held in the cash fund, so the rest of the anchor
+     has to carry the whole target on its own — asking for 8% while $1.5M sits
+     at 3.8% is not an 8% problem for the remainder.
+
+     The basket is a tent across the shelf: full weight on the fund nearest
+     the centre, falling away either side, so the result is a spread of funds
+     rather than a single bet. The centre is solved by bisection until the
+     weighted mean clears what the remainder has to earn. Near the ends of the
+     shelf the tent is clipped, which narrows the basket on its own — asking
+     for exactly 5% gets you Anchor 5 and nothing else, and that is correct. */
+  const TENT = 4;
+  function tentWeights(c) {
+    const raw = D.anchorShelf.map((f) => Math.max(0, 1 - Math.abs(f.band - c) / TENT));
+    const sum = raw.reduce((a, b) => a + b, 0);
+    if (!sum) return D.anchorShelf.map(() => 0);
+    return raw.map((x) => x / sum);
+  }
+  function tentMean(c) {
+    const w = tentWeights(c);
+    return w.reduce((a, x, i) => a + x * D.anchorShelf[i].band, 0);
+  }
+
+  function buildAnchor(anchorValue, target, cashFloor) {
+    const cash = Math.max(0, Math.min(cashFloor, anchorValue));
+    const rest = Math.max(0, anchorValue - cash);
+    if (rest <= 0) {
+      return { cash, rest: 0, rows: [], blended: D.cashFund.yield, needed: 0,
+        reachable: target <= D.cashFund.yield + 0.05, cashPct: 100 };
+    }
+    /* what the non-cash remainder has to earn for the whole anchor to hit target */
+    const needed = (target * anchorValue - D.cashFund.yield * cash) / rest;
+    /* the centre can sit outside the shelf; the tent clips and the basket narrows */
+    let lo = D.SHELF_FLOOR - TENT + 0.5, hi = D.SHELF_CEIL + TENT - 0.5;
+    const reachable = needed >= tentMean(lo) - 0.01 && needed <= tentMean(hi) + 0.01;
+    for (let k = 0; k < 44; k++) {
+      const m = (lo + hi) / 2;
+      if (tentMean(m) < needed) lo = m; else hi = m;
+    }
+    const c = (lo + hi) / 2;
+    const w = tentWeights(c);
+    const rows = D.anchorShelf
+      .map((f, i) => ({ ...f, pct: w[i] * 100, ofAnchor: (w[i] * rest / anchorValue) * 100, value: w[i] * rest }))
+      .filter((r) => r.pct > 0.05);
+    const blended = (tentMean(c) * rest + D.cashFund.yield * cash) / anchorValue;
+    return { cash, rest, rows, blended, needed, centre: c, reachable,
+      cashPct: (cash / anchorValue) * 100, spread: rows.length };
+  }
+
   /* The four-class mix a rung and a split imply — used only to drive the
      projection, which has to reason in classes to reach a volatility. It is
      never shown as an allocation. A higher rung means the anchor reaches for
      return through equity-like risk rather than through duration. */
-  function modelFour(band, conv) {
-    const b = Math.max(D.SHELF_FLOOR, Math.min(D.SHELF_CEIL, band)) - D.SHELF_FLOOR;
+  function modelFour(target, conv) {
+    const b = Math.max(D.SHELF_FLOOR, Math.min(D.SHELF_CEIL, target)) - D.SHELF_FLOOR;
     const a = (100 - conv) / 100;
     return {
       equity: a * (5 + b * 3) + conv,
@@ -550,7 +598,7 @@
   /* The anchor laid out as the shelf it is: one row per rung the family
      actually holds something on, plus the capital sitting below the lowest
      fund. `target` marks the rung the family has chosen. */
-  function anchorLadder(ps, band) {
+  function anchorLadder(ps, chosen) {
     const eng = inBucket(ps, "engine");
     const t = total(ps) || 1;
     const ev = total(eng) || 1;
@@ -558,7 +606,7 @@
       const items = eng.filter((p) => rungOf(p) === f.band);
       const v = total(items);
       return { ...f, items, value: v, count: items.length,
-        wt: (v / t) * 100, ofAnchor: (v / ev) * 100, chosen: f.band === band };
+        wt: (v / t) * 100, ofAnchor: (v / ev) * 100, chosen: f.band === chosen };
     });
     const below = eng.filter((p) => rungOf(p) === null);
     const bv = total(below);
@@ -597,10 +645,10 @@
      exposure bought as an index slice stays in the Anchor. The disclosure one
      level down is the shelf for the Anchor and the themes for Conviction —
      never a list of asset classes. */
-  function byBucket(ps, band, convOverride) {
+  function byBucket(ps, convShare) {
     const t = total(ps);
-    const b0 = Math.max(D.SHELF_FLOOR, Math.min(D.SHELF_CEIL, band === undefined ? D.RISK_BASE.band : band));
-    const conv = convOverride === undefined || convOverride === null ? splitForBand(b0) : convOverride;
+    const conv = convShare === undefined || convShare === null ? D.RISK_BASE.conviction
+      : Math.max(0, Math.min(100, convShare));
     return D.buckets.map((b) => {
       const items = inBucket(ps, b.key);
       const v = total(items);
@@ -835,7 +883,7 @@
     usd, usdC, krwC, krwFull, pct, pp, sgn, sgnUsd, num, localPx, days, fmtDate, fmtTs, monthKey, monthLabel,
     staleness, provLabel, sum, total, byClass, bySub, gaps, unrealized, realizedYTD,
     liquidity90, liquidityProjection, shortfall, coverage, projectMix,
-    modelSix, convPct, bySix, sixToFour, sixToSubs, pickForClass, holdingsSix, geoBucket, GEO_BUCKETS, listingDocs, listingView, currentIRR, tradeHistory, impactSix, impactBucket, modelClassOf, modelClassLabel, bucketOf, bucketLabel, byBucket, spread, engineDrag, posReturn, rungOf, bucketKeyOf, inBucket, splitForBand, modelFour, anchorLadder, offerBucket, offerRung, offerTheme, offerPlace, byTheme, SUB_RETURN, topHoldings, affiliateExposure, taxLots, eligibility,
+    modelSix, convPct, bySix, sixToFour, sixToSubs, pickForClass, holdingsSix, geoBucket, GEO_BUCKETS, listingDocs, listingView, currentIRR, tradeHistory, impactSix, impactBucket, modelClassOf, modelClassLabel, bucketOf, bucketLabel, byBucket, spread, engineDrag, posReturn, rungOf, bucketKeyOf, inBucket, splitForBand, modelFour, buildAnchor, anchorLadder, offerBucket, offerRung, offerTheme, offerPlace, byTheme, SUB_RETURN, topHoldings, affiliateExposure, taxLots, eligibility,
     fitFor, subLabel, clsLabel, clsOf, impact, modelWeights, marketContext, scoreFor, suggestAmount,
   };
 })();

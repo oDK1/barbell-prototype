@@ -21,7 +21,7 @@
     const sc = u.scoreFor(m, ctx);
     /* stated in the six model classes, not the subcategory beneath them */
     const place = u.offerPlace(m);
-    const bRow = u.byBucket(st.positions, st.band, st.splitPinned ? st.split : null)
+    const bRow = u.byBucket(st.positions, 100 - st.anchorPct)
       .find((b) => b.key === place.bucket);
     const mcDrift = bRow ? bRow.target - bRow.wt : 0;
     const gapWord = (x) => u.num(Math.abs(x), 1) + "pp " + (x > 0 ? "below" : "above") + " the model";

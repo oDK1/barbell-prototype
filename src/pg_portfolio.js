@@ -90,7 +90,7 @@
     const ideas = [];
     /* The shelf's own finding, read off the book: capital sitting below the
        lowest fund on it is capital nobody gave a job to. */
-    const lad = u.anchorLadder(positions, st.band);
+    const lad = u.anchorLadder(positions, null);
     if (lad.below.wt > 8) ideas.push({
       t: u.usdC(lad.below.value) + " is earning " + u.pct(lad.below.earns),
       d: lad.below.count + " holdings sit below Anchor 5, the lowest fund on the shelf — "
@@ -99,7 +99,7 @@
       to: "/portfolio?tab=liq", cta: "See what is actually committed",
     });
     /* Conviction that was arrived at rather than chosen. */
-    const cb = u.byBucket(positions, st.band, st.splitPinned ? st.split : null)[1];
+    const cb = u.byBucket(positions, 100 - st.anchorPct)[1];
     if (cb.drift > 5) ideas.push({
       t: "Conviction is " + u.pct(cb.wt) + ", not " + u.pct(cb.target),
       d: cb.count + " positions are held on a view rather than for a return profile. That is "
@@ -156,7 +156,7 @@
     const t = u.total(positions);
     const st = S.useStore();
     const [bOpen, setBOpen] = useState({});
-    const lad = u.anchorLadder(positions, st.band);
+    const lad = u.anchorLadder(positions, null);
     const themeRows = u.byTheme(positions, st.themes);
 
     return (
@@ -166,7 +166,7 @@
             across, and Conviction opens onto the themes it is pointed at.
             END-STATE. */}
         <div className="buckets mt16">
-          {u.byBucket(positions, st.band, st.splitPinned ? st.split : null).map((b) => {
+          {u.byBucket(positions, 100 - st.anchorPct).map((b) => {
             const sp = u.spread(b.items, null);
             const open = !!bOpen[b.key];
             const isAnchor = b.key === "engine";
@@ -179,7 +179,7 @@
                       <div className="bk-name">{b.label}</div>
                       <div className="bk-role">
                         {isAnchor
-                          ? "Asked for " + st.band + "% · earning " + u.pct(lad.blended)
+                          ? "Asked for " + st.targetYield + "% · earning " + u.pct(lad.blended)
                           : b.role + " · " + themeRows.filter((x) => x.count > 0).length + " themes held"}
                       </div>
                     </div>
@@ -283,128 +283,141 @@
   }
 
   /* ------------------------------------------------- the model, in two parts */
-  /* There is no asset allocation here and no donut of asset classes. The model
-     is two answers: which rung of the shelf the anchor is asked to hit, and
-     which themes conviction is pointed at. Everything else follows. */
+  /* Two settings the family makes, and one that follows. How much sits in the
+     anchor; what the anchor is asked to earn; and conviction, which is simply
+     what is left. There is no asset allocation anywhere on this screen. */
   function ModelPanel({ positions }) {
     const st = S.useStore();
     const t = u.total(positions);
-    const [band, setBand] = useState(st.band);
-    const [conv, setConv] = useState(st.split);
-    const [pinned, setPinned] = useState(st.splitPinned);
-    React.useEffect(() => { setBand(st.band); setConv(st.split); setPinned(st.splitPinned); },
-      [st.band, st.split, st.splitPinned]);
+    const [pctA, setPctA] = useState(st.anchorPct);
+    const [yld, setYld] = useState(st.targetYield);
+    const [floor, setFloor] = useState(st.cashFloor);
+    React.useEffect(() => { setPctA(st.anchorPct); setYld(st.targetYield); setFloor(st.cashFloor); },
+      [st.anchorPct, st.targetYield, st.cashFloor]);
     const [path, setPath] = useState(false);
 
-    /* moving the rung moves the split with it, unless the family has pinned one */
-    const onBand = (b) => { setBand(b); if (!pinned) setConv(u.splitForBand(b)); };
-    const implied = u.splitForBand(band);
-    const whatIf = band !== st.band || conv !== st.split;
-
-    const lad = u.anchorLadder(positions, band);
+    const conv = 100 - pctA;
+    const anchorValue = (pctA / 100) * t;
+    const built = u.buildAnchor(anchorValue, yld, floor);
+    const lad = u.anchorLadder(positions, null);
     const themeRows = u.byTheme(positions, st.themes);
-    const bk = u.byBucket(positions, band, conv);
+    const bk = u.byBucket(positions, conv);
     const anchorRow = bk[0], convRow = bk[1];
-    const fund = D.anchorShelf.find((f) => f.band === band) || D.anchorShelf[0];
-    const modelClasses = u.modelFour(band, conv);
+    const whatIf = pctA !== st.anchorPct || yld !== st.targetYield || floor !== st.cashFloor;
     const confirmed = st.activity.find((a) => a.kind === "Mandate");
 
     const THUMB = 16;
-    const fb = (b) => (b - D.SHELF_FLOOR) / (D.SHELF_CEIL - D.SHELF_FLOOR);
-    const postureOf = (v) => {
-      const k = Object.keys(D.bucketPresets).find((k2) => D.bucketPresets[k2] === v);
-      return (k && D.mandates.find((x) => x.key === k)) || null;
-    };
-
-    /* the shelf drawn as a shelf: one column per rung, height is what is held */
-    const maxWt = Math.max(1, ...lad.rows.map((r) => r.ofAnchor), lad.below.ofAnchor);
+    const fy = (v) => (v - D.SHELF_FLOOR) / (D.SHELF_CEIL - D.SHELF_FLOOR);
+    const maxBar = Math.max(1, ...built.rows.map((r) => r.pct), built.cashPct);
 
     return (
       <>
         <div className="panel mt16" id="model-panel">
           <div className="panel-hd">
             <div>
-              <h3>The anchor</h3>
+              <h3>How this book is built</h3>
               <div className="tri" style={{ fontSize: 11.5, marginTop: 2 }}>
-                One question: what return is this capital asked for?
+                Two settings. Conviction is whatever the anchor does not take.
               </div>
             </div>
             <button className="btn sm" onClick={() => setPath(true)}>What to do about it</button>
           </div>
 
-          {/* the one lever — the rung, which carries the split with it */}
+          {/* 1 — how much of the net worth the anchor carries */}
           <div className="splitlever">
             <div className="sl-hd">
-              <div className="lbl">Target return</div>
+              <div className="lbl">1 · In the anchor</div>
               <div className="sl-read">
-                <span className="sl-a num">{band}</span>
+                <span className="sl-a num">{pctA}</span>
                 <span className="sl-sep">%</span>
               </div>
               <div className="sl-leg">
-                <span><b>{fund.name}</b> · {fund.liq} · vol {u.pct(fund.vol)}</span>
+                <span><i style={{ background: "#1B2A4A" }} />Anchor {u.usdC(anchorValue)}</span>
+                <span><i style={{ background: "#9A7B2E" }} />Conviction {u.usdC((conv / 100) * t)} · the rest</span>
               </div>
             </div>
-
             <div className="sl-track">
               <div className="sl-chips">
-                {[5, 7, 9, 11, 13, 15].map((v) => {
-                  const pm = postureOf(u.splitForBand(v));
-                  return (
-                    <button key={v} onClick={() => onBand(v)} className={band === v ? "on" : ""}
-                      title={pm ? pm.label + " · " + (100 - u.splitForBand(v)) + " / " + u.splitForBand(v) : "Ask the anchor for " + v + "%"}
-                      style={{ left: "calc(" + (fb(v) * 100) + "% + " + ((0.5 - fb(v)) * THUMB).toFixed(1) + "px)" }}>
-                      {v}%
-                    </button>
-                  );
-                })}
+                {[50, 70, 80, 90, 100].map((v) => (
+                  <button key={v} onClick={() => setPctA(v)} className={pctA === v ? "on" : ""}
+                    title={v === 100 ? "No conviction sleeve at all" : v + " / " + (100 - v)}
+                    style={{ left: "calc(" + (((v - 40) / 60) * 100) + "% + " + ((0.5 - (v - 40) / 60) * THUMB).toFixed(1) + "px)" }}>
+                    {v}%
+                  </button>
+                ))}
               </div>
-              <input type="range" min={D.SHELF_FLOOR} max={D.SHELF_CEIL} step="1" value={band}
-                onChange={(e) => onBand(+e.target.value)} />
+              <input type="range" min="40" max="100" step="1" value={pctA}
+                onChange={(e) => setPctA(+e.target.value)} />
             </div>
-            <div className="sl-inside tri">{fund.inside}</div>
+          </div>
 
-            {/* the split is the consequence, not a second question */}
+          {/* 2 — what the anchor is asked to earn */}
+          <div className="splitlever">
+            <div className="sl-hd">
+              <div className="lbl">2 · Target yield</div>
+              <div className="sl-read">
+                <span className="sl-a num" style={{ color: "#1B2A4A" }}>{yld.toFixed(1)}</span>
+                <span className="sl-sep">%</span>
+              </div>
+              <div className="sl-leg">
+                <span>built from <b>{built.rows.length}</b> funds plus the cash reserve</span>
+              </div>
+            </div>
+            <div className="sl-track">
+              <div className="sl-chips">
+                {[5, 7, 9, 11, 13, 15].map((v) => (
+                  <button key={v} onClick={() => setYld(v)} className={Math.abs(yld - v) < 0.05 ? "on" : ""}
+                    style={{ left: "calc(" + (fy(v) * 100) + "% + " + ((0.5 - fy(v)) * THUMB).toFixed(1) + "px)" }}>
+                    {v}%
+                  </button>
+                ))}
+              </div>
+              <input type="range" min={D.SHELF_FLOOR * 10} max={D.SHELF_CEIL * 10} step="1" value={Math.round(yld * 10)}
+                onChange={(e) => setYld(+e.target.value / 10)} />
+            </div>
+
+            {/* the cash floor sits with the yield, because it is what makes the
+                rest of the basket work harder */}
             <div className="sl-split">
               <div className="ss-l">
-                <span className="lbl">Which makes the book</span>
-                <span className="ss-read num"><b style={{ color: "#1B2A4A" }}>{100 - conv}</b> / <b style={{ color: "#9A7B2E" }}>{conv}</b></span>
-                <span className="tri" style={{ fontSize: 11 }}>anchor / conviction</span>
+                <span className="lbl">Always in cash</span>
+                <span className="ss-read num">{u.usdC(floor)}</span>
+                <span className="tri" style={{ fontSize: 11 }}>
+                  {u.pct(built.cashPct)} of the anchor at {u.pct(D.cashFund.yield)}
+                </span>
               </div>
               <span className="spacer" />
-              {pinned ? (
-                <span className="btn-row">
-                  <span className="tri" style={{ fontSize: 11 }}>split set by hand · {implied} implied at {band}%</span>
-                  <button className="link g" onClick={() => { setPinned(false); setConv(implied); }}>Let it follow</button>
-                </span>
-              ) : (
-                <button className="link g" onClick={() => setPinned(true)}>Set the split by hand</button>
-              )}
+              <span className="btn-row">
+                {[0, 1500000, 3000000, 5000000].map((v) => (
+                  <button key={v} className={"chip" + (floor === v ? " on" : "")} onClick={() => setFloor(v)}>
+                    {v === 0 ? "None" : u.usdC(v)}
+                  </button>
+                ))}
+              </span>
             </div>
-            {pinned && (
-              <div className="sl-track" style={{ marginTop: 8 }}>
-                <input type="range" min="0" max="60" step="1" value={conv}
-                  onChange={(e) => setConv(+e.target.value)} />
-              </div>
-            )}
+            <div className="sl-inside tri">
+              Holding {u.usdC(floor)} at {u.pct(D.cashFund.yield)} means the other {u.usdC(built.rest)} has to
+              earn <b>{u.pct(built.needed)}</b> for the anchor to return {yld.toFixed(1)}%.
+              {!built.reachable && " That is past the top of the shelf — the basket is as high as it goes."}
+            </div>
 
             {whatIf ? (
               <div className="lever-note warn">
                 <span style={{ flex: 1 }}>
-                  A what-if. The family asks for <b>{st.band}%</b> at <b>{100 - st.split} / {st.split}</b>.
+                  A what-if. The family holds <b>{st.anchorPct}%</b> in the anchor at <b>{st.targetYield}%</b>.
                 </span>
                 <span className="btn-row">
-                  <button className="link g" onClick={() => { setBand(st.band); setConv(st.split); setPinned(st.splitPinned); }}>Discard</button>
+                  <button className="link g" onClick={() => { setPctA(st.anchorPct); setYld(st.targetYield); setFloor(st.cashFloor); }}>Discard</button>
                   <button className="btn sm p" onClick={() => {
-                    S.actions.setBand(band);
-                    if (pinned) S.actions.setSplit(conv); else S.actions.unpinSplit();
-                    S.actions.commitSplit();
+                    S.actions.setAnchorPct(pctA); S.actions.setTargetYield(yld);
+                    S.actions.setCashFloor(floor); S.actions.commitSplit();
                   }}>Adopt this</button>
                 </span>
               </div>
             ) : (
               <div className="lever-note">
                 <span style={{ flex: 1 }}>
-                  The family asks the anchor for <b>{band}%</b>
+                  <b>{pctA}%</b> in the anchor at <b>{yld.toFixed(1)}%</b> · <b>{conv}%</b> conviction
                   {confirmed ? " · confirmed " + u.fmtDate(confirmed.ts) : ""}
                 </span>
                 <button className="link g" onClick={() => S.navigate("/onboarding/mandate")}>Refine with 8 questions</button>
@@ -412,115 +425,135 @@
             )}
           </div>
 
-          {/* where the anchor actually sits against the rung it was asked for */}
+          {/* the basket that target buys — built, not chosen */}
           <div className="shelfwrap">
             <div className="shelf-hd">
-              <span className="lbl">The shelf</span>
+              <span className="lbl">The basket this builds</span>
               <span className="tri" style={{ fontSize: 11.5 }}>
-                {u.usdC(lad.anchorValue)} of anchor, blended at <b>{u.pct(lad.blended)}</b> against {band}% asked for
+                {u.usdC(anchorValue)} across {built.rows.length + 1} funds, blended at <b>{u.pct(built.blended)}</b>
               </span>
             </div>
-            <div className="shelf">
-              {lad.below.count > 0 && (
-                <div className="rung off" style={{ flex: 1 }}>
-                  <div className="rb-wrap"><div className="rb" style={{ height: (lad.below.ofAnchor / maxWt) * 100 + "%" }} /></div>
-                  <div className="rl">below</div>
-                  <div className="rv num">{u.pct(lad.below.ofAnchor, 0)}</div>
-                </div>
-              )}
-              {lad.rows.map((f) => (
-                <div key={f.band} className={"rung" + (f.chosen ? " on" : "") + (f.count ? "" : " empty")} style={{ flex: 1 }}
-                  title={f.name + " · " + f.inside}>
-                  <div className="rb-wrap"><div className="rb" style={{ height: (f.ofAnchor / maxWt) * 100 + "%" }} /></div>
-                  <div className="rl">{f.band}</div>
-                  <div className="rv num">{f.count ? u.pct(f.ofAnchor, 0) : ""}</div>
-                </div>
-              ))}
-            </div>
+            <table className="t dense">
+              <thead><tr><th style={{ width: 150 }}>Fund</th><th>What it holds</th>
+                <th className="n" style={{ width: 90 }}>Target</th>
+                <th style={{ width: "22%" }}>Weight</th>
+                <th className="n" style={{ width: 80 }}>Of anchor</th>
+                <th className="n" style={{ width: 110 }}>Amount</th></tr></thead>
+              <tbody>
+                <tr className="rung-cash">
+                  <td><span className="rung-n">{D.cashFund.name}</span>
+                    <div className="tsub">{D.cashFund.liq} · floor</div></td>
+                  <td className="tsub">{D.cashFund.inside}</td>
+                  <td className="n num tri">{u.pct(D.cashFund.yield)}</td>
+                  <td><div className="wbar"><i style={{ width: (built.cashPct / maxBar) * 100 + "%", background: "#A9A396" }} /></div></td>
+                  <td className="n num">{u.pct(built.cashPct)}</td>
+                  <td className="n num">{u.usd(built.cash)}</td>
+                </tr>
+                {built.rows.map((f) => (
+                  <tr key={f.band}>
+                    <td><span className="rung-n">{f.name}</span>
+                      <div className="tsub">{f.liq} · vol {u.pct(f.vol)}</div></td>
+                    <td className="tsub">{f.inside}</td>
+                    <td className="n num tri">{u.pct(f.band)}</td>
+                    <td><div className="wbar"><i style={{ width: (f.pct / maxBar) * 100 + "%", background: "#1B2A4A" }} /></div></td>
+                    <td className="n num">{u.pct(f.ofAnchor)}</td>
+                    <td className="n num">{u.usd(f.value)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
             <div className="shelf-ft tri">
-              {lad.below.count > 0
-                ? <>{u.usdC(lad.below.value)} sits below the lowest fund on the shelf, earning {u.pct(lad.below.earns)}. It is not in the anchor — it is next to it.</>
-                : <>Every anchor holding sits on a rung.</>}
+              The basket is built for the target, not picked from a list. Raising the target narrows it toward the
+              top of the shelf; lowering it narrows it toward the bottom.
+              {lad.below.count > 0 && <> Against this, <b>{u.usdC(lad.below.value)}</b> of what is held today
+                earns {u.pct(lad.below.earns)} — under Anchor 5, so it clears neither the target nor the basket's lowest fund.</>}
             </div>
           </div>
 
-          {/* conviction is a set of choices, not a weight */}
+          {/* conviction is a menu, not a weight */}
           <div className="themewrap">
             <div className="shelf-hd">
-              <span className="lbl">Conviction themes</span>
+              <span className="lbl">3 · What conviction is pointed at</span>
               <span className="tri" style={{ fontSize: 11.5 }}>
-                {u.usdC(convRow.value)} · {u.pct(convRow.wt)} of the book against {u.pct(convRow.target)} asked for
+                {u.usdC(convRow.value)} held · {u.pct(convRow.wt)} of the book against {u.pct(conv)} left for it
               </span>
             </div>
             <div className="themes">
-              {themeRows.map((th) => {
+              {themeRows.filter((th) => !th.fixed || th.count > 0).map((th) => {
                 const on = st.themes.indexOf(th.key) >= 0;
                 return (
-                  <button key={th.key} className={"th" + (on ? " on" : "") + (th.count ? " held" : "")}
-                    onClick={() => S.actions.toggleTheme(th.key)} title={th.note}>
+                  <button key={th.key} className={"th" + (on ? " on" : "") + (th.count ? " held" : "") + (th.fixed ? " fixed" : "")}
+                    onClick={() => S.actions.toggleTheme(th.key)} title={th.note}
+                    disabled={th.fixed}>
                     <span className="th-hd">
-                      <i style={{ background: th.color, opacity: on ? 1 : .3 }} />
+                      <i style={{ background: th.color, opacity: on || th.fixed ? 1 : .3 }} />
                       <span className="th-n">{th.label}</span>
                       {th.flagged && <span className="bdg plain">open question</span>}
                     </span>
-                    <span className="th-v num">{th.count ? u.pct(th.wt) + " · " + u.usdC(th.value) : (on ? "picked, nothing held" : "not picked")}</span>
+                    <span className="th-v num">
+                      {th.count ? u.pct(th.wt) + " · " + u.usdC(th.value) : (on ? "picked, nothing held" : "not picked")}
+                    </span>
                     <span className="th-note tri">{th.note}</span>
                   </button>
                 );
               })}
             </div>
             <div className="shelf-ft tri">
-              Picking a theme does not buy anything. It tells the marketplace what to rank first.
+              Picking an exposure does not buy anything. It tells the marketplace what to rank first.
             </div>
           </div>
 
-          {/* what the anchor and the themes would compound to, if the assumptions hold */}
-          <GrowthFan positions={positions} modelClasses={modelClasses}
-            modelLabel={"Anchor " + band + "% · " + (100 - conv) + " / " + conv}
+          <GrowthFan positions={positions} modelClasses={u.modelFour(yld, conv)}
+            modelLabel={pctA + "% anchor at " + yld.toFixed(1) + "%"}
             collapsible defaultOpen={false} />
           <div style={{ padding: "8px 14px", borderTop: "1px solid var(--g3)", fontSize: 11, color: "var(--g2)" }}>
-            Returns shown for funds are targets, and for holdings are expectations. Neither is a promise.
+            Fund returns are targets and holding returns are expectations. Neither is a promise.
           </div>
         </div>
         {path && <PathModal positions={positions} lad={lad} bk={bk} themeRows={themeRows}
-          band={band} t={t} onClose={() => setPath(false)} />}
+          built={built} yld={yld} t={t} onClose={() => setPath(false)} />}
       </>
     );
   }
 
   /* --------------------------------------------------- what to do about it */
-  /* Four questions, in the order they cost the family money: capital below the
-     shelf, the anchor sitting off the rung it was asked for, the split, and
-     themes picked with nothing in them. Each one ends in a marketplace ask. */
-  function PathModal({ positions, lad, bk, themeRows, band, t, onClose }) {
-    const anchorRow = bk[0], convRow = bk[1];
+  function PathModal({ positions, lad, bk, themeRows, built, yld, t, onClose }) {
+    const convRow = bk[1];
     const items = [];
 
     if (lad.below.count > 0) items.push({
-      t: u.usdC(lad.below.value) + " is below the shelf",
-      d: lad.below.count + " holdings earning " + u.pct(lad.below.earns) + " — less than Anchor 5, the lowest fund on the shelf. "
-        + "Some of it is spending money and capital calls. The rest is capital that was never given a job.",
+      t: u.usdC(lad.below.value) + " earns " + u.pct(lad.below.earns),
+      d: lad.below.count + " holdings return less than Anchor 5, the lowest fund on the shelf. "
+        + u.usdC(built.cash) + " of that is the cash floor and belongs there. The rest was never given a job.",
       cta: "Find anchor funds", to: "/marketplace?ask=" + encodeURIComponent("daily liquidity yield"),
     });
 
-    const gap = lad.blended - band;
+    const gap = lad.blended - yld;
     if (Math.abs(gap) > 0.75) items.push({
-      t: "The anchor blends at " + u.pct(lad.blended) + ", not " + band + "%",
+      t: "What is held blends at " + u.pct(lad.blended) + ", not " + yld.toFixed(1) + "%",
       d: gap < 0
-        ? "It is " + u.pp(gap) + " short of what was asked for. Moving capital up the shelf closes it; so does lowering the rung, which is the more honest fix if the risk is not wanted."
-        : "It is " + u.pp(gap) + " ahead of what was asked for, which means more risk is being carried than the family said it wanted.",
+        ? "It is " + u.pp(gap) + " short of the target. Moving capital into the basket closes it; so does lowering the target, which is the more honest fix if the risk is not wanted."
+        : "It is " + u.pp(gap) + " ahead of the target, which means more risk is being carried than the family asked for.",
       cta: "Open the marketplace", to: "/marketplace",
     });
 
     if (Math.abs(convRow.drift) > 2) items.push({
-      t: "Conviction is " + u.pct(convRow.wt) + " against " + u.pct(convRow.target),
+      t: "Conviction is " + u.pct(convRow.wt) + " against " + u.pct(convRow.target) + " left for it",
       d: convRow.drift > 0
-        ? "Single-name equity and private positions add up to more of a view than the family said it wanted. Nothing is wrong with that — but it was not chosen as a number."
-        : "There is room for " + u.usdC((Math.abs(convRow.drift) / 100) * t) + " more conviction than is currently held.",
-      cta: convRow.drift > 0 ? "Review the themes" : "Find something", to: "/marketplace",
+        ? "Single-name equity and private positions add up to more of a view than the anchor setting leaves room for. Nothing is wrong with that — but it was arrived at, not chosen."
+        : "There is room for " + u.usdC((Math.abs(convRow.drift) / 100) * t) + " more conviction than is held.",
+      cta: "Review the exposures", to: "/portfolio#model-panel",
     });
 
-    themeRows.filter((th) => th.picked && th.count === 0).forEach((th) => items.push({
+    const legacy = themeRows.find((x) => x.key === "legacy");
+    if (legacy && legacy.count > 0) items.push({
+      t: u.usdC(legacy.value) + " sits outside every exposure on the menu",
+      d: legacy.count + " positions the family would not choose today but still carries"
+        + (legacy.largest ? ", the largest being " + legacy.largest.name : "") + ".",
+      cta: "See them", to: "/portfolio",
+    });
+
+    themeRows.filter((th) => th.picked && th.count === 0 && !th.fixed).forEach((th) => items.push({
       t: th.label + " is picked, and empty",
       d: th.note + " Fractional tokenised sizing means a position here no longer has to clear a fund minimum to be worth taking.",
       cta: "Find " + th.label.toLowerCase(), to: "/marketplace?ask=" + encodeURIComponent(th.label),
@@ -547,6 +580,7 @@
       </Modal>
     );
   }
+
 
   function ProvenancePanel({ positions, openSignal }) {
     const [edit, setEdit] = useState(null);

@@ -12,7 +12,7 @@
     const st = S.get();
     if (!amount) return <div className="note">Enter an amount to see the allocation impact.</div>;
     const place = u.offerPlace(offering || { fills: subKey, retNum: null, sector: null });
-    const bk = u.byBucket(st.positions, st.band, st.splitPinned ? st.split : null);
+    const bk = u.byBucket(st.positions, 100 - st.anchorPct);
     const row = bk.find((b) => b.key === place.bucket);
     if (!row) return null;
     const t = u.total(st.positions) || 1;

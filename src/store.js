@@ -29,16 +29,16 @@
     ops: clone(D.opsLedger),
     referrals: clone(D.referrals),
     mandate: "balanced",
-    /* One control: `band` is the rung of the anchor shelf the family asks for,
-       5 to 15. Raising it raises the return asked of the anchor and, inversely,
-       shrinks it — `split` (the conviction share) follows unless the family
-       overrides it, which is how a 99/1 stays expressible. `themes` is what
-       Conviction is pointed at. `mandate` survives only as the nearest posture
-       label and to feed the marketplace's scoring path. */
-    band: D.RISK_BASE.band,
-    split: D.RISK_BASE.conviction,
-    splitPinned: false,
-    themes: D.themes.filter((t) => !t.flagged).map((t) => t.key),
+    /* Three settings, and only the first two are choices the family makes.
+       `anchorPct` is how much of the net worth sits in the anchor —
+       conviction is whatever is left over, never set directly. `targetYield`
+       is what the anchor is asked to earn, and the basket of funds is built
+       for it. `cashFloor` is the minimum always held in the cash fund, so a
+       capital call never forces a sale. */
+    anchorPct: 90,
+    targetYield: D.RISK_BASE.band,
+    cashFloor: 1500000,
+    themes: ["privtech", "pubtech", "gpu", "venture"],
     survey: {},
     uploads: clone(D.uploadFiles),
     exceptions: clone(D.exceptions).map((e) => ({ ...e, resolved: false, value: e.type === "input" ? e.suggestion : e.answer })),
@@ -94,12 +94,16 @@
   }
 
   /* --------------------------------------------------------------- actions */
+  /* Conviction is the leftover, never a setting of its own. */
+  function convShare() { return 100 - state.anchorPct; }
+
   /* The marketplace's scoring still reasons in postures, so keep the nearest
-     one in step with whatever the split has become. */
+     one in step with whatever the leftover has become. */
   function syncPosture() {
     let best = "balanced", d = Infinity;
+    const v = convShare();
     Object.keys(D.bucketPresets).forEach((k) => {
-      const gap = Math.abs(D.bucketPresets[k] - state.split);
+      const gap = Math.abs(D.bucketPresets[k] - v);
       if (gap < d) { d = gap; best = k; }
     });
     state.mandate = best;
@@ -150,36 +154,38 @@
 
     /* The one model lever. Snaps `mandate` to the nearest posture so the
        marketplace's scoring, which still reasons in postures, stays coherent. */
-    /* The primary lever. Moves the anchor up or down the shelf and, unless the
-       family has pinned a split of its own, moves the split with it. */
-    setBand(b) {
-      const v = Math.max(D.SHELF_FLOOR, Math.min(D.SHELF_CEIL, Math.round(b)));
-      state.band = v;
-      if (!state.splitPinned) state.split = BB.u.splitForBand(v);
+    /* How much of the net worth the anchor carries. Conviction follows as
+       the remainder — it is never set directly. */
+    setAnchorPct(v) {
+      state.anchorPct = Math.max(40, Math.min(100, Math.round(v)));
       syncPosture();
       emit();
     },
 
+    /* What the anchor is asked to earn. The basket is rebuilt for it. */
+    setTargetYield(v) {
+      state.targetYield = Math.max(D.SHELF_FLOOR, Math.min(D.SHELF_CEIL, Math.round(v * 10) / 10));
+      emit();
+    },
+
+    /* The minimum that always stays in the cash fund. */
+    setCashFloor(v) {
+      state.cashFloor = Math.max(0, Math.round(v));
+      emit();
+    },
+
     toggleTheme(key) {
+      const th = D.themes.find((x) => x.key === key);
+      if (th && th.fixed) return;          /* legacy is not on the menu */
       const i = state.themes.indexOf(key);
       if (i >= 0) state.themes = state.themes.filter((k) => k !== key);
       else state.themes = state.themes.concat([key]);
       emit();
     },
 
-    unpinSplit() { state.splitPinned = false; state.split = BB.u.splitForBand(state.band); syncPosture(); emit(); },
-
-    setSplit(conv) {
-      const v = Math.max(0, Math.min(100, Math.round(conv)));
-      state.split = v;
-      state.splitPinned = v !== BB.u.splitForBand(state.band);
-      syncPosture();
-      emit();
-    },
-
     commitSplit() {
-      log("Mandate", "Anchor " + state.band + "% target · " + (100 - state.split) + " / " + state.split
-        + " · " + state.themes.length + " themes", "principal");
+      log("Mandate", "Anchor " + state.anchorPct + "% of assets targeting " + state.targetYield
+        + "% · conviction " + convShare() + "% across " + state.themes.length + " exposures", "principal");
       emit();
     },
 
@@ -187,8 +193,7 @@
       const m = D.mandates.find((x) => x.key === key);
       if (!m) return;
       state.mandate = key;
-      state.split = D.bucketPresets[key] !== undefined ? D.bucketPresets[key] : state.split;
-      state.splitPinned = true;
+      state.anchorPct = D.bucketPresets[key] !== undefined ? 100 - D.bucketPresets[key] : state.anchorPct;
       // rescale subcategory targets proportionally inside each class
       D.classes.forEach((c) => {
         const old = c.target, next = m.targets[c.key];

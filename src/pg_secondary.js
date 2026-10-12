@@ -206,7 +206,7 @@
     const gap = u.bySub(st.positions).find((x) => x.key === l.sub);
     const liveIRR = u.currentIRR(l);
     const place = u.offerPlace({ fills: l.sub, retNum: liveIRR ? liveIRR.irr : null, sector: l.sector });
-    const bRow = u.byBucket(st.positions, st.band, st.splitPinned ? st.split : null)
+    const bRow = u.byBucket(st.positions, 100 - st.anchorPct)
       .find((b) => b.key === place.bucket);
     const mcDrift = bRow ? bRow.target - bRow.wt : 0;
     const gapWord = (x) => u.num(Math.abs(x || 0), 1) + "pp " + ((x || 0) > 0 ? "below" : "above") + " the model";

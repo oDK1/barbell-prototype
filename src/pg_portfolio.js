@@ -312,7 +312,7 @@
               </div>
               <span className="spacer" />
               <span className="btn-row">
-                {[0, 1500000, 3000000, 5000000].map((v) => (
+                {[0, 2500000, 5000000, 8000000].map((v) => (
                   <button key={v} className={"chip" + (floor === v ? " on" : "")} onClick={() => setFloor(v)}>
                     {v === 0 ? "None" : u.usdC(v)}
                   </button>
@@ -500,18 +500,10 @@
       cta: "Widen the sleeve", to: "/marketplace?ask=" + encodeURIComponent("venture"),
     });
 
-    const legacy = themeRows.find((x) => x.key === "legacy");
-    if (legacy && legacy.count > 0) items.push({
-      t: u.usdC(legacy.value) + " sits outside every exposure on the menu",
-      d: legacy.count + " positions the family would not choose today but still carries"
-        + (legacy.largest ? ", the largest being " + legacy.largest.name : "") + ".",
-      cta: "See them", to: "/portfolio",
-    });
-
     themeRows.filter((th) => th.picked && th.count === 0 && !th.fixed).forEach((th) => items.push({
       t: th.label + " is picked, and empty",
       d: th.note + " Fractional tokenised sizing means a position here no longer has to clear a fund minimum to be worth taking.",
-      cta: "Find " + th.label.toLowerCase(), to: "/marketplace?ask=" + encodeURIComponent(th.label),
+      cta: "Find " + th.label, to: "/marketplace?ask=" + encodeURIComponent(th.label),
     }));
 
     return (

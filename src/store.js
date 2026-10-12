@@ -37,8 +37,8 @@
        capital call never forces a sale. */
     anchorPct: 90,
     targetYield: D.RISK_BASE.band,
-    cashFloor: 1500000,
-    themes: ["privtech", "pubtech", "gpu", "venture"],
+    cashFloor: 2500000,
+    themes: ["privtech", "pubtech", "gpu", "venture", "koreatalent"],
     survey: {},
     uploads: clone(D.uploadFiles),
     exceptions: clone(D.exceptions).map((e) => ({ ...e, resolved: false, value: e.type === "input" ? e.suggestion : e.answer })),
@@ -176,7 +176,6 @@
 
     toggleTheme(key) {
       const th = D.themes.find((x) => x.key === key);
-      if (th && th.fixed) return;          /* legacy is not on the menu */
       const i = state.themes.indexOf(key);
       if (i >= 0) state.themes = state.themes.filter((k) => k !== key);
       else state.themes = state.themes.concat([key]);

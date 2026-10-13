@@ -39,7 +39,7 @@
     anchorPct: 90,
     targetYield: D.RISK_BASE.band,
     cashFloor: 1000000,
-    themes: ["privtech", "pubtech", "gpu", "venture", "koreatalent"],
+    themes: ["privco", "pubtech", "gpu", "venture", "koreatalent"],
     survey: {},
     uploads: clone(D.uploadFiles),
     exceptions: clone(D.exceptions).map((e) => ({ ...e, resolved: false, value: e.type === "input" ? e.suggestion : e.answer })),

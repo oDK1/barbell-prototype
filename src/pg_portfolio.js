@@ -237,7 +237,7 @@
                 {open && !isAnchor && (
                   <div className="bk-in">
                     <table className="t dense">
-                      <thead><tr><th>Theme</th><th className="n">Positions</th>
+                      <thead><tr><th>Exposure</th><th>Claim / structure</th><th className="n">Positions</th>
                         <th className="n">Of conviction</th><th className="n">Of book</th><th className="n">Value</th></tr></thead>
                       <tbody>
                         {themeRows.filter((th) => th.count > 0 || th.picked).map((th) => (
@@ -250,6 +250,7 @@
                               </span>
                               <div className="tsub">{th.count ? (th.largest ? "largest · " + th.largest.name : "") : "picked, nothing held yet"}</div>
                             </td>
+                            <td className="tsub">{th.claim}{th.candidates ? <div>{th.candidates}</div> : null}</td>
                             <td className="n num tri">{th.count || "—"}</td>
                             <td className="n num">{th.count ? u.pct(th.ofConviction) : "—"}</td>
                             <td className="n num">{th.count ? u.pct(th.wt) : "—"}</td>
@@ -510,10 +511,14 @@
                     <span className="th-n">{th.label}</span>
                     {th.flagged && <span className="bdg plain">open question</span>}
                   </span>
+                  {th.sub && <span className="th-sub tri">{th.sub}</span>}
                   <span className="th-v num">
                     {th.count ? u.pct(th.wt) + " · " + u.usdC(th.value) : "picked, nothing held"}
                   </span>
-                  <span className="th-note tri">{th.note}</span>
+                  {/* what the thing actually is to own, and through what */}
+                  <span className="th-claim">
+                    <b>{th.claim}</b>{th.candidates ? " · " + th.candidates : ""}
+                  </span>
                 </button>
               ))}
             </div>
@@ -533,8 +538,9 @@
                               <span className="th-n">{th.label}</span>
                               {th.flagged && <span className="bdg plain">open question</span>}
                             </span>
+                            {th.sub && <span className="th-sub tri">{th.sub}</span>}
                             <span className="th-v num">not picked</span>
-                            <span className="th-note tri">{th.note}</span>
+                            <span className="th-claim"><b>{th.claim}</b>{th.candidates ? " · " + th.candidates : ""}</span>
                           </button>
                         ))}
                       </div>}

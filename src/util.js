@@ -551,11 +551,11 @@
      return decides the rung, and the sector decides the theme. Themes are
      matched on what the offering is about, not on its asset class. */
   const THEME_BY_SECTOR = {
-    "Technology": "privtech", "Fintech": "privtech", "Aerospace": "privtech",
+    "Technology": "privco", "Fintech": "privco", "Aerospace": "privco",
     "Info Tech": "pubtech", "Comm Services": "pubtech",
-    "Data Centers": "gpu", "Infrastructure": "gpu", "Digital Assets": "gpu",
+    "Data Centers": "compute", "Infrastructure": "compute", "Digital Assets": "compute",
   };
-  const THEME_BY_SUB = { vc: "venture", pe: "venture", preipo: "privtech", comm: "energy" };
+  const THEME_BY_SUB = { vc: "venture", pe: "venture", preipo: "privco", comm: "energy" };
   /* Themes only exist inside conviction, so an offering that names one is
      conviction whatever its instrument happens to be — a behind-the-meter
      power SPV is a view, not a yield product, even though it is infrastructure. */
@@ -570,7 +570,7 @@
   }
   function offerTheme(m) {
     if (m.theme) return m.theme;
-    return THEME_BY_SECTOR[m.sector] || THEME_BY_SUB[m.fills || m.sub] || "privtech";
+    return THEME_BY_SECTOR[m.sector] || THEME_BY_SUB[m.fills || m.sub] || "privco";
   }
   /* The one line a row needs: which bucket, and where inside it. */
   function offerPlace(m) {

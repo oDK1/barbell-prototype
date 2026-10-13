@@ -774,3 +774,6 @@ tr.rung-cash td{background:#FCFBF8}
 
 /* The credit table's total line: the one number the page is for. */
 .creditfoot td{border-top:2px solid var(--ink);background:#FCFBF8;padding-top:9px;padding-bottom:9px}
+.th-sub{font-size:11px;color:var(--g2);margin-top:-2px}
+.th-claim{font-size:10.5px;color:var(--g1);margin-top:3px;padding-top:5px;border-top:1px solid var(--g3);line-height:1.45}
+.th-claim b{font-weight:600;color:var(--ink-2)}

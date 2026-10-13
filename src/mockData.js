@@ -162,12 +162,12 @@
       sector: "Technology", geo: "United States", asOf: "2026-06-30", acquired: "2026-05-22", onBarbell: true, vintage: "2026",
       src: { file: "PE_Capital_Calls_v7_FINAL.xlsx", cell: "Fund List!A8" } },
     { id: "p18", name: "Aeris Aerospace — Series F secondary block", cls: "equity", sub: "preipo", grp: "Pre-IPO",
-      bucket: "conviction", theme: "privtech",
+      bucket: "conviction", theme: "privco",
       sleeve: "alpha", prov: "hanwha", value: 479808, cost: 374484, ccy: "USD", liq: "Immediate", term: "Until listing",
       sector: "Aerospace", geo: "United States", asOf: "2026-08-31", acquired: "2025-01-16", onBarbell: true, vintage: "2025",
       src: { file: "PE_Capital_Calls_v7_FINAL.xlsx", cell: "Fund List!A9" } },
     { id: "p19", name: "Viva Republica (Toss) common — 2023 block", legacy: "비바리퍼블리카 구주 (2023년 매입)", cls: "equity", sub: "preipo", grp: "Pre-IPO",
-      bucket: "conviction", theme: "privtech",
+      bucket: "conviction", theme: "privco",
       sleeve: "alpha", prov: "self", value: 257458, cost: 257458, ccy: "USD", liq: "Immediate", term: "Until listing",
       sector: "Fintech", geo: "Korea", asOf: "2026-03-31", acquired: "2023-06-30", onBarbell: false, vintage: "2023",
       src: { file: "PE_Capital_Calls_v7_FINAL.xlsx", cell: "Sheet3!C22" },
@@ -356,26 +356,31 @@
      The family never picks one. A target yield between 4% and 12% is stated
      and the basket is built across these funds to reach it.
 
-     Fund names are placeholders. No real manager or strategy is named. */
+     Each description says what the fund lends against and where the risk
+     sits — "limited Hanwha support", "rank behind senior lenders" — because a
+     rung that only states a number is asking to be read as a promise.
+
+     Yield targets are illustrative, net of vehicle fees and before personal
+     tax. No real manager or strategy is named. */
   const anchorShelf = [
     { band: 4,  name: "Target Yield 4%",  liq: "Immediate", vol: 1.9,
-      inside: "Developed-market sovereigns, bills and bank deposits. The return is what the curve gives." },
+      inside: "Government bills and bank deposits maturing within a year, held to maturity." },
     { band: 5,  name: "Target Yield 5%",  liq: "Immediate", vol: 2.6,
-      inside: "Investment-grade corporate credit, short duration." },
+      inside: "Bonds maturing in 1–5 years from investment-grade companies, with little or no fund borrowing." },
     { band: 6,  name: "Target Yield 6%",  liq: "Immediate", vol: 3.4,
-      inside: "Investment-grade credit further out the curve, and short-dated structured paper." },
+      inside: "Longer-maturity investment-grade corporate bonds, and securities backed by mortgage or other loan payments." },
     { band: 7,  name: "Target Yield 7%",  liq: "Immediate", vol: 4.6,
-      inside: "Structured income notes and listed real-asset income. Contractual coupons, repriced quarterly." },
+      inside: "High-yield corporate bonds and pools of homeowner solar or battery loans, with repayments collected by a servicer." },
     { band: 8,  name: "Target Yield 8%",  liq: "Immediate", vol: 5.9,
-      inside: "Diversified senior credit and core property income, across more than one currency." },
+      inside: "Senior GPU loans repaid over time, backed by identified hardware and enforceable Hanwha compute-purchase obligations." },
     { band: 9,  name: "Target Yield 9%",  liq: "Immediate", vol: 7.2,
-      inside: "Senior secured direct lending to sponsor-backed borrowers. First lien, floating rate." },
+      inside: "Direct loans to mid-sized companies, secured first against their assets, at rates that move with the base rate." },
     { band: 10, name: "Target Yield 10%", liq: "Immediate", vol: 8.6,
-      inside: "Direct lending with a mezzanine sleeve, infrastructure credit, and absolute-return funds whose return is manager skill rather than market direction." },
+      inside: "Loans against pooled Korean corporate compute contracts, with mixed customer credit quality and limited Hanwha support." },
     { band: 11, name: "Target Yield 11%", liq: "Immediate", vol: 10.0,
-      inside: "Systematic and market-neutral quantitative strategies, alongside opportunistic and bridge credit against harder collateral." },
+      inside: "Commodity loans backed by Hanwha purchase commitments, where repayment also depends on production and cross-border delivery." },
     { band: 12, name: "Target Yield 12%", liq: "Immediate", vol: 11.6,
-      inside: "Fund of funds across uncorrelated alternatives, high-yield emerging-market deposits, and on-chain lending yield." },
+      inside: "GPU loans to Chinese companies, secured by hardware and borrower cash flows; also selected loans that rank behind senior lenders." },
   ];
 
   const SHELF_FLOOR = 4;   /* the lowest fund on the shelf */
@@ -454,42 +459,57 @@
 
   /* ================================================= conviction exposures
      Bucket 2 is a menu of things to have a view about, not an asset class.
-     The family picks the exposures it wants and the marketplace ranks against
-     them.
 
-     The menu is the one the user specified, widened where the asset wishlist
-     opens a category it did not cover — energy, health, real estate. Each
-     entry carries the wishlist's own argument for why Hanwha can reach it:
-     the asset is discounted because nobody can verify the operator, and the
-     group's name closes that gap.
+     Each entry carries what it actually is — `claim` — because "private
+     equity", "an income-share claim" and "asset ownership through an SPV"
+     are three different things to own and the label alone hides that.
+     `candidates` names what a position would be taken through.
 
-     Three entries are flagged. None of them is a security, and how they would
-     list on the group's BD/ATS is unresolved. */
+     Three entries are flagged. None of them is a security yet, and how they
+     would list on the group's BD/ATS is unresolved. */
   const themes = [
-    { key: "privtech", label: "Private leading tech companies", color: "#5A74A0",
-      note: "Late-stage private technology before it lists. Secondaries and directs, where the block is large enough that the balance sheet matters." },
-    { key: "pubtech", label: "Public leading tech companies", color: "#1B2A4A",
+    { key: "compute", label: "Compute & AI infrastructure", color: "#1B2A4A",
+      sub: "Platforms, power & data centers", claim: "Equity ownership", candidates: "SMH",
+      note: "The physical layer under AI — silicon, the data centres around it, and the power underneath." },
+    { key: "pubtech", label: "Established public technology", color: "#3F7183",
+      sub: "Listed technology leaders", claim: "Listed shares", candidates: "QQQM",
       note: "Listed technology held by name, because of the company — not as a slice of an index." },
-    { key: "gpu", label: "GPU clusters and compute", color: "#3F7183",
+    { key: "privco", label: "Leading private companies", color: "#5A74A0",
+      sub: "Growth & secondaries", claim: "Private equity", candidates: "SPRING",
+      note: "Late-stage private companies before they list, taken through growth rounds and secondaries." },
+    { key: "venture", label: "Venture & frontier technology", color: "#85AEBC",
+      sub: "Emerging software, space & robotics", claim: "Private equity", candidates: "ARKVX",
+      note: "Top-tier funds through Hanwha's LP positions, and emerging managers the group's diligence can vouch for before anyone else can." },
+    { key: "gpu", label: "GPU cluster ownership", color: "#2F6E7A",
+      sub: "Hardware & operator partnerships", claim: "Asset / SPV ownership",
+      candidates: "Operator-managed B300 cluster-owning SPV · IREN",
       note: "Owning the hardware rather than lending against it. Inference margins are high and the group's own demand underwrites utilisation." },
-    { key: "venture", label: "Leading venture and private funds", color: "#85AEBC",
-      note: "Top-tier funds through Hanwha's LP positions, buyout co-investments, and emerging managers the group's diligence can vouch for before anyone else can." },
     { key: "hedge", label: "Leading hedge funds", color: "#6B7F8C",
+      sub: "Absolute return & market neutral", claim: "Fund interests",
       note: "Managers whose return is skill rather than market direction, at ticket sizes a family office cannot normally reach." },
-    { key: "energy", label: "Energy and power", color: "#4E7A5E",
-      note: "Generation and storage built where the grid cannot keep up — behind-the-meter supply, and co-location with the load it serves." },
-    { key: "health", label: "Health and longevity", color: "#7A5E8C",
+    { key: "energy", label: "Power generation & storage", color: "#4E7A5E",
+      sub: "Behind-the-meter power projects", claim: "Project equity",
+      candidates: "Behind-the-meter generation and storage SPV",
+      note: "Generation built next to the load it serves, which is what gets a data centre past an interconnection queue." },
+    { key: "health", label: "Korean health & drug development", color: "#7A5E8C",
+      sub: "Clinical programmes & screening", claim: "Private equity",
       note: "Korean drug pipelines, metabolic and peptide therapies, and screening. Binary outcomes that foreign investors cannot assess alone." },
-    { key: "realestate", label: "Prime and tokenised real estate", color: "#8C6E4E",
-      note: "Prime residential in supply-constrained markets, at ticket sizes that fractional ownership opens up." },
-    { key: "artists", label: "Emerging artists and creators", color: "#9A7B2E", flagged: true,
-      note: "Work and royalty streams from artists and creators before a global audience reprices them." },
-    { key: "teams", label: "Sports teams", color: "#A98C3E", flagged: true,
-      note: "Minority stakes in franchises and esports teams, where the value turns on broadcast rights the group already holds in Korea." },
+    { key: "realestate", label: "Prime & tokenised real estate", color: "#8C6E4E",
+      sub: "Supply-constrained residential", claim: "Fractional ownership",
+      note: "Prime residential in markets where supply is fixed, at ticket sizes that fractional ownership opens up." },
+    { key: "koreatalent", label: "Korean talent", color: "#7D6B9E",
+      sub: "Global placement & income shares", claim: "Income-share claim",
+      candidates: "Hanwha Korean talent ISA pilot",
+      note: "Korean professionals, athletes and creators are priced on the home market and reprice when they reach a larger one." },
+    { key: "artists", label: "Korean IP & creators", color: "#9A7B2E", flagged: true,
+      sub: "Royalties & creator catalogues", claim: "Royalty claims",
+      note: "Royalty streams from Korean music, film and television, which reprice when a global audience finds them." },
+    { key: "teams", label: "Sports teams & esports", color: "#A98C3E", flagged: true,
+      sub: "Franchises & esports organisations", claim: "Minority equity",
+      note: "Minority stakes where the value turns on broadcast rights the group already holds in Korea." },
     { key: "players", label: "Sports players", color: "#C0A765", flagged: true,
+      sub: "Athlete earnings participations", claim: "Income-share claim",
       note: "Participations in the future earnings of individual athletes." },
-    { key: "koreatalent", label: "Korea talent", color: "#7D6B9E",
-      note: "Korean professionals, athletes and creators are priced on the home market and reprice when they reach a larger one. Participations in future earnings, screened by the group." },
   ];
 
   /* ===================================================== risk / return buckets

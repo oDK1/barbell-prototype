@@ -513,9 +513,8 @@
     return bucketKeyOf({ sub: m.fills });
   }
   function offerRung(m) {
-    const r = typeof m.retNum === "number" ? m.retNum : 0;
-    if (r < D.SHELF_FLOOR) return null;
-    return Math.min(D.SHELF_CEIL, Math.round(r));
+    const r = typeof m.retNum === "number" ? m.retNum : D.SHELF_FLOOR;
+    return Math.max(D.SHELF_FLOOR, Math.min(D.SHELF_CEIL, Math.round(r)));
   }
   function offerTheme(m) {
     if (m.theme) return m.theme;
@@ -532,7 +531,7 @@
     const f = r === null ? null : D.anchorShelf.find((x) => x.band === r);
     return {
       bucket: "engine", label: "Anchor", color: "#1B2A4A", rung: r,
-      detail: f ? f.name + " fund" : "below the shelf",
+      detail: f ? f.name + " fund" : "—",
     };
   }
 
@@ -630,12 +629,13 @@
     return y > 0 ? y + (GROWTH_ADD[p.sub] || 0) : fallback;
   }
 
-  /* Which rung a holding sits on, or null when it earns less than the shelf's
-     lowest fund — capital that is not in the anchor at all. */
+  /* Which rung a holding sits on. A holding earning less than the lowest fund
+     sits on the lowest rung rather than outside the shelf: sovereigns, bills
+     and deposits are exactly what that fund holds, and a book whose parts do
+     not sum to the whole is worse than one that rounds down. */
   function rungOf(p) {
     const r = posReturn(p);
-    if (r < D.SHELF_FLOOR) return null;
-    return Math.min(D.SHELF_CEIL, Math.round(r));
+    return Math.max(D.SHELF_FLOOR, Math.min(D.SHELF_CEIL, Math.round(r)));
   }
 
   /* Bucket membership is carried on the position. Marketplace offerings are
@@ -655,8 +655,7 @@
   }
 
   /* The anchor laid out as the shelf it is: one row per rung the family
-     actually holds something on, plus the capital sitting below the lowest
-     fund. `target` marks the rung the family has chosen. */
+     actually holds something on. */
   function anchorLadder(ps, chosen) {
     const eng = inBucket(ps, "engine");
     const t = total(ps) || 1;
@@ -667,15 +666,10 @@
       return { ...f, items, value: v, count: items.length,
         wt: (v / t) * 100, ofAnchor: (v / ev) * 100, chosen: f.band === chosen };
     });
-    const below = eng.filter((p) => rungOf(p) === null);
-    const bv = total(below);
-    const earns = bv ? below.reduce((a, p) => a + posReturn(p) * p.value, 0) / bv : 0;
-    /* the anchor's blended expected return, as held */
+    /* the anchor's blended expected return, as held — which is where the gap
+       between what is owned and what was asked for shows up */
     const blended = ev ? eng.reduce((a, p) => a + posReturn(p) * p.value, 0) / ev : 0;
-    return {
-      rows, anchorValue: ev, blended,
-      below: { items: below, value: bv, count: below.length, wt: (bv / t) * 100, ofAnchor: (bv / ev) * 100, earns },
-    };
+    return { rows, anchorValue: ev, blended };
   }
 
   /* Conviction, grouped by the thing the family has a view about. */

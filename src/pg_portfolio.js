@@ -215,17 +215,7 @@
                       <thead><tr><th>Fund · named for its target</th><th>What it holds</th><th className="n">Positions</th>
                         <th className="n">Of anchor</th><th className="n">Value</th></tr></thead>
                       <tbody>
-                        {lad.below.count > 0 && (
-                          <tr className="rung-below">
-                            <td><span className="rung-n">Below the shelf</span>
-                              <div className="tsub">earning {u.pct(lad.below.earns)}</div></td>
-                            <td className="tsub">Cash, deposits and sovereigns returning less than the lowest fund on the shelf.</td>
-                            <td className="n num tri">{lad.below.count}</td>
-                            <td className="n num">{u.pct(lad.below.ofAnchor)}</td>
-                            <td className="n num">{u.usd(lad.below.value)}</td>
-                          </tr>
-                        )}
-                        {lad.rows.filter((f) => f.count > 0 || f.chosen).map((f) => (
+                        {lad.rows.filter((f) => f.count > 0).map((f) => (
                           <tr key={f.band}>
                             <td>
                               <span className="rung-n">{f.name}</span>
@@ -250,7 +240,7 @@
                         <th className="n">Of conviction</th><th className="n">Of book</th><th className="n">Value</th></tr></thead>
                       <tbody>
                         {themeRows.filter((th) => th.count > 0 || th.picked).map((th) => (
-                          <tr key={th.key} className={th.count ? "" : "rung-below"}>
+                          <tr key={th.key} className={th.count ? "" : "rung-muted"}>
                             <td>
                               <span style={{ display: "inline-flex", gap: 7, alignItems: "center" }}>
                                 <i className="sw" style={{ width: 8, height: 8, display: "inline-block", background: th.color }} />
@@ -468,8 +458,8 @@
             <div className="shelf-ft tri">
               The basket is built for the target, not picked from a list. Raising the target narrows it toward the
               top of the shelf; lowering it narrows it toward the bottom.
-              {lad.below.count > 0 && <> Against this, <b>{u.usdC(lad.below.value)}</b> of what is held today
-                earns {u.pct(lad.below.earns)} — under the {D.anchorShelf[0].name} fund, so it clears neither the target nor the basket's lowest rung.</>}
+              {Math.abs(lad.blended - yld) > 0.5 && <> Against this, what the family actually holds
+                blends at <b>{u.pct(lad.blended)}</b>.</>}
             </div>
           </div>
 
@@ -550,13 +540,6 @@
   function PathModal({ positions, lad, bk, themeRows, built, yld, t, onClose }) {
     const convRow = bk[1];
     const items = [];
-
-    if (lad.below.count > 0) items.push({
-      t: u.usdC(lad.below.value) + " earns " + u.pct(lad.below.earns),
-      d: lad.below.count + " holdings return less than the " + D.anchorShelf[0].name + " fund, the lowest on the shelf. "
-        + u.usdC(built.cash) + " of that is the cash floor and belongs there. The rest was never given a job.",
-      cta: "Find anchor funds", to: "/marketplace?ask=" + encodeURIComponent("daily liquidity yield"),
-    });
 
     const gap = lad.blended - yld;
     if (Math.abs(gap) > 0.75) items.push({
@@ -706,7 +689,7 @@
     const r = u.rungOf(p);
     const f = r === null ? null : D.anchorShelf.find((x) => x.band === r);
     return { bucket: "engine", label: "Anchor", color: "#1B2A4A",
-      detail: f ? f.name + " fund" : "below the shelf",
+      detail: f ? f.name + " fund" : "—",
       sortKey: "1" + String(r === null ? 0 : r).padStart(2, "0") };
   }
 

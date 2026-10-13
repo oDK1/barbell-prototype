@@ -702,7 +702,6 @@ table.t td.val .krw{font-weight:400}
 .rb-wrap{flex:1;display:flex;align-items:flex-end;padding:0 2px}
 .rb{width:100%;background:#C9CEDA;min-height:1px}
 .rung.on .rb{background:#1B2A4A}
-.rung.off .rb{background:#D9D6CE}
 .rung.empty .rb{background:#EDEBE5}
 .rl{font-size:10px;color:var(--g2);padding-top:5px;border-top:1px solid var(--g3);margin-top:4px;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -710,7 +709,8 @@ table.t td.val .krw{font-weight:400}
 .rv{font-size:10px;color:var(--g1);height:13px}
 .shelf-ft{font-size:11.5px;line-height:1.55;margin-top:10px}
 tr.rung-on{background:var(--navy-wash)}
-tr.rung-below td{opacity:.62}
+/* a picked exposure with nothing in it yet */
+tr.rung-muted td{opacity:.62}
 .rung-n{font-weight:600}
 
 /* ---- conviction themes --------------------------------------------------

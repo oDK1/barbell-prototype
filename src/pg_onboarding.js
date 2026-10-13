@@ -347,12 +347,6 @@
                   ))}
                 </tbody>
               </table>
-              {lad.below.count > 0 && (
-                <div className="note mt12" style={{ fontSize: 11.5 }}>
-                  {u.usdC(lad.below.value)} of what was uploaded earns {u.pct(lad.below.earns)} — below {D.anchorShelf[0].name},
-                  the lowest fund on the shelf. It is not in the anchor yet.
-                </div>
-              )}
             </div>
           </div>
 

@@ -713,7 +713,6 @@ table.t td.val .krw{font-weight:400}
 .rb-wrap{flex:1;display:flex;align-items:flex-end;padding:0 2px}
 .rb{width:100%;background:#C9CEDA;min-height:1px}
 .rung.on .rb{background:#1B2A4A}
-.rung.off .rb{background:#D9D6CE}
 .rung.empty .rb{background:#EDEBE5}
 .rl{font-size:10px;color:var(--g2);padding-top:5px;border-top:1px solid var(--g3);margin-top:4px;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -721,7 +720,8 @@ table.t td.val .krw{font-weight:400}
 .rv{font-size:10px;color:var(--g1);height:13px}
 .shelf-ft{font-size:11.5px;line-height:1.55;margin-top:10px}
 tr.rung-on{background:var(--navy-wash)}
-tr.rung-below td{opacity:.62}
+/* a picked exposure with nothing in it yet */
+tr.rung-muted td{opacity:.62}
 .rung-n{font-weight:600}
 
 /* ---- conviction themes --------------------------------------------------
@@ -2984,9 +2984,8 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     return bucketKeyOf({ sub: m.fills });
   }
   function offerRung(m) {
-    const r = typeof m.retNum === "number" ? m.retNum : 0;
-    if (r < D.SHELF_FLOOR) return null;
-    return Math.min(D.SHELF_CEIL, Math.round(r));
+    const r = typeof m.retNum === "number" ? m.retNum : D.SHELF_FLOOR;
+    return Math.max(D.SHELF_FLOOR, Math.min(D.SHELF_CEIL, Math.round(r)));
   }
   function offerTheme(m) {
     if (m.theme) return m.theme;
@@ -3003,7 +3002,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     const f = r === null ? null : D.anchorShelf.find((x) => x.band === r);
     return {
       bucket: "engine", label: "Anchor", color: "#1B2A4A", rung: r,
-      detail: f ? f.name + " fund" : "below the shelf",
+      detail: f ? f.name + " fund" : "—",
     };
   }
 
@@ -3101,12 +3100,13 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     return y > 0 ? y + (GROWTH_ADD[p.sub] || 0) : fallback;
   }
 
-  /* Which rung a holding sits on, or null when it earns less than the shelf's
-     lowest fund — capital that is not in the anchor at all. */
+  /* Which rung a holding sits on. A holding earning less than the lowest fund
+     sits on the lowest rung rather than outside the shelf: sovereigns, bills
+     and deposits are exactly what that fund holds, and a book whose parts do
+     not sum to the whole is worse than one that rounds down. */
   function rungOf(p) {
     const r = posReturn(p);
-    if (r < D.SHELF_FLOOR) return null;
-    return Math.min(D.SHELF_CEIL, Math.round(r));
+    return Math.max(D.SHELF_FLOOR, Math.min(D.SHELF_CEIL, Math.round(r)));
   }
 
   /* Bucket membership is carried on the position. Marketplace offerings are
@@ -3126,8 +3126,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   }
 
   /* The anchor laid out as the shelf it is: one row per rung the family
-     actually holds something on, plus the capital sitting below the lowest
-     fund. `target` marks the rung the family has chosen. */
+     actually holds something on. */
   function anchorLadder(ps, chosen) {
     const eng = inBucket(ps, "engine");
     const t = total(ps) || 1;
@@ -3138,15 +3137,10 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       return { ...f, items, value: v, count: items.length,
         wt: (v / t) * 100, ofAnchor: (v / ev) * 100, chosen: f.band === chosen };
     });
-    const below = eng.filter((p) => rungOf(p) === null);
-    const bv = total(below);
-    const earns = bv ? below.reduce((a, p) => a + posReturn(p) * p.value, 0) / bv : 0;
-    /* the anchor's blended expected return, as held */
+    /* the anchor's blended expected return, as held — which is where the gap
+       between what is owned and what was asked for shows up */
     const blended = ev ? eng.reduce((a, p) => a + posReturn(p) * p.value, 0) / ev : 0;
-    return {
-      rows, anchorValue: ev, blended,
-      below: { items: below, value: bv, count: below.length, wt: (bv / t) * 100, ofAnchor: (bv / ev) * 100, earns },
-    };
+    return { rows, anchorValue: ev, blended };
   }
 
   /* Conviction, grouped by the thing the family has a view about. */
@@ -5417,12 +5411,6 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                   ))}
                 </tbody>
               </table>
-              {lad.below.count > 0 && (
-                <div className="note mt12" style={{ fontSize: 11.5 }}>
-                  {u.usdC(lad.below.value)} of what was uploaded earns {u.pct(lad.below.earns)} — below {D.anchorShelf[0].name},
-                  the lowest fund on the shelf. It is not in the anchor yet.
-                </div>
-              )}
             </div>
           </div>
 
@@ -5731,17 +5719,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                       <thead><tr><th>Fund · named for its target</th><th>What it holds</th><th className="n">Positions</th>
                         <th className="n">Of anchor</th><th className="n">Value</th></tr></thead>
                       <tbody>
-                        {lad.below.count > 0 && (
-                          <tr className="rung-below">
-                            <td><span className="rung-n">Below the shelf</span>
-                              <div className="tsub">earning {u.pct(lad.below.earns)}</div></td>
-                            <td className="tsub">Cash, deposits and sovereigns returning less than the lowest fund on the shelf.</td>
-                            <td className="n num tri">{lad.below.count}</td>
-                            <td className="n num">{u.pct(lad.below.ofAnchor)}</td>
-                            <td className="n num">{u.usd(lad.below.value)}</td>
-                          </tr>
-                        )}
-                        {lad.rows.filter((f) => f.count > 0 || f.chosen).map((f) => (
+                        {lad.rows.filter((f) => f.count > 0).map((f) => (
                           <tr key={f.band}>
                             <td>
                               <span className="rung-n">{f.name}</span>
@@ -5766,7 +5744,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                         <th className="n">Of conviction</th><th className="n">Of book</th><th className="n">Value</th></tr></thead>
                       <tbody>
                         {themeRows.filter((th) => th.count > 0 || th.picked).map((th) => (
-                          <tr key={th.key} className={th.count ? "" : "rung-below"}>
+                          <tr key={th.key} className={th.count ? "" : "rung-muted"}>
                             <td>
                               <span style={{ display: "inline-flex", gap: 7, alignItems: "center" }}>
                                 <i className="sw" style={{ width: 8, height: 8, display: "inline-block", background: th.color }} />
@@ -5984,8 +5962,8 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
             <div className="shelf-ft tri">
               The basket is built for the target, not picked from a list. Raising the target narrows it toward the
               top of the shelf; lowering it narrows it toward the bottom.
-              {lad.below.count > 0 && <> Against this, <b>{u.usdC(lad.below.value)}</b> of what is held today
-                earns {u.pct(lad.below.earns)} — under the {D.anchorShelf[0].name} fund, so it clears neither the target nor the basket's lowest rung.</>}
+              {Math.abs(lad.blended - yld) > 0.5 && <> Against this, what the family actually holds
+                blends at <b>{u.pct(lad.blended)}</b>.</>}
             </div>
           </div>
 
@@ -6066,13 +6044,6 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   function PathModal({ positions, lad, bk, themeRows, built, yld, t, onClose }) {
     const convRow = bk[1];
     const items = [];
-
-    if (lad.below.count > 0) items.push({
-      t: u.usdC(lad.below.value) + " earns " + u.pct(lad.below.earns),
-      d: lad.below.count + " holdings return less than the " + D.anchorShelf[0].name + " fund, the lowest on the shelf. "
-        + u.usdC(built.cash) + " of that is the cash floor and belongs there. The rest was never given a job.",
-      cta: "Find anchor funds", to: "/marketplace?ask=" + encodeURIComponent("daily liquidity yield"),
-    });
 
     const gap = lad.blended - yld;
     if (Math.abs(gap) > 0.75) items.push({
@@ -6222,7 +6193,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     const r = u.rungOf(p);
     const f = r === null ? null : D.anchorShelf.find((x) => x.band === r);
     return { bucket: "engine", label: "Anchor", color: "#1B2A4A",
-      detail: f ? f.name + " fund" : "below the shelf",
+      detail: f ? f.name + " fund" : "—",
       sortKey: "1" + String(r === null ? 0 : r).padStart(2, "0") };
   }
 

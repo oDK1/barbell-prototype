@@ -771,3 +771,6 @@ tr.rung-cash td{background:#FCFBF8}
   font:inherit;cursor:pointer;padding-left:7px;margin-left:-9px}
 .rl-row:hover{background:#FCFBF8}
 .rl-row.on{border-left-color:var(--ink);background:#FCFBF8}
+
+/* The credit table's total line: the one number the page is for. */
+.creditfoot td{border-top:2px solid var(--ink);background:#FCFBF8;padding-top:9px;padding-bottom:9px}

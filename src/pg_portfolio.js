@@ -136,6 +136,7 @@
     const lad = u.anchorLadder(positions, null);
     const themeRows = u.byTheme(positions, st.themes);
     const bucketRows = u.byBucket(positions, 100 - st.anchorPct);
+    const [calls, setCalls] = useState(false);
     /* Clicking a segment of the ring opens the bucket it stands for and takes
        you to it — the graphic is the way into the detail, not a decoration
        beside it. */
@@ -268,6 +269,35 @@
         <QueryBar positions={positions} />
 
         <ModelPanel positions={positions} />
+        {/* commitments already made: a calendar, not a liquidity problem —
+            a call can be met from the credit facility or from a sale */}
+        <div className="panel mt16" id="sec-calls">
+          <div className="panel-hd clickable" onClick={() => setCalls(!calls)} style={{ cursor: "pointer" }}>
+            <div>
+              <h3><span style={{ fontSize: 11, color: "var(--g1)", marginRight: 7 }}>{calls ? "▾" : "▸"}</span>Committed capital calls</h3>
+              <div className="tri" style={{ fontSize: 11.5, marginTop: 2, paddingLeft: 18 }}>
+                {D.capitalCalls.length} contracted and projected · {u.usdC(u.sum(D.capitalCalls, (c) => c.amount))} over 24 months
+              </div>
+            </div>
+            <button className="btn sm" onClick={(e) => { e.stopPropagation(); S.navigate("/credit"); }}>Cover from credit</button>
+          </div>
+          {calls && (
+            <table className="t dense">
+              <thead><tr><th>Fund</th><th>Date</th><th className="n">Amount</th><th>Status</th></tr></thead>
+              <tbody>
+                {D.capitalCalls.map((c) => (
+                  <tr key={c.id}>
+                    <td className="tname">{c.fund}</td>
+                    <td>{u.fmtDate(c.date)}</td>
+                    <td className="n num">{u.usd(c.amount)}</td>
+                    <td><span className={"bdg " + (c.status === "Due" ? "warn" : "plain")}>{c.status}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+
         <ProvenancePanel positions={positions} openSignal={openSignal} />
         <AllPositions positions={positions} />
       </>
@@ -943,7 +973,7 @@
             <div className="num tri" style={{ fontSize: 11.5 }}>Updated {u.fmtTs(D.family.asOf)} KST</div>
             <div style={{ display: "flex", gap: 14, justifyContent: "flex-end", marginTop: 5 }}>
               {calls90.length > 0 && (
-                <button className="link" onClick={() => S.navigate("/credit")}>
+                <button className="link" onClick={() => jump("alloc", "sec-calls")}>
                   {calls90.length} capital calls within 90 days · {u.usdC(u.sum(calls90, (c) => c.amount))}
                 </button>
               )}

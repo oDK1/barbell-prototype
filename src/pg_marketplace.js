@@ -17,7 +17,7 @@
           <div className="tname">{m.name}</div>
           <div className="tsub" style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
             <span>{m.ticker ? <span className="mono">{m.ticker}</span> : m.manager}</span>
-            {/* DW [P]: Hanwha's involvement is the trust signal, so say which
+            {/* Hanwha's involvement is the trust signal, so say which
                 kind it is rather than flagging every row the same way. */}
             {m.source
               ? <span className="bdg src" style={{ borderColor: (D.sourceTypes.find((x) => x.key === m.source) || {}).color }}>
@@ -224,8 +224,8 @@
 
           {/* sidebar */}
           <div style={{ width: 280, flexShrink: 0 }}>
-            {/* DW [P]: the buying surface answers to the same two buckets as
-                the portfolio. The six classes stay one level down. END-STATE. */}
+            {/* the buying surface answers to the same two buckets as
+                the portfolio. The six classes stay one level down. */}
             <Panel title="Allocation context">
               {u.byBucket(st.positions, 100 - st.anchorPct).map((b) => (
                 <div key={b.key} className="mkb">

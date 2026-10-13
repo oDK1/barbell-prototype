@@ -89,9 +89,9 @@
           </Agent>
         </div>
 
-        {/* DW [P]: Hanwha's role and its diligence are the trust argument, so
+        {/* Hanwha's role and its diligence are the trust argument, so
             they sit on the page rather than behind the last tab. The source
-            type says what kind of involvement this is. END-STATE. */}
+            type says what kind of involvement this is. */}
         {m.hanwha && (() => {
           const stp = D.sourceTypes.find((x) => x.key === m.source);
           const dd = m.dd || (m.source ? D.dueDiligence[m.source] : null);
@@ -166,7 +166,7 @@
           <div>
             <Panel title="Transaction" sub={isListed ? "Order ticket · same-day settlement" : "Subscription · " + (m.closing === "Quarterly close" ? "closes at the next quarterly close" : m.closing === "Continuous" ? "open continuously" : m.closing === "Monthly close" ? "closes at the next monthly close" : "closes " + u.fmtDate(m.closing))}>
               <div className="kv">
-                {/* DW [D]: tokenised from day one — which is what removes the
+                {/* tokenised from day one — which is what removes the
                     minimum and makes fractional diversification possible. */}
                 <span className="k">Held through</span><span className="v">SPV · tokenised at issue</span>
                 <span className="k">Sizing</span><span className="v">Fractional — any amount</span>

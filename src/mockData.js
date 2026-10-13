@@ -71,7 +71,7 @@
   ];
 
   /* --------------------------------------------------------------- positions */
-  /* prov: live | hanwha | self      liq: Immediate (everything, DW [D])        */
+  /* prov: live | hanwha | self      liq: Immediate — everything, always       */
   const positions = [
     /* ---- EQUITY · Public (12) ------------------------------------------- */
     { id: "p01", name: "Hanmi Chemical Holdings Co., Ltd.", ticker: "004370.KS", cls: "equity", sub: "pubeq", grp: "KR listed",
@@ -365,18 +365,18 @@
     { band: 9,  name: "Target Yield 9%",  liq: "Immediate", vol: 7.2,
       inside: "Senior secured direct lending to sponsor-backed borrowers. First lien, floating rate." },
     { band: 10, name: "Target Yield 10%", liq: "Immediate", vol: 8.6,
-      inside: "Direct lending with a mezzanine sleeve, infrastructure credit, and absolute-return funds whose return is manager skill rather than market direction. DW [P]." },
+      inside: "Direct lending with a mezzanine sleeve, infrastructure credit, and absolute-return funds whose return is manager skill rather than market direction." },
     { band: 11, name: "Target Yield 11%", liq: "Immediate", vol: 10.0,
-      inside: "Systematic and market-neutral quantitative strategies, alongside opportunistic and bridge credit against harder collateral. DW [P]." },
+      inside: "Systematic and market-neutral quantitative strategies, alongside opportunistic and bridge credit against harder collateral." },
     { band: 12, name: "Target Yield 12%", liq: "Immediate", vol: 11.6,
-      inside: "Fund of funds across uncorrelated alternatives, high-yield emerging-market deposits, and on-chain lending yield. DW [P]." },
+      inside: "Fund of funds across uncorrelated alternatives, high-yield emerging-market deposits, and on-chain lending yield." },
   ];
 
   const SHELF_FLOOR = 4;   /* the lowest fund on the shelf */
   const SHELF_CEIL  = 12;
 
   /* ================================================= exit, not redemption
-     DW [D]: every asset on this platform converts to cash immediately. There
+     Every asset on this platform converts to cash immediately. There
      are no quarterly windows, no gates and no notice periods, because every
      position is a token on a rail with a standing bid.
 
@@ -487,7 +487,7 @@
   ];
 
   /* ===================================================== risk / return buckets
-     DW [P]: organise the product by risk and return, not by asset class. Two
+     The product is organised by risk and return, not by asset class. Two
      buckets, confirmed.
 
      What a position is no longer decides which bucket it sits in. A listed
@@ -735,9 +735,9 @@
   /* ---------------------------------------------------------- marketplace */
   /* One schema for everything. `kind` only changes the transaction mechanic. */
   /* ===================================================== where a listing comes from
-     DW [P]: listings are not only Hanwha's own direct deals. They also include
+     Listings are not only Hanwha's own direct deals. They also include
      funds Hanwha works with or creates through its LP position, and DeFi or
-     co-created products. DW [P]: Hanwha's involvement is the trust signal, so
+     co-created products. Hanwha's involvement is the trust signal, so
      the source is stated on the row, not buried in a tab.
 
      Names below the group's own are placeholders. No real third-party manager,
@@ -839,14 +839,14 @@
       terms: [["Target return", "8.4% net"], ["Liquidity", "Immediate — sold on the rail at the standing bid"], ["Minimum", "$500,000"], ["Fees", "1.25% / 10% over 6%"], ["Leverage", "0.85x"]],
       docs: [["Private placement memorandum", "PDF · 118pp"], ["Q2 2026 investor letter", "PDF · 12pp"]],
       qa: [["What does an exit actually cost?", "There is no gate and no queue — the position is sold on the rail. The cost is the spread to the last mark, which the secondary board publishes."]] },
-    /* ---- DW [P]: listings beyond Hanwha's own direct deals ---------------
+    /* ---- listings beyond Hanwha's own direct deals -----------------------
        Three placeholders standing for the three sources DW named that the
        board did not previously carry: a product Hanwha co-created, on-chain
        yield wrapped for a Korean family office, and an emerging-market
        deposit programme. Names, counterparties and figures are invented. */
     { id: "m43", kind: "private", name: "Hanwha Korea Income Participation Note 2026-A", fills: "struct", cls: "debt",
       ret: "8.8% target", retNum: 8.8, liq: "Immediate", term: "4yr", min: 0, avail: "₩90B tranche open", fit: 87,
-      why: "Engine-grade yield, exited on the rail — co-created, so the terms are Hanwha's own rather than a distributor's.",
+      why: "Anchor-grade yield, exited on the rail — co-created, so the terms are Hanwha's own rather than a distributor's.",
       sector: "Structured", geo: "Korea", ccy: "KRW", manager: "Hanwha Securities", closing: "Quarterly close",
       hanwha: true, anchor: "Hanwha Life holds the ₩300B first-loss tranche beneath this note.",
       trust: "strong",

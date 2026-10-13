@@ -1,6 +1,6 @@
 /* /secondary — where the rail actually clears.
 
-   DW [D]: everything on the platform converts to cash immediately, so this
+   Everything on the platform converts to cash immediately, so this
    board is no longer the escape hatch for an illiquid half. It is the venue
    that makes "immediately" true, and the place the price of immediacy is
    published: every line here carries what the interest last cleared at
@@ -351,10 +351,10 @@
           <div>
             <Panel title="Transaction" sub="Tokenised transfer · same-day settlement">
               <div className="kv">
-                {/* DW [D]: positions are tokenised from day one, held in an SPV
+                {/* positions are tokenised from day one, held in an SPV
                     and transferable among clients on a tokenised rail. The
                     fundamentals are unchanged; liquidity and transferability
-                    are what move. END-STATE. */}
+                    are what move. */}
                 <span className="k">Held through</span><span className="v">SPV · token {l.id.toUpperCase()}-{l.vintage}</span>
                 <span className="k">Settlement</span>
                 <span className="v">Same day <span className="tri">· 30–60 days off-platform</span></span>

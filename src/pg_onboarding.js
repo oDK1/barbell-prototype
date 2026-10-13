@@ -221,7 +221,7 @@
           </div>
 
           {/* Two questions, asked once. The basket behind the target is built
-              for it — a first customer never picks a fund. END-STATE. */}
+              for it — a first customer never picks a fund. */}
           <div className="panel">
             <div className="panel-hd">
               <div>

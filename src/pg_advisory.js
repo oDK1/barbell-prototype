@@ -1,9 +1,9 @@
-/* /advisory — the AI and human layer DW asked for in item 4.
-   [D] AI and blockchain are separate design dimensions, so nothing on this
-   screen depends on tokenisation.
-   [P] Professional-grade analysis on top of the agent: a risk review of the
-   onboarded book, and perspectives modelled on named investors' approaches.
-   [P] Hybrid human and AI advisory, paid per consult.
+/* /advisory — the AI and human layer.
+
+   AI and blockchain are separate design dimensions, so nothing on this screen
+   depends on tokenisation. Two things sit on top of the agent: a risk review
+   of the onboarded book with perspectives modelled on known investors'
+   approaches, and human specialists, paid per consult.
 
    TENSION, flagged not resolved: a risk review that recommends, and a paid
    specialist who advises, sit close to the discretionary line this product
@@ -25,7 +25,7 @@
         return [
           "Concentration is the position, and " + (sp.topGeo ? sp.topGeo.v + " at " + u.pct(sp.topGeo.wt) : "the largest geography") + " is the position this book has taken, whether or not it was chosen.",
           "A regime change is survivable only if it can be acted on. Every position converts today — but acting costs " + u.usdC(ex.cost) + ", " + u.pct(ex.haircut) + " of the book, and that bill is only paid by whoever moves.",
-          "Nothing here expresses a view on rates. Duration sits inside Engine by default rather than by decision.",
+          "Nothing here expresses a view on rates. Duration sits inside the anchor by default rather than by decision.",
         ];
       } },
     { key: "parity", who: "Risk-balanced", after: "after Dalio",
@@ -40,7 +40,7 @@
           "Uncorrelated is a property of pairs, not of labels. Two private credit funds lending to the same borrowers are one position.",
         ];
       } },
-    { key: "tail", who: "Tail-risk", after: "black-swan exposure, DW [P]",
+    { key: "tail", who: "Tail-risk", after: "black-swan exposure",
       q: "What has not been considered?",
       read: (ps) => {
         const aff = u.affiliateExposure(ps);
@@ -84,7 +84,7 @@
           </div>
         </div>
 
-        {/* ---- AI: risk review and lenses. END-STATE. ---- */}
+        {/* ---- AI: risk review and lenses ---- */}
         <div className="panel mt16">
           <div className="panel-hd">
             <div>
@@ -106,7 +106,7 @@
           </div>
         </div>
 
-        {/* ---- Paid human consults. END-STATE; Phase 1 is a request, not a booking. ---- */}
+        {/* ---- Paid human consults. A request, not a live booking. ---- */}
         <div className="panel mt16">
           <div className="panel-hd">
             <div>

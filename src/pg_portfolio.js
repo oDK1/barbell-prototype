@@ -75,10 +75,10 @@
     );
   }
 
-  /* DW [P]: the product should always show how the portfolio could be
+  /* The product should always show how the portfolio could be
      improved, including wider diversification across uncorrelated exposures.
      Tokenised fractional sizing is what makes that reachable at small ticket
-     sizes — the sizing line below says so explicitly. END-STATE. */
+     sizes — the sizing line below says so explicitly. */
   /* ------------------------------------------------------- the book, as a ring */
   /* Two segments, because the book has two parts. Held is the ring; the tick
      on the rim is what the family asked for, so a book that has drifted says
@@ -152,7 +152,7 @@
         {/* Organised by risk and return. Neither bucket opens onto an asset
             class: the Anchor opens onto the shelf of funds it is spread
             across, and Conviction opens onto the themes it is pointed at.
-            END-STATE. */}
+            */}
         <div className="allocsplit mt16">
           <div className="ringwrap">
             <BookRing rows={bucketRows} total={t} onPick={openBucket}
@@ -552,7 +552,7 @@
       cta: "Review the exposures", to: "/portfolio#model-panel",
     });
 
-    /* DW [P]: wider diversification across uncorrelated exposures. These used
+    /* Wider diversification across uncorrelated exposures. These used
        to sit in a panel of their own on the portfolio; they belong with the
        rest of what the family could act on. */
     const all = u.spread(positions, null);

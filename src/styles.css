@@ -572,7 +572,7 @@ table.t td.val .krw{font-weight:400}
 .btn.harvest{border-color:var(--amber);color:var(--amber);font-weight:600}
 .btn.harvest:hover{background:var(--amber);border-color:var(--amber);color:#fff}
 
-/* ---------- risk / return buckets (DW [P]) ---------- */
+/* ---------- risk / return buckets ---------- */
 .buckets{display:grid;gap:12px}
 .bk{border:1px solid var(--g3);background:var(--paper);border-left:3px solid var(--g3)}
 .bk:nth-child(1){border-left-color:#1B2A4A}
@@ -602,7 +602,7 @@ table.t td.val .krw{font-weight:400}
 .lens-n{flex-shrink:0;width:18px;height:18px;border-radius:50%;background:var(--navy-wash);color:var(--navy);
   font-size:10.5px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;margin-top:2px}
 
-/* ---------- the split lever (DW [D]: one control replaces nine portfolios) ---
+/* ---------- the split lever: one control replaces nine portfolios --------
    The readout is the point of the screen, so it is set larger than anything
    else in the panel and the two numbers are coloured as their buckets. The
    rail beneath runs 0–40, which covers 99/1 at one end and a book that is a
@@ -651,7 +651,7 @@ table.t td.val .krw{font-weight:400}
    reads as four kinds of listing rather than one flag repeated. */
 .bdg.src{border:1px solid var(--g3);background:var(--paper);color:var(--g1);font-weight:600}
 
-/* ---- Hanwha's role, promoted out of the last tab (DW [P]) ----------------
+/* ---- Hanwha's role, promoted out of the last tab ------------------------
    Ruled off with the source type's own colour so the four kinds of listing
    are distinguishable at a glance on the deal page as well as the board. */
 .hwrole{border:1px solid var(--g3);border-left:3px solid var(--navy);background:var(--paper)}

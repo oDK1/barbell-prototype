@@ -583,7 +583,7 @@ table.t td.val .krw{font-weight:400}
 .btn.harvest{border-color:var(--amber);color:var(--amber);font-weight:600}
 .btn.harvest:hover{background:var(--amber);border-color:var(--amber);color:#fff}
 
-/* ---------- risk / return buckets (DW [P]) ---------- */
+/* ---------- risk / return buckets ---------- */
 .buckets{display:grid;gap:12px}
 .bk{border:1px solid var(--g3);background:var(--paper);border-left:3px solid var(--g3)}
 .bk:nth-child(1){border-left-color:#1B2A4A}
@@ -613,7 +613,7 @@ table.t td.val .krw{font-weight:400}
 .lens-n{flex-shrink:0;width:18px;height:18px;border-radius:50%;background:var(--navy-wash);color:var(--navy);
   font-size:10.5px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;margin-top:2px}
 
-/* ---------- the split lever (DW [D]: one control replaces nine portfolios) ---
+/* ---------- the split lever: one control replaces nine portfolios --------
    The readout is the point of the screen, so it is set larger than anything
    else in the panel and the two numbers are coloured as their buckets. The
    rail beneath runs 0–40, which covers 99/1 at one end and a book that is a
@@ -662,7 +662,7 @@ table.t td.val .krw{font-weight:400}
    reads as four kinds of listing rather than one flag repeated. */
 .bdg.src{border:1px solid var(--g3);background:var(--paper);color:var(--g1);font-weight:600}
 
-/* ---- Hanwha's role, promoted out of the last tab (DW [P]) ----------------
+/* ---- Hanwha's role, promoted out of the last tab ------------------------
    Ruled off with the source type's own colour so the four kinds of listing
    are distinguishable at a glance on the deal page as well as the board. */
 .hwrole{border:1px solid var(--g3);border-left:3px solid var(--navy);background:var(--paper)}
@@ -1173,7 +1173,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   ];
 
   /* --------------------------------------------------------------- positions */
-  /* prov: live | hanwha | self      liq: Immediate (everything, DW [D])        */
+  /* prov: live | hanwha | self      liq: Immediate — everything, always       */
   const positions = [
     /* ---- EQUITY · Public (12) ------------------------------------------- */
     { id: "p01", name: "Hanmi Chemical Holdings Co., Ltd.", ticker: "004370.KS", cls: "equity", sub: "pubeq", grp: "KR listed",
@@ -1467,18 +1467,18 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     { band: 9,  name: "Target Yield 9%",  liq: "Immediate", vol: 7.2,
       inside: "Senior secured direct lending to sponsor-backed borrowers. First lien, floating rate." },
     { band: 10, name: "Target Yield 10%", liq: "Immediate", vol: 8.6,
-      inside: "Direct lending with a mezzanine sleeve, infrastructure credit, and absolute-return funds whose return is manager skill rather than market direction. DW [P]." },
+      inside: "Direct lending with a mezzanine sleeve, infrastructure credit, and absolute-return funds whose return is manager skill rather than market direction." },
     { band: 11, name: "Target Yield 11%", liq: "Immediate", vol: 10.0,
-      inside: "Systematic and market-neutral quantitative strategies, alongside opportunistic and bridge credit against harder collateral. DW [P]." },
+      inside: "Systematic and market-neutral quantitative strategies, alongside opportunistic and bridge credit against harder collateral." },
     { band: 12, name: "Target Yield 12%", liq: "Immediate", vol: 11.6,
-      inside: "Fund of funds across uncorrelated alternatives, high-yield emerging-market deposits, and on-chain lending yield. DW [P]." },
+      inside: "Fund of funds across uncorrelated alternatives, high-yield emerging-market deposits, and on-chain lending yield." },
   ];
 
   const SHELF_FLOOR = 4;   /* the lowest fund on the shelf */
   const SHELF_CEIL  = 12;
 
   /* ================================================= exit, not redemption
-     DW [D]: every asset on this platform converts to cash immediately. There
+     Every asset on this platform converts to cash immediately. There
      are no quarterly windows, no gates and no notice periods, because every
      position is a token on a rail with a standing bid.
 
@@ -1589,7 +1589,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   ];
 
   /* ===================================================== risk / return buckets
-     DW [P]: organise the product by risk and return, not by asset class. Two
+     The product is organised by risk and return, not by asset class. Two
      buckets, confirmed.
 
      What a position is no longer decides which bucket it sits in. A listed
@@ -1837,9 +1837,9 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   /* ---------------------------------------------------------- marketplace */
   /* One schema for everything. `kind` only changes the transaction mechanic. */
   /* ===================================================== where a listing comes from
-     DW [P]: listings are not only Hanwha's own direct deals. They also include
+     Listings are not only Hanwha's own direct deals. They also include
      funds Hanwha works with or creates through its LP position, and DeFi or
-     co-created products. DW [P]: Hanwha's involvement is the trust signal, so
+     co-created products. Hanwha's involvement is the trust signal, so
      the source is stated on the row, not buried in a tab.
 
      Names below the group's own are placeholders. No real third-party manager,
@@ -1941,14 +1941,14 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       terms: [["Target return", "8.4% net"], ["Liquidity", "Immediate — sold on the rail at the standing bid"], ["Minimum", "$500,000"], ["Fees", "1.25% / 10% over 6%"], ["Leverage", "0.85x"]],
       docs: [["Private placement memorandum", "PDF · 118pp"], ["Q2 2026 investor letter", "PDF · 12pp"]],
       qa: [["What does an exit actually cost?", "There is no gate and no queue — the position is sold on the rail. The cost is the spread to the last mark, which the secondary board publishes."]] },
-    /* ---- DW [P]: listings beyond Hanwha's own direct deals ---------------
+    /* ---- listings beyond Hanwha's own direct deals -----------------------
        Three placeholders standing for the three sources DW named that the
        board did not previously carry: a product Hanwha co-created, on-chain
        yield wrapped for a Korean family office, and an emerging-market
        deposit programme. Names, counterparties and figures are invented. */
     { id: "m43", kind: "private", name: "Hanwha Korea Income Participation Note 2026-A", fills: "struct", cls: "debt",
       ret: "8.8% target", retNum: 8.8, liq: "Immediate", term: "4yr", min: 0, avail: "₩90B tranche open", fit: 87,
-      why: "Engine-grade yield, exited on the rail — co-created, so the terms are Hanwha's own rather than a distributor's.",
+      why: "Anchor-grade yield, exited on the rail — co-created, so the terms are Hanwha's own rather than a distributor's.",
       sector: "Structured", geo: "Korea", ccy: "KRW", manager: "Hanwha Securities", closing: "Quarterly close",
       hanwha: true, anchor: "Hanwha Life holds the ₩300B first-loss tranche beneath this note.",
       trust: "strong",
@@ -2665,7 +2665,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   }
 
   /* --------------------------------------------------------------- exit ----
-     DW [D]: everything on this platform converts to cash immediately. So the
+     Everything on this platform converts to cash immediately. So the
      old question — how much could be redeemed inside 90 days — has no content
      any more; the answer is always "all of it".
 
@@ -2832,7 +2832,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
 
   /* ------------------------------------------------ six-class model portfolio */
-  /* One lever. DW [D]: the nine published portfolios are replaced by a single
+  /* One lever: the nine published portfolios are replaced by a single
      Engine / Conviction split, which the family sets and can set to 99/1.
 
      The split is read as a number. Callers that still hold a posture key get
@@ -3273,7 +3273,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   }
 
   /* How concentrated a bucket is, and across how many uncorrelated exposures.
-     DW [P]: always show how the portfolio could be improved, and diversifying
+     Always show how the portfolio could be improved, and diversifying
      across geography and sector is the example he gave. */
   function spread(ps, subs) {
     const items = ps.filter((p) => !subs || subs.indexOf(p.sub) >= 0);
@@ -3462,7 +3462,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     return { c, before, after, target, driftAfter: target === null ? null : after - target };
   }
 
-  /* The same question asked of the bucket the commitment lands in. DW [P]:
+  /* The same question asked of the bucket the commitment lands in:
      the buying surface answers to the two buckets, so a ticket says which one
      it moves before it says which asset class. */
   function impactBucket(ps, subKey, amount, split) {
@@ -5362,7 +5362,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
           </div>
 
           {/* Two questions, asked once. The basket behind the target is built
-              for it — a first customer never picks a fund. END-STATE. */}
+              for it — a first customer never picks a fund. */}
           <div className="panel">
             <div className="panel-hd">
               <div>
@@ -5656,10 +5656,10 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     );
   }
 
-  /* DW [P]: the product should always show how the portfolio could be
+  /* The product should always show how the portfolio could be
      improved, including wider diversification across uncorrelated exposures.
      Tokenised fractional sizing is what makes that reachable at small ticket
-     sizes — the sizing line below says so explicitly. END-STATE. */
+     sizes — the sizing line below says so explicitly. */
   /* ------------------------------------------------------- the book, as a ring */
   /* Two segments, because the book has two parts. Held is the ring; the tick
      on the rim is what the family asked for, so a book that has drifted says
@@ -5733,7 +5733,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
         {/* Organised by risk and return. Neither bucket opens onto an asset
             class: the Anchor opens onto the shelf of funds it is spread
             across, and Conviction opens onto the themes it is pointed at.
-            END-STATE. */}
+            */}
         <div className="allocsplit mt16">
           <div className="ringwrap">
             <BookRing rows={bucketRows} total={t} onPick={openBucket}
@@ -6133,7 +6133,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       cta: "Review the exposures", to: "/portfolio#model-panel",
     });
 
-    /* DW [P]: wider diversification across uncorrelated exposures. These used
+    /* Wider diversification across uncorrelated exposures. These used
        to sit in a panel of their own on the portfolio; they belong with the
        rest of what the family could act on. */
     const all = u.spread(positions, null);
@@ -6777,7 +6777,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
           <div className="tname">{m.name}</div>
           <div className="tsub" style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
             <span>{m.ticker ? <span className="mono">{m.ticker}</span> : m.manager}</span>
-            {/* DW [P]: Hanwha's involvement is the trust signal, so say which
+            {/* Hanwha's involvement is the trust signal, so say which
                 kind it is rather than flagging every row the same way. */}
             {m.source
               ? <span className="bdg src" style={{ borderColor: (D.sourceTypes.find((x) => x.key === m.source) || {}).color }}>
@@ -6984,8 +6984,8 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
           {/* sidebar */}
           <div style={{ width: 280, flexShrink: 0 }}>
-            {/* DW [P]: the buying surface answers to the same two buckets as
-                the portfolio. The six classes stay one level down. END-STATE. */}
+            {/* the buying surface answers to the same two buckets as
+                the portfolio. The six classes stay one level down. */}
             <Panel title="Allocation context">
               {u.byBucket(st.positions, 100 - st.anchorPct).map((b) => (
                 <div key={b.key} className="mkb">
@@ -7170,9 +7170,9 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
           </Agent>
         </div>
 
-        {/* DW [P]: Hanwha's role and its diligence are the trust argument, so
+        {/* Hanwha's role and its diligence are the trust argument, so
             they sit on the page rather than behind the last tab. The source
-            type says what kind of involvement this is. END-STATE. */}
+            type says what kind of involvement this is. */}
         {m.hanwha && (() => {
           const stp = D.sourceTypes.find((x) => x.key === m.source);
           const dd = m.dd || (m.source ? D.dueDiligence[m.source] : null);
@@ -7247,7 +7247,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
           <div>
             <Panel title="Transaction" sub={isListed ? "Order ticket · same-day settlement" : "Subscription · " + (m.closing === "Quarterly close" ? "closes at the next quarterly close" : m.closing === "Continuous" ? "open continuously" : m.closing === "Monthly close" ? "closes at the next monthly close" : "closes " + u.fmtDate(m.closing))}>
               <div className="kv">
-                {/* DW [D]: tokenised from day one — which is what removes the
+                {/* tokenised from day one — which is what removes the
                     minimum and makes fractional diversification possible. */}
                 <span className="k">Held through</span><span className="v">SPV · tokenised at issue</span>
                 <span className="k">Sizing</span><span className="v">Fractional — any amount</span>
@@ -7366,7 +7366,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 <script type="text/babel" data-presets="react" data-file="src/pg_secondary.js">
 /* /secondary — where the rail actually clears.
 
-   DW [D]: everything on the platform converts to cash immediately, so this
+   Everything on the platform converts to cash immediately, so this
    board is no longer the escape hatch for an illiquid half. It is the venue
    that makes "immediately" true, and the place the price of immediacy is
    published: every line here carries what the interest last cleared at
@@ -7717,10 +7717,10 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
           <div>
             <Panel title="Transaction" sub="Tokenised transfer · same-day settlement">
               <div className="kv">
-                {/* DW [D]: positions are tokenised from day one, held in an SPV
+                {/* positions are tokenised from day one, held in an SPV
                     and transferable among clients on a tokenised rail. The
                     fundamentals are unchanged; liquidity and transferability
-                    are what move. END-STATE. */}
+                    are what move. */}
                 <span className="k">Held through</span><span className="v">SPV · token {l.id.toUpperCase()}-{l.vintage}</span>
                 <span className="k">Settlement</span>
                 <span className="v">Same day <span className="tri">· 30–60 days off-platform</span></span>
@@ -8136,12 +8136,12 @@ Two ways in: take the ask and it settles immediately, or bid below it and wait f
 
 </script>
 <script type="text/babel" data-presets="react" data-file="src/pg_advisory.js">
-/* /advisory — the AI and human layer DW asked for in item 4.
-   [D] AI and blockchain are separate design dimensions, so nothing on this
-   screen depends on tokenisation.
-   [P] Professional-grade analysis on top of the agent: a risk review of the
-   onboarded book, and perspectives modelled on named investors' approaches.
-   [P] Hybrid human and AI advisory, paid per consult.
+/* /advisory — the AI and human layer.
+
+   AI and blockchain are separate design dimensions, so nothing on this screen
+   depends on tokenisation. Two things sit on top of the agent: a risk review
+   of the onboarded book with perspectives modelled on known investors'
+   approaches, and human specialists, paid per consult.
 
    TENSION, flagged not resolved: a risk review that recommends, and a paid
    specialist who advises, sit close to the discretionary line this product
@@ -8163,7 +8163,7 @@ Two ways in: take the ask and it settles immediately, or bid below it and wait f
         return [
           "Concentration is the position, and " + (sp.topGeo ? sp.topGeo.v + " at " + u.pct(sp.topGeo.wt) : "the largest geography") + " is the position this book has taken, whether or not it was chosen.",
           "A regime change is survivable only if it can be acted on. Every position converts today — but acting costs " + u.usdC(ex.cost) + ", " + u.pct(ex.haircut) + " of the book, and that bill is only paid by whoever moves.",
-          "Nothing here expresses a view on rates. Duration sits inside Engine by default rather than by decision.",
+          "Nothing here expresses a view on rates. Duration sits inside the anchor by default rather than by decision.",
         ];
       } },
     { key: "parity", who: "Risk-balanced", after: "after Dalio",
@@ -8178,7 +8178,7 @@ Two ways in: take the ask and it settles immediately, or bid below it and wait f
           "Uncorrelated is a property of pairs, not of labels. Two private credit funds lending to the same borrowers are one position.",
         ];
       } },
-    { key: "tail", who: "Tail-risk", after: "black-swan exposure, DW [P]",
+    { key: "tail", who: "Tail-risk", after: "black-swan exposure",
       q: "What has not been considered?",
       read: (ps) => {
         const aff = u.affiliateExposure(ps);
@@ -8222,7 +8222,7 @@ Two ways in: take the ask and it settles immediately, or bid below it and wait f
           </div>
         </div>
 
-        {/* ---- AI: risk review and lenses. END-STATE. ---- */}
+        {/* ---- AI: risk review and lenses ---- */}
         <div className="panel mt16">
           <div className="panel-hd">
             <div>
@@ -8244,7 +8244,7 @@ Two ways in: take the ask and it settles immediately, or bid below it and wait f
           </div>
         </div>
 
-        {/* ---- Paid human consults. END-STATE; Phase 1 is a request, not a booking. ---- */}
+        {/* ---- Paid human consults. A request, not a live booking. ---- */}
         <div className="panel mt16">
           <div className="panel-hd">
             <div>

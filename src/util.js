@@ -161,7 +161,7 @@
   }
 
   /* --------------------------------------------------------------- exit ----
-     DW [D]: everything on this platform converts to cash immediately. So the
+     Everything on this platform converts to cash immediately. So the
      old question — how much could be redeemed inside 90 days — has no content
      any more; the answer is always "all of it".
 
@@ -328,7 +328,7 @@
 
 
   /* ------------------------------------------------ six-class model portfolio */
-  /* One lever. DW [D]: the nine published portfolios are replaced by a single
+  /* One lever: the nine published portfolios are replaced by a single
      Engine / Conviction split, which the family sets and can set to 99/1.
 
      The split is read as a number. Callers that still hold a posture key get
@@ -769,7 +769,7 @@
   }
 
   /* How concentrated a bucket is, and across how many uncorrelated exposures.
-     DW [P]: always show how the portfolio could be improved, and diversifying
+     Always show how the portfolio could be improved, and diversifying
      across geography and sector is the example he gave. */
   function spread(ps, subs) {
     const items = ps.filter((p) => !subs || subs.indexOf(p.sub) >= 0);
@@ -958,7 +958,7 @@
     return { c, before, after, target, driftAfter: target === null ? null : after - target };
   }
 
-  /* The same question asked of the bucket the commitment lands in. DW [P]:
+  /* The same question asked of the bucket the commitment lands in:
      the buying surface answers to the two buckets, so a ticket says which one
      it moves before it says which asset class. */
   function impactBucket(ps, subKey, amount, split) {

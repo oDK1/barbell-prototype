@@ -1349,7 +1349,7 @@
       { id: "r3", to: "Kwon family office", deal: "Songdo Hyperscale DC Platform II", ts: "2026-07-30", state: "Committed" },
     ] };
 
-  const liquidityAssumptions = { monthlyIncome: 160000, monthlySpend: 205000, reserveFloor: 2500000 };
+  const liquidityAssumptions = { monthlyIncome: 160000, monthlySpend: 205000, reserveFloor: 1000000 };
 
   window.BB = window.BB || {};
   BB.data = {

@@ -2451,7 +2451,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       { id: "r3", to: "Kwon family office", deal: "Songdo Hyperscale DC Platform II", ts: "2026-07-30", state: "Committed" },
     ] };
 
-  const liquidityAssumptions = { monthlyIncome: 160000, monthlySpend: 205000, reserveFloor: 2500000 };
+  const liquidityAssumptions = { monthlyIncome: 160000, monthlySpend: 205000, reserveFloor: 1000000 };
 
   window.BB = window.BB || {};
   BB.data = {
@@ -3451,12 +3451,12 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
        `anchorPct` is how much of the net worth sits in the anchor —
        conviction is whatever is left over, never set directly. `targetYield`
        is what the anchor is asked to earn, and the basket of funds is built
-       for it. `cashFloor` is the minimum always held in the cash fund. Nothing is
-       locked any more, so the floor is not about being able to sell — it is
-       about not having to sell into the bid to meet a call. */
+       for it. `cashFloor` is fixed at $1M by the product, not chosen by the family.
+       Nothing is locked any more, so it is not about being able to raise
+       cash — it is about not having to sell into the bid to meet a call. */
     anchorPct: 90,
     targetYield: D.RISK_BASE.band,
-    cashFloor: 2500000,
+    cashFloor: 1000000,
     themes: ["privtech", "pubtech", "gpu", "venture", "koreatalent"],
     survey: {},
     uploads: clone(D.uploadFiles),
@@ -3584,12 +3584,6 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     /* What the anchor is asked to earn. The basket is rebuilt for it. */
     setTargetYield(v) {
       state.targetYield = Math.max(D.SHELF_FLOOR, Math.min(D.SHELF_CEIL, Math.round(v * 10) / 10));
-      emit();
-    },
-
-    /* The minimum that always stays in the cash fund. */
-    setCashFloor(v) {
-      state.cashFloor = Math.max(0, Math.round(v));
       emit();
     },
 
@@ -5785,9 +5779,9 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     const t = u.total(positions);
     const [pctA, setPctA] = useState(st.anchorPct);
     const [yld, setYld] = useState(st.targetYield);
-    const [floor, setFloor] = useState(st.cashFloor);
-    React.useEffect(() => { setPctA(st.anchorPct); setYld(st.targetYield); setFloor(st.cashFloor); },
-      [st.anchorPct, st.targetYield, st.cashFloor]);
+    const floor = st.cashFloor;          /* fixed by the product, not by the family */
+    React.useEffect(() => { setPctA(st.anchorPct); setYld(st.targetYield); },
+      [st.anchorPct, st.targetYield]);
     const [path, setPath] = useState(false);
     const [menu, setMenu] = useState(false);
 
@@ -5798,7 +5792,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     const themeRows = u.byTheme(positions, st.themes);
     const bk = u.byBucket(positions, conv);
     const anchorRow = bk[0], convRow = bk[1];
-    const whatIf = pctA !== st.anchorPct || yld !== st.targetYield || floor !== st.cashFloor;
+    const whatIf = pctA !== st.anchorPct || yld !== st.targetYield;
     const confirmed = st.activity.find((a) => a.kind === "Mandate");
 
     const THUMB = 16;
@@ -5882,13 +5876,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 </span>
               </div>
               <span className="spacer" />
-              <span className="btn-row">
-                {[0, 2500000, 5000000, 8000000].map((v) => (
-                  <button key={v} className={"chip" + (floor === v ? " on" : "")} onClick={() => setFloor(v)}>
-                    {v === 0 ? "None" : u.usdC(v)}
-                  </button>
-                ))}
-              </span>
+              <span className="tri" style={{ fontSize: 11 }}>Fixed — not a setting</span>
             </div>
             <div className="sl-inside tri">
               Holding {u.usdC(floor)} at {u.pct(D.cashFund.yield)} means the other {u.usdC(built.rest)} has to
@@ -5902,10 +5890,10 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                   A what-if. The family holds <b>{st.anchorPct}%</b> in the anchor at <b>{st.targetYield}%</b>.
                 </span>
                 <span className="btn-row">
-                  <button className="link g" onClick={() => { setPctA(st.anchorPct); setYld(st.targetYield); setFloor(st.cashFloor); }}>Discard</button>
+                  <button className="link g" onClick={() => { setPctA(st.anchorPct); setYld(st.targetYield); }}>Discard</button>
                   <button className="btn sm p" onClick={() => {
                     S.actions.setAnchorPct(pctA); S.actions.setTargetYield(yld);
-                    S.actions.setCashFloor(floor); S.actions.commitSplit();
+                    S.actions.commitSplit();
                   }}>Adopt this</button>
                 </span>
               </div>

@@ -283,9 +283,9 @@
     const t = u.total(positions);
     const [pctA, setPctA] = useState(st.anchorPct);
     const [yld, setYld] = useState(st.targetYield);
-    const [floor, setFloor] = useState(st.cashFloor);
-    React.useEffect(() => { setPctA(st.anchorPct); setYld(st.targetYield); setFloor(st.cashFloor); },
-      [st.anchorPct, st.targetYield, st.cashFloor]);
+    const floor = st.cashFloor;          /* fixed by the product, not by the family */
+    React.useEffect(() => { setPctA(st.anchorPct); setYld(st.targetYield); },
+      [st.anchorPct, st.targetYield]);
     const [path, setPath] = useState(false);
     const [menu, setMenu] = useState(false);
 
@@ -296,7 +296,7 @@
     const themeRows = u.byTheme(positions, st.themes);
     const bk = u.byBucket(positions, conv);
     const anchorRow = bk[0], convRow = bk[1];
-    const whatIf = pctA !== st.anchorPct || yld !== st.targetYield || floor !== st.cashFloor;
+    const whatIf = pctA !== st.anchorPct || yld !== st.targetYield;
     const confirmed = st.activity.find((a) => a.kind === "Mandate");
 
     const THUMB = 16;
@@ -380,13 +380,7 @@
                 </span>
               </div>
               <span className="spacer" />
-              <span className="btn-row">
-                {[0, 2500000, 5000000, 8000000].map((v) => (
-                  <button key={v} className={"chip" + (floor === v ? " on" : "")} onClick={() => setFloor(v)}>
-                    {v === 0 ? "None" : u.usdC(v)}
-                  </button>
-                ))}
-              </span>
+              <span className="tri" style={{ fontSize: 11 }}>Fixed — not a setting</span>
             </div>
             <div className="sl-inside tri">
               Holding {u.usdC(floor)} at {u.pct(D.cashFund.yield)} means the other {u.usdC(built.rest)} has to
@@ -400,10 +394,10 @@
                   A what-if. The family holds <b>{st.anchorPct}%</b> in the anchor at <b>{st.targetYield}%</b>.
                 </span>
                 <span className="btn-row">
-                  <button className="link g" onClick={() => { setPctA(st.anchorPct); setYld(st.targetYield); setFloor(st.cashFloor); }}>Discard</button>
+                  <button className="link g" onClick={() => { setPctA(st.anchorPct); setYld(st.targetYield); }}>Discard</button>
                   <button className="btn sm p" onClick={() => {
                     S.actions.setAnchorPct(pctA); S.actions.setTargetYield(yld);
-                    S.actions.setCashFloor(floor); S.actions.commitSplit();
+                    S.actions.commitSplit();
                   }}>Adopt this</button>
                 </span>
               </div>

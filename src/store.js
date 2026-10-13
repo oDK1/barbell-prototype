@@ -33,12 +33,12 @@
        `anchorPct` is how much of the net worth sits in the anchor —
        conviction is whatever is left over, never set directly. `targetYield`
        is what the anchor is asked to earn, and the basket of funds is built
-       for it. `cashFloor` is the minimum always held in the cash fund. Nothing is
-       locked any more, so the floor is not about being able to sell — it is
-       about not having to sell into the bid to meet a call. */
+       for it. `cashFloor` is fixed at $1M by the product, not chosen by the family.
+       Nothing is locked any more, so it is not about being able to raise
+       cash — it is about not having to sell into the bid to meet a call. */
     anchorPct: 90,
     targetYield: D.RISK_BASE.band,
-    cashFloor: 2500000,
+    cashFloor: 1000000,
     themes: ["privtech", "pubtech", "gpu", "venture", "koreatalent"],
     survey: {},
     uploads: clone(D.uploadFiles),
@@ -166,12 +166,6 @@
     /* What the anchor is asked to earn. The basket is rebuilt for it. */
     setTargetYield(v) {
       state.targetYield = Math.max(D.SHELF_FLOOR, Math.min(D.SHELF_CEIL, Math.round(v * 10) / 10));
-      emit();
-    },
-
-    /* The minimum that always stays in the cash fund. */
-    setCashFloor(v) {
-      state.cashFloor = Math.max(0, Math.round(v));
       emit();
     },
 

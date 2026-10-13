@@ -499,7 +499,10 @@
      weighted mean clears what the remainder has to earn. Near the ends of the
      shelf the tent is clipped, which narrows the basket on its own — asking
      for exactly 5% gets you the 5% fund and nothing else, and that is correct. */
-  const TENT = 4;
+  /* How wide the basket spreads either side of its centre. Five rungs reaches
+     the 11% and 12% funds from an 8% target without spilling into the 13%
+     one — a genuine spread rather than a token weight at the top. */
+  const TENT = 5;
   function tentWeights(c) {
     const raw = D.anchorShelf.map((f) => Math.max(0, 1 - Math.abs(f.band - c) / TENT));
     const sum = raw.reduce((a, b) => a + b, 0);

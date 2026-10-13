@@ -455,7 +455,7 @@
   /* One control: the rung the family asks the anchor to target. Raising it
      raises the return asked for and, inversely, shrinks the anchor. The
      family's own 95/5, 90/10 and 80/20 fall out of it at rungs 5, 7 and 11. */
-  const RISK_BASE = { band: 7, conviction: 10 };
+  const RISK_BASE = { band: 8, conviction: 10 };
   const bucketPresets = { preservation: 5, balanced: 10, growth: 20 };
 
   /* What each bucket is made of, in the six classes. The model portfolio is

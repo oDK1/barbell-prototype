@@ -219,6 +219,7 @@
     React.useEffect(() => { setPctA(st.anchorPct); setYld(st.targetYield); setFloor(st.cashFloor); },
       [st.anchorPct, st.targetYield, st.cashFloor]);
     const [path, setPath] = useState(false);
+    const [menu, setMenu] = useState(false);
 
     const conv = 100 - pctA;
     const anchorValue = (pctA / 100) * t;
@@ -394,34 +395,61 @@
             </div>
           </div>
 
-          {/* conviction is a menu, not a weight */}
+          {/* Conviction shows what the family has picked. The rest of the menu
+              is one click away but does not clutter the book with exposures
+              nobody chose. */}
           <div className="themewrap">
             <div className="shelf-hd">
               <span className="lbl">3 · What conviction is pointed at</span>
               <span className="tri" style={{ fontSize: 11.5 }}>
                 {u.usdC(convRow.value)} held · {u.pct(convRow.wt)} of the book against {u.pct(conv)} left for it
               </span>
+              <span className="spacer" style={{ flex: 1 }} />
+              <button className="link g" onClick={() => setMenu(!menu)}>
+                {menu ? "Done" : "Change what is picked"}
+              </button>
             </div>
             <div className="themes">
-              {themeRows.filter((th) => !th.fixed || th.count > 0).map((th) => {
-                const on = st.themes.indexOf(th.key) >= 0;
-                return (
-                  <button key={th.key} className={"th" + (on ? " on" : "") + (th.count ? " held" : "") + (th.fixed ? " fixed" : "")}
-                    onClick={() => S.actions.toggleTheme(th.key)} title={th.note}
-                    disabled={th.fixed}>
-                    <span className="th-hd">
-                      <i style={{ background: th.color, opacity: on || th.fixed ? 1 : .3 }} />
-                      <span className="th-n">{th.label}</span>
-                      {th.flagged && <span className="bdg plain">open question</span>}
-                    </span>
-                    <span className="th-v num">
-                      {th.count ? u.pct(th.wt) + " · " + u.usdC(th.value) : (on ? "picked, nothing held" : "not picked")}
-                    </span>
-                    <span className="th-note tri">{th.note}</span>
-                  </button>
-                );
-              })}
+              {themeRows.filter((th) => st.themes.indexOf(th.key) >= 0 || th.count > 0).map((th) => (
+                <button key={th.key} className={"th on" + (th.count ? " held" : "")}
+                  onClick={() => S.actions.toggleTheme(th.key)} title={th.note}>
+                  <span className="th-hd">
+                    <i style={{ background: th.color }} />
+                    <span className="th-n">{th.label}</span>
+                    {th.flagged && <span className="bdg plain">open question</span>}
+                  </span>
+                  <span className="th-v num">
+                    {th.count ? u.pct(th.wt) + " · " + u.usdC(th.value) : "picked, nothing held"}
+                  </span>
+                  <span className="th-note tri">{th.note}</span>
+                </button>
+              ))}
             </div>
+
+            {menu && (() => {
+              const rest = themeRows.filter((th) => st.themes.indexOf(th.key) < 0 && th.count === 0);
+              return (
+                <div className="themeadd">
+                  <div className="lbl" style={{ marginBottom: 8 }}>Not picked</div>
+                  {rest.length === 0
+                    ? <div className="empty">Every exposure on the menu is picked.</div>
+                    : <div className="themes">
+                        {rest.map((th) => (
+                          <button key={th.key} className="th" onClick={() => S.actions.toggleTheme(th.key)} title={th.note}>
+                            <span className="th-hd">
+                              <i style={{ background: th.color, opacity: .3 }} />
+                              <span className="th-n">{th.label}</span>
+                              {th.flagged && <span className="bdg plain">open question</span>}
+                            </span>
+                            <span className="th-v num">not picked</span>
+                            <span className="th-note tri">{th.note}</span>
+                          </button>
+                        ))}
+                      </div>}
+                </div>
+              );
+            })()}
+
             <div className="shelf-ft tri">
               Picking an exposure does not buy anything. It tells the marketplace what to rank first.
             </div>

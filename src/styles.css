@@ -748,3 +748,6 @@ tr.rung-cash td{background:#FCFBF8}
 .trustfit.weak i{background:var(--g2)}
 .trustfit.sm{padding:1px 6px;font-size:9px;gap:5px}
 .trustfit.sm i{width:6px;height:6px}
+
+/* The rest of the exposure menu, shown only when the family goes looking. */
+.themeadd{margin-top:12px;padding-top:12px;border-top:1px solid var(--g3)}

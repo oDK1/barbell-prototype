@@ -33,8 +33,9 @@
        `anchorPct` is how much of the net worth sits in the anchor —
        conviction is whatever is left over, never set directly. `targetYield`
        is what the anchor is asked to earn, and the basket of funds is built
-       for it. `cashFloor` is the minimum always held in the cash fund, so a
-       capital call never forces a sale. */
+       for it. `cashFloor` is the minimum always held in the cash fund. Nothing is
+       locked any more, so the floor is not about being able to sell — it is
+       about not having to sell into the bid to meet a call. */
     anchorPct: 90,
     targetYield: D.RISK_BASE.band,
     cashFloor: 2500000,
@@ -230,7 +231,7 @@
           state.positions.push({
             id: nextId("p"), name, ticker, cls, sub, grp: "—", prov: "live",
             value: amount, cost: amount, qty: qty || null, px: px || null, pxUsd: px || null,
-            ccy: "USD", chg: 0, sector: "—", geo: "—", liq: "Daily",
+            ccy: "USD", chg: 0, sector: "—", geo: "—", liq: "Immediate",
             acquired: D.TODAY, realizedYTD: 0, src: { file: "Barbell order", cell: "—" },
           });
         }
@@ -352,7 +353,7 @@
       state.positions.push({
         id: nextId("p"), name: listing.instrument.replace(/ — .*$/, ""), cls: listing.cls, sub: listing.sub, grp: "Secondary",
         prov: "hanwha", value: listing.size, cost: consideration, ccy: "USD",
-        liq: "Locked", term: "As the original offering", sector: "—", geo: "—",
+        liq: "Immediate", term: "As the original offering", sector: "—", geo: "—",
         asOf: D.TODAY, acquired: D.TODAY, onBarbell: true, vintage: listing.vintage,
         src: { file: "Barbell secondary", cell: "—" },
       });

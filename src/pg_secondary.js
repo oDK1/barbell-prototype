@@ -1,4 +1,10 @@
-/* /secondary — bulletin board for illiquid positions originated on Barbell. */
+/* /secondary — where the rail actually clears.
+
+   DW [D]: everything on the platform converts to cash immediately, so this
+   board is no longer the escape hatch for an illiquid half. It is the venue
+   that makes "immediately" true, and the place the price of immediacy is
+   published: every line here carries what the interest last cleared at
+   against its own mark. */
 (function () {
   const { useState } = React;
   const D = BB.data, u = BB.u, S = BB.store;
@@ -39,7 +45,7 @@
       setAsked(askSecondary(wantAsk, viewed, ctx));
     }, [wantAsk]);
     /* eligible first: the rows that can actually be acted on */
-    const mine = st.positions.filter((p) => p.liq !== "Daily")
+    const mine = st.positions.filter((p) => !u.isListed(p))
       .sort((a, b) => (u.eligibility(b).ok ? 1 : 0) - (u.eligibility(a).ok ? 1 : 0) || b.value - a.value);
     const SHOW = 5, SHOW_MINE = 4;
     const shownRows = allRows ? rows : rows.slice(0, SHOW);
@@ -58,14 +64,14 @@
           <div className="panel-hd">
             <h3>Listings <span className="tri" style={{ fontWeight: 400 }}>{shownRows.length} of {rows.length}</span></h3>
             <span className="tri" style={{ fontSize: 11 }}>
-              Sellers are blind identifiers · a listing stays open until someone takes the ask or the seller accepts a bid
+              Sellers are blind identifiers · a listing is an ask above the standing bid — it stays open until someone takes it or the seller accepts a bid
             </span>
           </div>
           <div className="tscroll">
           <table className="t">
             <thead>
               <tr>
-                <th style={{ minWidth: 240 }}>Instrument</th><th>Where it lands</th><th className="n">Current IRR</th><th>Liquidity</th>
+                <th style={{ minWidth: 240 }}>Instrument</th><th>Where it lands</th><th className="n">Current IRR</th><th className="n">Clears at</th>
                 <th className="n">Last NAV</th><th className="n">Size offered</th><th className="n">Fit</th>
                 <th className="hide-narrow" style={{ minWidth: 170 }}>Why</th><th></th>
               </tr>
@@ -98,7 +104,9 @@
                           </span>
                         : <span className="tri">—</span>}
                     </td>
-                    <td><span className="bdg plain">Locked</span></td>
+                    {/* the board's own answer to "what does immediacy cost" */}
+                    <td className="n num">{u.pct(l.askPct)}
+                      <div className="tsub">{l.askPct >= 100 ? "premium to mark" : "discount to mark"}</div></td>
                     <td className="n num">{u.usd(l.nav)}</td>
                     <td className="n num">{u.usd(l.size)}</td>
                     <td className="n"><Fit score={v.sc.score} /></td>
@@ -131,7 +139,7 @@
         <div className="panel">
           <div className="panel-hd">
             <h3>Eligibility <span className="tri" style={{ fontWeight: 400 }}>{shownMine.length} of {mine.length}</span></h3>
-            <span className="tri" style={{ fontSize: 11 }}>Only illiquid positions originated on Barbell, held 12 months, are listable.</span>
+            <span className="tri" style={{ fontSize: 11 }}>Positions originated on Barbell are listable from day one. Listing sets your own ask; selling at the standing bid needs no listing at all.</span>
           </div>
           <table className="t dense">
             <thead><tr><th>Position</th><th>Subcategory</th><th>Origin</th><th className="n">Held</th><th className="n">Value</th><th>Eligibility</th><th></th></tr></thead>
@@ -271,7 +279,7 @@
             <table className="t dense mt12" style={{ maxWidth: 520 }}>
               <tbody>
                 {[["Allocation", sc.allocation, place.label + " " + gapWord(mcDrift)],
-                  ["Liquidity", sc.liquidity, "locked" + (ctx.short ? " · cash breaks " + ctx.short.month : " · calls covered")],
+                  ["Liquidity", sc.liquidity, "sells same day · this one is asked at " + u.pct(l.askPct) + " of mark"],
                   ["Tax", sc.tax, ["pe", "vc", "preipo"].indexOf(l.sub) >= 0 ? "gain deferred to exit" : "taxable as it arrives"],
                   ["Instrument merit", sc.merit, discount > 0 ? u.pct(discount) + " below the last mark" : "above the last mark"]].map((r) => (
                   <tr key={r[0]}>
@@ -358,7 +366,7 @@
                 <span className="k">You pay</span><span className="v">{u.usd(consideration)}</span>
                 <span className="k">IRR to date</span>
                 <span className="v">{u.currentIRR(l) ? u.sgn(u.currentIRR(l).irr) : "—"}</span>
-                <span className="k">Liquidity</span><span className="v">Locked until the fund returns capital</span>
+                <span className="k">Liquidity</span><span className="v">Immediate — transferred on the rail</span>
                 {l.unfunded ? <><span className="k">Unfunded</span><span className="v">{u.usd(l.unfunded)}</span></> : null}
                 <span className="k">Days listed</span><span className="v">{l.days}</span>
               </div>

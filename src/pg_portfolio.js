@@ -752,8 +752,8 @@
             <h3><span style={{ fontSize: 11, color: "var(--g1)", marginRight: 7 }}>{show ? "▾" : "▸"}</span>All positions</h3>
             <div className="tri" style={{ fontSize: 11.5, marginTop: 2, paddingLeft: 18 }}>
               The entire book at fund and deal level — {positions.length} positions ·{" "}
-              {positions.filter((p) => p.liq === "Daily").length} listed ·{" "}
-              {positions.filter((p) => p.liq !== "Daily").length} private
+              {positions.filter(u.isListed).length} listed ·{" "}
+              {positions.filter((p) => !u.isListed(p)).length} private
               {show ? ". Any column sorts." : ". Open to search and sort it."}
             </div>
           </div>
@@ -840,20 +840,69 @@
     const line = proj.map((m, i) => x(i) + "," + y(m.cash)).join(" ");
     const floor = D.liquidityAssumptions.reserveFloor;
     const calls90 = D.capitalCalls.filter((c) => u.days(D.TODAY, c.date) <= 90 && u.days(D.TODAY, c.date) >= 0);
-    const liq = u.liquidity90(positions);
+    const ex = u.exitToday(positions);
+    const callTotal = u.sum(calls90, (c) => c.amount);
+    const raise = u.raiseCost(positions, callTotal);
 
     return (
       <>
+        {/* DW [D]: everything converts to cash immediately, so there is no
+            redemption schedule to report. What is worth reporting is the
+            price of using that. END-STATE. */}
         <div className="band mt16">
-          <div className="cell"><div className="stat-l">Cash equivalents</div><div className="stat-v"><Money v={liq.cash} compact /></div><div className="stat-s">immediately available</div></div>
-          <div className="cell"><div className="stat-l">Redeemable within 90 days</div><div className="stat-v"><Money v={liq.within90} compact /></div><div className="stat-s">incl. quarterly funds</div></div>
-          <div className="cell"><div className="stat-l">Realisable from listed positions</div><div className="stat-v"><Money v={liq.listed} compact /></div><div className="stat-s">sellable today{liq.affiliateListed > 0 ? " · excludes the " + u.usdC(liq.affiliateListed) + " operating company" : ""}</div></div>
-          <div className="cell"><div className="stat-l">Capital calls · next 90 days</div><div className="stat-v"><Money v={u.sum(calls90, (c) => c.amount)} compact /></div><div className="stat-s">{calls90.length} calls</div></div>
-          <div className="cell"><div className="stat-l">Runway breach</div>
-            <div className="stat-v" style={{ color: short ? "var(--neg)" : "var(--pos)" }}>{short ? short.month : "None"}</div>
-            <div className="stat-s">{short ? u.usd(short.amount) + " short" : "within 24 months"}</div></div>
+          <div className="cell"><div className="stat-l">Realisable today</div>
+            <div className="stat-v"><Money v={ex.gross} compact /></div>
+            <div className="stat-s">every position, at carrying value</div></div>
+          <div className="cell"><div className="stat-l">Net of the bid</div>
+            <div className="stat-v"><Money v={ex.net} compact /></div>
+            <div className="stat-s">what a same-day sale of the book returns</div></div>
+          <div className="cell"><div className="stat-l">Cost of selling it all</div>
+            <div className="stat-v" style={{ color: "var(--neg)" }}>{u.usdC(ex.cost)}</div>
+            <div className="stat-s">{u.pct(ex.haircut)} of carrying value</div></div>
+          <div className="cell"><div className="stat-l">Sells at par</div>
+            <div className="stat-v"><Money v={ex.parFree} compact /></div>
+            <div className="stat-s">{ex.affiliate > 0 ? "excludes the " + u.usdC(ex.affiliate) + " operating company" : "no discount to the mark"}</div></div>
+          <div className="cell"><div className="stat-l">Capital calls · next 90 days</div>
+            <div className="stat-v"><Money v={callTotal} compact /></div>
+            <div className="stat-s">{calls90.length} calls · {raise.cost > 0 ? u.usdC(raise.cost) + " to fund by selling" : "fundable from par"}</div></div>
         </div>
 
+        {/* where the discount actually sits */}
+        <div className="panel mt16">
+          <div className="panel-hd">
+            <div>
+              <h3>What immediacy costs</h3>
+              <div className="tri" style={{ fontSize: 11.5, marginTop: 2 }}>
+                Nothing here has a notice period. Everything here has a bid, and a bid is not a mark.
+              </div>
+            </div>
+            <span className="tri" style={{ fontSize: 11 }}>{ex.discountedCount} of {positions.length} positions trade below the mark</span>
+          </div>
+          <table className="t dense">
+            <thead><tr><th>Position</th><th>Where it sits</th><th className="n">Carrying value</th>
+              <th className="n">Clears at</th><th className="n">Given up</th></tr></thead>
+            <tbody>
+              {ex.worst.map((w) => (
+                <tr key={w.p.id} className="clickable" onClick={() => S.navigate("/portfolio/" + w.p.cls + "?sub=" + w.p.sub)}>
+                  <td><div className="tname">{w.p.name}</div>
+                    <div className="tsub">{u.subLabel(w.p.sub)}</div></td>
+                  <td>{(() => { const pl = placeOf(w.p); return (
+                    <span style={{ display: "inline-flex", gap: 7, alignItems: "center" }}>
+                      <i className="sw" style={{ width: 8, height: 8, display: "inline-block", background: pl.color }} />
+                      <span style={{ fontSize: 12 }}>{pl.label}</span>
+                    </span>); })()}</td>
+                  <td className="n num">{u.usd(w.p.value)}</td>
+                  <td className="n num tri">{u.pct(w.pc)}</td>
+                  <td className="n num" style={{ color: "var(--neg)" }}>−{u.usd(w.loss)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="why" style={{ borderTop: "1px solid var(--g3)" }}>
+            {u.usdC(ex.parFree)} sells at the mark with nothing given up. The remaining {u.usdC(ex.discounted)} is
+            where the {u.usdC(ex.cost)} goes — and none of it is a reason not to sell, only a number to know before doing it.
+          </div>
+        </div>
 
         <div className="panel mt16">
           <div className="panel-hd">
@@ -946,7 +995,7 @@
           <div className="cell"><div className="stat-l">Realised YTD</div><div className="stat-v"><Money v={realized} compact /></div><div className="stat-s">across {positions.filter((p) => p.realizedYTD).length} positions{S.get().realizedClosed ? " · incl. closed" : ""}</div></div>
           <div className="cell"><div className="stat-l">Unrealised</div><div className="stat-v"><Money v={u.unrealized(positions)} compact /></div></div>
           <div className="cell"><div className="stat-l">Long-term lots</div><div className="stat-v">{lots.filter((l) => l.longTerm).length} <span className="tri" style={{ fontSize: 13 }}>/ {lots.length}</span></div><div className="stat-s">held 12 months or more</div></div>
-          <div className="cell"><div className="stat-l">Harvest candidates</div><div className="stat-v">{harvest.length}</div><div className="stat-s">liquid positions below cost</div></div>
+          <div className="cell"><div className="stat-l">Harvest candidates</div><div className="stat-v">{harvest.length}</div><div className="stat-s">listed positions below cost</div></div>
           <div className="cell"><div className="stat-l">Approaching long-term</div><div className="stat-v">{nearLT.length}</div><div className="stat-s">within 65 days</div></div>
         </div>
 
@@ -1048,10 +1097,7 @@
     const ps = st.positions;
     const t = u.total(ps);
     const cls = u.byClass(ps);
-    const priv = ps.filter((p) => p.liq !== "Daily");
-    const privShare = (u.total(priv) / t) * 100;
-    const privCount = priv.length;
-    const liq = u.liquidity90(ps);
+    const liq = u.exitToday(ps);
     const stale = ps.filter((p) => p.prov === "self" && u.staleness(p).d > 90);
     const calls90 = D.capitalCalls.filter((c) => u.days(D.TODAY, c.date) <= 90 && u.days(D.TODAY, c.date) >= 0);
 

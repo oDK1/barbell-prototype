@@ -21,10 +21,10 @@
       q: "Where is the book exposed if the regime changes?",
       read: (ps) => {
         const sp = u.spread(ps);
-        const liq = u.liquidity90(ps);
+        const ex = u.exitToday(ps);
         return [
           "Concentration is the position, and " + (sp.topGeo ? sp.topGeo.v + " at " + u.pct(sp.topGeo.wt) : "the largest geography") + " is the position this book has taken, whether or not it was chosen.",
-          "A regime change is survivable only if it can be acted on. " + u.usdC(liq.within90) + " is reachable inside 90 days against " + u.usdC(u.total(ps)) + " of assets.",
+          "A regime change is survivable only if it can be acted on. Every position converts today — but acting costs " + u.usdC(ex.cost) + ", " + u.pct(ex.haircut) + " of the book, and that bill is only paid by whoever moves.",
           "Nothing here expresses a view on rates. Duration sits inside Engine by default rather than by decision.",
         ];
       } },
@@ -45,7 +45,7 @@
       read: (ps) => {
         const aff = u.affiliateExposure(ps);
         const short = u.shortfall(ps);
-        const locked = u.total(ps.filter((p) => p.liq === "Locked"));
+        const ex2 = u.exitToday(ps);
         return [
           aff.wt > 0
             ? "The family's income and " + u.pct(aff.wt) + " of its wealth depend on the same balance sheet. In the event that matters, both move together."
@@ -53,7 +53,7 @@
           short
             ? "Projected cash breaks in " + short.month + ". A forced sale in a bad month is the loss, not the drawdown that caused it."
             : "Projected cash holds across the window.",
-          u.pct((locked / u.total(ps)) * 100) + " of the book cannot be sold at any price inside a quarter. That is the real constraint under stress, not volatility.",
+          "Everything here sells today, which removes the usual tail risk and installs a different one: a forced seller pays " + u.usdC(ex2.cost) + " to leave, and pays it precisely when the bid is thinnest.",
         ];
       } },
   ];

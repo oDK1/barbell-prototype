@@ -39,9 +39,9 @@
     { re: /\b(korea|kr|korean)\b/i, label: "Korea", f: (p) => p.geo === "Korea" },
     { re: /\b(japan|jpy|yen)\b/i, label: "Japan / JPY", f: (p) => p.ccy === "JPY" || p.geo === "Japan" },
     { re: /stale|old|out of date/i, label: "Stale valuations", f: (p) => p.prov === "self" && u.staleness(p).d > 90 },
-    { re: /illiquid|locked/i, label: "Locked positions", f: (p) => p.liq === "Locked" },
-    { re: /liquid|daily/i, label: "Daily liquidity", f: (p) => p.liq === "Daily" },
-    { re: /private/i, label: "Private positions", f: (p) => p.liq !== "Daily" },
+    { re: /discount|haircut|below the mark/i, label: "Clears below the mark", f: (p) => (BB.data.exitPct[p.sub] || 100) < 99.9 },
+    { re: /at par|no discount/i, label: "Sells at par", f: (p) => (BB.data.exitPct[p.sub] || 100) >= 99.9 },
+    { re: /private/i, label: "Private positions", f: (p) => ["pe","vc","preipo","pcred","re","infra","struct"].indexOf(p.sub) >= 0 },
     { re: /tech|semiconductor|ai/i, label: "Technology", f: (p) => p.sector === "Info Tech" || p.sector === "Technology" },
     { re: /real estate|property|부동산/i, label: "Real estate", f: (p) => p.sub === "re" },
     { re: /cash/i, label: "Cash equivalents", f: (p) => p.cls === "cash" },
@@ -75,7 +75,7 @@
     }
     const tests = [
       [/hanwha/, "Hanwha-originated", (m) => m.hanwha],
-      [/daily|liquid(?!ity premium)/, "Daily liquidity", (m) => m.liq === "Daily"],
+      [/at par|no discount/, "Sells at par", (m) => (BB.data.exitPct[m.fills] || 100) >= 99.9],
       [/lock|illiquid|private/, "Private market", (m) => m.kind === "private"],
       [/defer|tax/, "Gain deferred to exit", (m) => ["pe", "vc", "preipo"].indexOf(m.fills) >= 0],
       [/income|yield|coupon|distribut/, "Pays income now", (m) => (m.retNum || 0) >= 5 && ["pe", "vc", "preipo"].indexOf(m.fills) < 0],

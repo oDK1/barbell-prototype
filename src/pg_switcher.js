@@ -11,7 +11,7 @@
         <div className="eyebrow">Demo entry</div>
         <h1 className="mt8">{D.family.name}</h1>
         <div className="sub mt8" style={{ maxWidth: "70ch" }}>
-          One balance sheet — public and private, liquid and illiquid — held by two accounts with different authority.
+          One balance sheet — public and private, all of it sellable the same day — held by two accounts with different authority.
           Switch between them at any time from the top right.
         </div>
 

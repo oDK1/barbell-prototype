@@ -189,7 +189,7 @@
     const selLabel = pctA + "% anchor at " + yld.toFixed(1) + "%";
     const lad = u.anchorLadder(st.positions, null);
     const themeRows = u.byTheme(st.positions, st.themes);
-    const listed = st.positions.filter((x) => x.liq === "Daily").length;
+    const listed = st.positions.filter(u.isListed).length;
 
     return (
       <div className="wrap page" style={{ maxWidth: 1180 }}>

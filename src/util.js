@@ -108,17 +108,66 @@
   function realizedYTD(ps) { return sum(ps, (p) => p.realizedYTD || 0); }
 
   /* 90-day liquidity: cash equivalents plus anything redeemable inside the window. */
-  function liquidity90(ps) {
-    const cash = total(ps.filter((p) => p.cls === "cash"));
-    const quarterly = total(ps.filter((p) => p.liq === "Quarterly"));
-    /* What could actually be sold today: daily-dealing, and not the family's
-       own operating company — which is listed and liquid on paper, but the
-       one holding the family will not sell to meet a call. `coverage` applies
-       the same exclusion when it proposes what to sell. */
-    const listedAll = ps.filter((p) => p.cls !== "cash" && p.liq === "Daily");
-    const listed = total(listedAll.filter((p) => !p.affiliate));
-    const affiliateListed = total(listedAll.filter((p) => p.affiliate));
-    return { cash, quarterly, listed, affiliateListed, immediate: cash, within90: cash + quarterly };
+  /* --------------------------------------------------------------- exit ----
+     DW [D]: everything on this platform converts to cash immediately. So the
+     old question — how much could be redeemed inside 90 days — has no content
+     any more; the answer is always "all of it".
+
+     The question that replaces it is what the book fetches. Immediacy is
+     bought at the bid, and the bid is not the mark. `exitToday` prices the
+     whole book for an immediate sale and reports what that costs, because a
+     platform that says "instantly liquid" and leaves the discount unstated is
+     telling half the truth. */
+  /* "Liquid" no longer separates anything, because everything is. What still
+     separates a holding is whether an exchange prices it or the rail does —
+     a ticker, or not. Tax lots, order tickets and the secondary board all
+     turn on that, not on a notice period. */
+  function isListed(p) { return !!p.ticker; }
+
+  function exitValue(p) {
+    const pc = D.exitPct[p.sub];
+    return p.value * ((pc === undefined ? 100 : pc) / 100);
+  }
+
+  function exitToday(ps) {
+    const gross = total(ps);
+    const net = ps.reduce((a, p) => a + exitValue(p), 0);
+    const cost = gross - net;
+    /* at par, and therefore free to sell: listed lines and cash */
+    const parItems = ps.filter((p) => (D.exitPct[p.sub] === undefined ? 100 : D.exitPct[p.sub]) >= 99.9);
+    const par = total(parItems);
+    /* the operating company is listed and sellable, and is still the one
+       holding the family will not sell — so it is counted apart */
+    const aff = total(parItems.filter((p) => p.affiliate));
+    const discounted = ps.filter((p) => (D.exitPct[p.sub] === undefined ? 100 : D.exitPct[p.sub]) < 99.9);
+    return {
+      gross, net, cost,
+      haircut: gross ? (cost / gross) * 100 : 0,
+      par, parFree: par - aff, affiliate: aff,
+      discounted: total(discounted), discountedCount: discounted.length,
+      worst: discounted.map((p) => ({ p, pc: D.exitPct[p.sub], loss: p.value - exitValue(p) }))
+        .sort((a, b) => b.loss - a.loss).slice(0, 5),
+    };
+  }
+
+  /* What it costs to raise a given amount today, selling the cheapest exits
+     first: cash and listed lines at par, then up the discount ladder. */
+  function raiseCost(ps, amount) {
+    const ordered = ps.slice()
+      .filter((p) => !p.affiliate)
+      .sort((a, b) => (D.exitPct[b.sub] === undefined ? 100 : D.exitPct[b.sub])
+                    - (D.exitPct[a.sub] === undefined ? 100 : D.exitPct[a.sub]));
+    let need = amount, cost = 0, sold = [];
+    for (const p of ordered) {
+      if (need <= 0) break;
+      const pc = (D.exitPct[p.sub] === undefined ? 100 : D.exitPct[p.sub]) / 100;
+      const takeNet = Math.min(need, p.value * pc);
+      const takeGross = takeNet / pc;
+      cost += takeGross - takeNet;
+      sold.push({ p, gross: takeGross, net: takeNet });
+      need -= takeNet;
+    }
+    return { cost, sold, short: Math.max(0, need) };
   }
 
   /* --------------------------------------------------------- liquidity map */
@@ -155,7 +204,7 @@
      before single securities; never the operating company holding. */
   function coverage(ps, amount) {
     const rank = (p) => (p.grp === "ETF" ? 0 : p.sub === "sov" ? 1 : p.sub === "ig" ? 2 : 3);
-    const pool = ps.filter((p) => p.liq === "Daily" && p.cls !== "cash" && !p.affiliate)
+    const pool = ps.filter((p) => isListed(p) && p.cls !== "cash" && !p.affiliate)
       .sort((a, b) => rank(a) - rank(b) || b.value - a.value);
     const items = []; let t = 0;
     for (const p of pool) { if (t >= amount) break; items.push(p); t += p.value; }
@@ -183,14 +232,14 @@
       return {
         ...p, held, longTerm: held >= 365, gain,
         gainPct: p.cost ? (gain / p.cost) * 100 : 0,
-        harvest: gain < 0 && p.liq === "Daily",
+        harvest: gain < 0 && isListed(p),
       };
     });
   }
 
   /* -------------------------------------------------- secondary eligibility */
   function eligibility(p) {
-    if (p.liq === "Daily") return { ok: false, reason: "Listed — sells through the order ticket", listed: true };
+    if (isListed(p)) return { ok: false, reason: "Listed — sells through the order ticket", listed: true };
     if (!p.onBarbell) return { ok: false, reason: "Not originated on Barbell" };
     const held = days(p.acquired);
     if (held < 365) return { ok: false, reason: "Eligible in " + Math.max(1, Math.ceil((365 - held) / 30)) + " months", months: Math.ceil((365 - held) / 30) };
@@ -383,7 +432,7 @@
     const consideration = Math.round(l.size * l.askPct / 100);
     const discount = 100 - l.askPct;
     const toNav = l.askPct ? (100 / l.askPct - 1) * 100 : 0;
-    const asOffering = { ...l, fills: l.sub, liq: "Locked", retNum: toNav,
+    const asOffering = { ...l, fills: l.sub, liq: "Immediate", retNum: toNav,
       fit: Math.max(5, Math.min(95, Math.round(50 + discount * 2))) };
     const sc = scoreFor(asOffering, ctx);
     return {
@@ -733,7 +782,7 @@
     let specificVar = 0;
     if (ps) {
       const tot = total(ps);
-      ps.filter((p) => p.cls === "equity" && p.liq === "Daily" && p.grp !== "ETF").forEach((p) => {
+      ps.filter((p) => p.cls === "equity" && isListed(p) && p.grp !== "ETF").forEach((p) => {
         const wt = p.value / tot;
         specificVar += wt * wt * Math.pow(D.idiosyncraticVol / 100, 2);
       });
@@ -774,7 +823,7 @@
     D.subs.forEach((s) => { under[s.key] = model.subs[s.key] - (cur[s.key] || 0); });
 
     const short = shortfall(ps);
-    const liq = liquidity90(ps);
+    const liq = exitToday(ps);
     const calls24 = sum(D.capitalCalls, (c) => c.amount);
     const calls90 = sum(D.capitalCalls.filter((c) => days(D.TODAY, c.date) <= 90 && days(D.TODAY, c.date) >= 0), (c) => c.amount);
 
@@ -801,10 +850,14 @@
     const merit = m.fit;
     const allocation = Math.round(Math.max(0, Math.min(100, 50 + (ctx.under[m.fills] || 0) * 6)));
 
-    const locked = m.liq === "Locked", quarterly = m.liq === "Quarterly";
+    /* Everything exits the same day, so the liquidity score stops measuring
+       the wait and starts measuring the bid: what this would clear at if the
+       family had to sell it back. Under cash stress a wide spread matters
+       more, because a forced seller is the one who pays it. */
+    const pc = D.exitPct[m.fills] === undefined ? 100 : D.exitPct[m.fills];
     const tight = ctx.stress > 0.6;
-    const liquidity = tight ? (locked ? 32 : quarterly ? 62 : 88)
-                            : (locked ? 78 : quarterly ? 72 : 60);
+    const spread = 100 - pc;                       /* 0 at par, 13 at the widest */
+    const liquidity = Math.round(Math.max(0, Math.min(100, 100 - spread * (tight ? 5.0 : 2.2))));
 
     /* Interest and coupons are taxed as they arrive; capital gains wait for the
        exit. With gains already booked this year, deferral is worth something. */
@@ -892,7 +945,7 @@
   BB.u = {
     usd, usdC, krwC, krwFull, pct, pp, sgn, sgnUsd, num, localPx, days, fmtDate, fmtTs, monthKey, monthLabel,
     staleness, provLabel, sum, total, byClass, bySub, gaps, unrealized, realizedYTD,
-    liquidity90, liquidityProjection, shortfall, coverage, projectMix,
+    isListed, exitValue, exitToday, raiseCost, liquidityProjection, shortfall, coverage, projectMix,
     modelSix, convPct, bySix, sixToFour, sixToSubs, pickForClass, holdingsSix, geoBucket, GEO_BUCKETS, listingDocs, listingView, currentIRR, tradeHistory, impactSix, impactBucket, modelClassOf, modelClassLabel, bucketOf, bucketLabel, byBucket, spread, engineDrag, posReturn, rungOf, bucketKeyOf, inBucket, splitForBand, modelFour, buildAnchor, anchorLadder, offerBucket, offerRung, offerTheme, offerPlace, byTheme, SUB_RETURN, topHoldings, affiliateExposure, taxLots, eligibility,
     fitFor, subLabel, clsLabel, clsOf, impact, modelWeights, marketContext, scoreFor, suggestAmount,
   };

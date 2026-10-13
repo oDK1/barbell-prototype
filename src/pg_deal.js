@@ -78,7 +78,7 @@
             <table className="t dense mt12" style={{ maxWidth: 520 }}>
               <tbody>
                 {[["Allocation", sc.allocation, place.label + " " + gapWord(mcDrift)],
-                  ["Liquidity", sc.liquidity, m.liq + (ctx.short ? " · cash breaks " + ctx.short.month : " · calls covered")],
+                  ["Liquidity", sc.liquidity, "sells same day at " + u.pct(D.exitPct[m.fills] === undefined ? 100 : D.exitPct[m.fills]) + " of mark"],
                   ["Tax", sc.tax, ["pe", "vc", "preipo"].indexOf(m.fills) >= 0 ? "gain deferred to exit" : "taxable as it arrives"],
                   ["Instrument merit", sc.merit, "terms, manager, security"]].map((r) => (
                   <tr key={r[0]}>
@@ -175,7 +175,7 @@
                 <span className="k">Sizing</span><span className="v">Fractional — any amount</span>
                 <span className="k">Transferable</span><span className="v">Day one, on the secondary board</span>
                 <span className="k">Mechanic</span><span className="v">{isListed ? "Buy" : "Commit"}</span>
-                <span className="k">Liquidity</span><span className="v">{m.liq}</span>
+                <span className="k">Liquidity</span><span className="v">{m.liq} · clears at {u.pct(D.exitPct[m.fills] === undefined ? 100 : D.exitPct[m.fills])}</span>
                 {m.expense !== undefined && <><span className="k">Expense ratio</span><span className="v">{u.pct(m.expense, 2)}</span></>}
                 {m.ytm !== undefined && <><span className="k">Yield to maturity</span><span className="v">{u.pct(m.ytm, 2)}</span></>}
                 {m.dur !== undefined && <><span className="k">Duration</span><span className="v">{m.dur} years</span></>}

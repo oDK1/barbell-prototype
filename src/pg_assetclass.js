@@ -28,7 +28,7 @@
         </thead>
         <tbody>
           {rows.map((p) => {
-            const listed = p.liq === "Daily";
+            const listed = u.isListed(p);
             const el = u.eligibility(p);
             return (
               <tr key={p.id}>
@@ -124,7 +124,7 @@
         <div className="between">
           <div>
             <h1>{group ? group.label : cls.label}</h1>
-            <div className="sub mt8">{all.length} positions · {all.filter((p) => p.liq === "Daily").length} listed · {all.filter((p) => p.liq !== "Daily").length} private</div>
+            <div className="sub mt8">{all.length} positions · {all.filter(u.isListed).length} listed · {all.filter((p) => !u.isListed(p)).length} private</div>
           </div>
           <div className="right">
             <div className="stat-l">Share of the book</div>
@@ -140,8 +140,8 @@
           <div className="cell"><div className="stat-l">Unrealised</div><div className="stat-v"><Delta v={u.unrealized(all)} usd /></div>
             <div className="stat-s">{u.sgn((u.unrealized(all) / u.sum(all, (p) => p.cost)) * 100)} on cost</div></div>
           <div className="cell"><div className="stat-l">Daily-liquid share</div>
-            <div className="stat-v">{u.pct((u.total(all.filter((p) => p.liq === "Daily")) / clsTotal) * 100)}</div>
-            <div className="stat-s">{u.usdC(u.total(all.filter((p) => p.liq === "Daily")))} realisable</div></div>
+            <div className="stat-v">{u.pct((u.total(all.filter(u.isListed)) / clsTotal) * 100)}</div>
+            <div className="stat-s">{u.usdC(u.total(all.filter(u.isListed)))} on an exchange</div></div>
         </div>
 
         <div className="between mt24 mb12">

@@ -82,7 +82,7 @@
 
   function Marketplace({ route }) {
     const st = S.useStore();
-    const [f, setF] = useState({ bucket: "", rung: "", theme: "", src: "", trust: "", liq: "", sector: "", geo: "", ret: "" });
+    const [f, setF] = useState({ bucket: "", rung: "", theme: "", src: "", trust: "", sector: "", geo: "", ret: "" });
     const [q, setQ] = useState("");
     const [act, setAct] = useState(null);
     const [ask, setAsk] = useState("");
@@ -107,7 +107,6 @@
       if (f.theme && u.offerTheme(m) !== f.theme) return false;
       if (f.src && m.source !== f.src) return false;
       if (f.trust && m.trust !== f.trust) return false;
-      if (f.liq && m.liq !== f.liq) return false;
       if (f.sector && m.sector !== f.sector) return false;
       if (f.geo && u.geoBucket(m.geo) !== f.geo) return false;
       if (f.ret && (u.offerBucket(m) === "conviction" || m.retNum < +f.ret)) return false;
@@ -181,10 +180,6 @@
                       <option value="strong">Strong</option>
                       <option value="partial">Partial</option>
                       <option value="weak">Weak</option>
-                    </select></label></div>
-                  <div className="f-item"><label className="f"><span>Liquidity</span>
-                    <select value={f.liq} onChange={(e) => setF({ ...f, liq: e.target.value })}>
-                      <option value="">Any</option><option>Daily</option><option>Quarterly</option><option>Locked</option>
                     </select></label></div>
                   <div className="f-item"><label className="f"><span>Sector</span>
                     <select value={f.sector} onChange={(e) => setF({ ...f, sector: e.target.value })}>
@@ -270,15 +265,15 @@
             </div>
 
             <div className="mt16">
+              {/* nothing has a notice period, so the panel prices the exit
+                  instead of scheduling it */}
               <Panel title="Liquidity context">
                 <div className="kv">
+                  <span className="k">Sells at par</span><span className="v">{u.usdC(ctx.liq.parFree)}</span>
+                  <span className="k">Cost to sell it all</span>
+                  <span className="v" style={{ color: "var(--neg)" }}>{u.usdC(ctx.liq.cost)}</span>
                   <span className="k">Calls · next 90 days</span><span className="v">{u.usdC(ctx.calls90)}</span>
                   <span className="k">Calls · 24 months</span><span className="v">{u.usdC(ctx.calls24)}</span>
-                  <span className="k">Redeemable in 90 days</span><span className="v">{u.usdC(ctx.liq.within90)}</span>
-                  <span className="k">Runway</span>
-                  <span className="v" style={ctx.short ? { color: "var(--neg)" } : null}>
-                    {ctx.short ? "breaks " + ctx.short.month : "holds 24 months"}
-                  </span>
                 </div>
                 <button className="btn sm block mt8" onClick={() => S.navigate("/portfolio?tab=liq")}>Open the liquidity view</button>
               </Panel>

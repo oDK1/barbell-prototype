@@ -97,7 +97,7 @@
       .sort((a, b) => b.s.score - a.s.score);
     return {
       label: hits.map((x) => x[1]).concat(cap ? ["minimum under " + (cap >= 1e6 ? "$" + cap / 1e6 + "M" : "$" + cap / 1000 + "K")] : []).join(" · "),
-      rows, note: "Ranked as everything else is — merit, allocation, liquidity, tax.",
+      rows, note: "Ranked as everything else is — merit, allocation, tax.",
     };
   }
 
@@ -158,7 +158,7 @@
     return {
       label: hits.map((x) => x[1]).concat(cap ? ["under " + (cap >= 1e6 ? "$" + cap / 1e6 + "M" : "$" + cap / 1000 + "K") + " to buy"] : []).join(" · "),
       rows: rows.filter((r) => hits.every((x) => x[2](r)) && (!cap || r.v.consideration <= cap)).sort(byScore),
-      note: "Ranked as the board is — merit, allocation, liquidity, tax.",
+      note: "Ranked as the board is — merit, allocation, tax.",
     };
   }
 

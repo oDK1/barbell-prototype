@@ -108,6 +108,58 @@
   function realizedYTD(ps) { return sum(ps, (p) => p.realizedYTD || 0); }
 
   /* 90-day liquidity: cash equivalents plus anything redeemable inside the window. */
+  /* ------------------------------------------------------------- the mark ---
+     Everything trades, so everything has a price. A position on the platform
+     is marked by the market — an exchange if it has a ticker, the board if it
+     does not. The only positions still carrying a hand-kept number are the
+     ones the family holds outside the platform, and naming that difference is
+     more useful than the old "stale by N days". */
+  function markSource(p) {
+    if (p.prov === "self") return { key: "self", label: "Hand-kept", live: false,
+      note: "No market price — held outside the platform and valued by the family." };
+    if (isListed(p)) return { key: "exchange", label: "Exchange", live: true,
+      note: "Marked by the exchange, continuously." };
+    return { key: "rail", label: "Platform rail", live: true,
+      note: "Marked by the board, continuously — not by the manager once a quarter." };
+  }
+  function marked(ps) {
+    const live = ps.filter((p) => markSource(p).live);
+    return { live, liveValue: total(live), unmarked: ps.filter((p) => !markSource(p).live),
+      share: total(ps) ? (total(live) / total(ps)) * 100 : 0 };
+  }
+
+  /* ------------------------------------------------------------- credit ----
+     What the book will carry as collateral. A lender advances against what it
+     can price and sell; everything here is both, so the private half stops
+     being excluded. `was` is what the same book would have supported before
+     the rail, and the difference is the thing worth showing. */
+  function advanceOf(p) {
+    const r = D.advanceRates[p.sub] || [0, 0];
+    return { now: r[0], was: r[1] };
+  }
+  function borrowingPower(ps) {
+    let now = 0, was = 0;
+    const rows = {};
+    ps.forEach((p) => {
+      const a = advanceOf(p);
+      /* a position with no market price is not collateral, whatever it is */
+      const live = markSource(p).live;
+      const n = live ? p.value * (a.now / 100) : 0;
+      const w = live ? p.value * (a.was / 100) : 0;
+      now += n; was += w;
+      const k = p.sub;
+      if (!rows[k]) rows[k] = { sub: k, label: subLabel(k), value: 0, now: 0, was: 0, count: 0, rate: a };
+      rows[k].value += p.value; rows[k].now += n; rows[k].was += w; rows[k].count++;
+    });
+    const t = total(ps);
+    const list = Object.keys(rows).map((k) => rows[k]).sort((a, b) => (b.now - b.was) - (a.now - a.was));
+    return {
+      now, was, unlocked: now - was, rows: list,
+      ltvNow: t ? (now / t) * 100 : 0, ltvWas: t ? (was / t) * 100 : 0,
+      rate: D.creditTerms.base + D.creditTerms.spread,
+    };
+  }
+
   /* --------------------------------------------------------------- exit ----
      DW [D]: everything on this platform converts to cash immediately. So the
      old question — how much could be redeemed inside 90 days — has no content
@@ -819,7 +871,7 @@
     D.subs.forEach((s) => { under[s.key] = model.subs[s.key] - (cur[s.key] || 0); });
 
     const short = shortfall(ps);
-    const liq = exitToday(ps);
+    const credit = borrowingPower(ps);
     const calls24 = sum(D.capitalCalls, (c) => c.amount);
     const calls90 = sum(D.capitalCalls.filter((c) => days(D.TODAY, c.date) <= 90 && days(D.TODAY, c.date) >= 0), (c) => c.amount);
 
@@ -833,11 +885,13 @@
     };
 
     /* 0 = calls are comfortably covered, 1 = the runway breaks inside 24 months */
-    const stress = short ? 1 : Math.min(1, calls24 / Math.max(liq.within90, 1));
+    /* how pressed the book is: calls ahead against what it can borrow without
+       selling anything */
+    const stress = short ? 1 : Math.min(1, calls24 / Math.max(credit.now, 1));
     const worst = D.subs.map((s) => ({ ...s, under: under[s.key] }))
       .sort((a, b) => b.under - a.under)[0];
 
-    return { t, model, cur, under, short, liq, calls24, calls90, tax, stress, worst };
+    return { t, model, cur, under, short, credit, calls24, calls90, tax, stress, worst };
   }
 
   /* A score with its reasons attached. Instrument merit still counts, but it
@@ -846,15 +900,6 @@
     const merit = m.fit;
     const allocation = Math.round(Math.max(0, Math.min(100, 50 + (ctx.under[m.fills] || 0) * 6)));
 
-    /* Everything exits the same day, so the liquidity score stops measuring
-       the wait and starts measuring the bid: what this would clear at if the
-       family had to sell it back. Under cash stress a wide spread matters
-       more, because a forced seller is the one who pays it. */
-    const pc = D.exitPct[m.fills] === undefined ? 100 : D.exitPct[m.fills];
-    const tight = ctx.stress > 0.6;
-    const spread = 100 - pc;                       /* 0 at par, 13 at the widest */
-    const liquidity = Math.round(Math.max(0, Math.min(100, 100 - spread * (tight ? 5.0 : 2.2))));
-
     /* Interest and coupons are taxed as they arrive; capital gains wait for the
        exit. With gains already booked this year, deferral is worth something. */
     const deferred = ["pe", "vc", "preipo"].indexOf(m.fills) >= 0;
@@ -862,8 +907,11 @@
     let tax = 50 + (deferred ? 25 : 0) - (incomeNow && ctx.tax.realized > 250000 ? 20 : 0);
     tax = Math.max(0, Math.min(100, tax));
 
-    const score = Math.round(0.35 * merit + 0.30 * allocation + 0.20 * liquidity + 0.15 * tax);
-    return { score, merit, allocation, liquidity, tax };
+    /* Three grounds, not four. Liquidity was a real question when some of the
+       book could not be sold; now that all of it can, scoring it would be
+       scoring a constant. */
+    const score = Math.round(0.42 * merit + 0.36 * allocation + 0.22 * tax);
+    return { score, merit, allocation, tax };
   }
 
   /* What it would take of this offering to bring its subcategory to the model.
@@ -941,7 +989,7 @@
   BB.u = {
     usd, usdC, krwC, krwFull, pct, pp, sgn, sgnUsd, num, localPx, days, fmtDate, fmtTs, monthKey, monthLabel,
     staleness, provLabel, sum, total, byClass, bySub, gaps, unrealized, realizedYTD,
-    isListed, exitValue, exitToday, raiseCost, liquidityProjection, shortfall, coverage, projectMix,
+    isListed, markSource, marked, advanceOf, borrowingPower, exitValue, exitToday, raiseCost, liquidityProjection, shortfall, coverage, projectMix,
     modelSix, convPct, bySix, sixToFour, sixToSubs, pickForClass, holdingsSix, geoBucket, GEO_BUCKETS, listingDocs, listingView, currentIRR, tradeHistory, impactSix, impactBucket, modelClassOf, modelClassLabel, bucketOf, bucketLabel, byBucket, spread, engineDrag, posReturn, rungOf, bucketKeyOf, inBucket, splitForBand, modelFour, buildAnchor, anchorLadder, offerBucket, offerRung, offerTheme, offerPlace, byTheme, SUB_RETURN, topHoldings, affiliateExposure, taxLots, eligibility,
     fitFor, subLabel, clsLabel, clsOf, impact, modelWeights, marketContext, scoreFor, suggestAmount,
   };

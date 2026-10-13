@@ -269,17 +269,14 @@
         <div className="mt16">
           <Agent where="Deal fit"
             why={["Allocation " + sc.allocation + "/100 — " + place.label + " sits " + gapWord(mcDrift),
-                  "Liquidity " + sc.liquidity + "/100 — a transferred interest is locked until the fund returns capital, against " +
-                    u.usdC(ctx.calls24) + " of calls over 24 months",
                   "Tax " + sc.tax + "/100 — " + u.usd(ctx.tax.realized) + " realised year to date",
                   "Merit " + sc.merit + "/100 — the discount to the last mark, which is the whole argument on a secondary",
-                  "Weighting: merit 35% · allocation 30% · liquidity 20% · tax 15%"]}
+                  "Weighting: merit 42% · allocation 36% · tax 22%. There is no liquidity score — everything here sells the same day."]}
             actions={<button className="btn sm" onClick={() => S.navigate("/secondary")}>Compare the board</button>}>
             {why}
             <table className="t dense mt12" style={{ maxWidth: 520 }}>
               <tbody>
                 {[["Allocation", sc.allocation, place.label + " " + gapWord(mcDrift)],
-                  ["Liquidity", sc.liquidity, "sells same day · this one is asked at " + u.pct(l.askPct) + " of mark"],
                   ["Tax", sc.tax, ["pe", "vc", "preipo"].indexOf(l.sub) >= 0 ? "gain deferred to exit" : "taxable as it arrives"],
                   ["Instrument merit", sc.merit, discount > 0 ? u.pct(discount) + " below the last mark" : "above the last mark"]].map((r) => (
                   <tr key={r[0]}>
@@ -366,7 +363,7 @@
                 <span className="k">You pay</span><span className="v">{u.usd(consideration)}</span>
                 <span className="k">IRR to date</span>
                 <span className="v">{u.currentIRR(l) ? u.sgn(u.currentIRR(l).irr) : "—"}</span>
-                <span className="k">Liquidity</span><span className="v">Immediate — transferred on the rail</span>
+                <span className="k">Marked by</span><span className="v">This board, continuously</span>
                 {l.unfunded ? <><span className="k">Unfunded</span><span className="v">{u.usd(l.unfunded)}</span></> : null}
                 <span className="k">Days listed</span><span className="v">{l.days}</span>
               </div>

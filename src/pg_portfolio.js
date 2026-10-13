@@ -629,16 +629,18 @@
         <div className="panel mt16" id="sec-provenance">
           <div className="panel-hd clickable" onClick={() => setOpen(!open)} style={{ cursor: "pointer" }}>
             <div>
-              <h3><span style={{ fontSize: 11, color: "var(--g1)", marginRight: 7 }}>{open ? "▾" : "▸"}</span>Data provenance</h3>
+              <h3><span style={{ fontSize: 11, color: "var(--g1)", marginRight: 7 }}>{open ? "▾" : "▸"}</span>Where the marks come from</h3>
               <div className="tri" style={{ fontSize: 11.5, marginTop: 2, paddingLeft: 18 }}>
-                {counts.live} live · {counts.hanwha} Hanwha-sourced · {counts.self} self-maintained
-                {open ? "" : " · open to review and update the self-maintained marks"}
+                {/* everything on the platform is priced by a market; the only
+                    hand-kept numbers left are the holdings outside it */}
+                {counts.live + counts.hanwha} priced by a market · {counts.self} hand-kept
+                {open ? "" : " · open to review and update the hand-kept marks"}
               </div>
             </div>
             {stale.length > 0 && <span className="bdg self warn"><i className="pt" />{stale.length} positions stale</span>}
           </div>
           {open && <table className="t dense">
-            <thead><tr><th>Self-maintained position</th><th>Source</th><th className="n">Carrying value</th><th className="n">Last updated</th><th></th></tr></thead>
+            <thead><tr><th>Hand-kept position</th><th>Source</th><th className="n">Carrying value</th><th className="n">Last updated</th><th></th></tr></thead>
             <tbody>
               {self.map((p) => {
                 const st = u.staleness(p);
@@ -699,7 +701,7 @@
       if (k === "cls") return placeOf(p).sortKey;
       if (k === "sub") return u.subLabel(p.sub);
       if (k === "prov") return u.provLabel(p);
-      if (k === "liq") return p.liq;
+      if (k === "liq") return u.markSource(p).label;
       if (k === "gain") return p.value - p.cost;
       if (k === "gainPct") return (p.value - p.cost) / p.cost;
       return p[k];
@@ -751,7 +753,7 @@
                 <Th k="cls" label="Where it sits" />
                 <Th k="sub" label="Instrument" />
                 <Th k="prov" label="Provenance" />
-                <Th k="liq" label="Liquidity" />
+                <Th k="liq" label="Marked by" />
                 <Th k="cost" label="Cost basis" n opt />
                 <Th k="value" label="Value" n />
                 <Th k="gain" label="Unrealised" n />
@@ -776,7 +778,7 @@
                   </td>
                   <td>{u.subLabel(p.sub)}</td>
                   <td><ProvBadge p={p} showDate={false} /></td>
-                  <td><span className="bdg plain">{p.liq}</span></td>
+                  <td><span className="bdg plain">{u.markSource(p).label}</span></td>
                   <td className="n num hide-narrow">{u.usd(p.cost)}</td>
                   <td className="n num">{u.usd(p.value)}</td>
                   <td className="n"><Delta v={p.value - p.cost} usd />
@@ -804,7 +806,26 @@
   }
 
   /* -------------------------------------------------------- liquidity tab */
-  function LiquidityTab({ positions }) {
+  /* ------------------------------------------------------------- credit tab */
+  /* What liquidity is actually for. A lender advances against what it can
+     price and sell, and until everything on the platform was both, a family
+     office borrowed against its listed lines and nothing else. The whole
+     private half of the book was worth zero as collateral — not because it
+     was bad collateral, but because nobody could value it or take it.
+
+     This tab is the Liquidity tab's slot, which is the right place for it:
+     the schedule that used to live here had no content once everything
+     settled same-day, and what immediacy buys does. */
+  function CreditTab({ positions }) {
+    const bp = u.borrowingPower(positions);
+    const mk = u.marked(positions);
+    const t = u.total(positions);
+    const calls90 = D.capitalCalls.filter((c) => u.days(D.TODAY, c.date) <= 90 && u.days(D.TODAY, c.date) >= 0);
+    const callTotal = u.sum(calls90, (c) => c.amount);
+    const [ask, setAsk] = useState(false);
+    const maxUnlock = Math.max(1, ...bp.rows.map((r) => r.now));
+
+    /* the forward cash picture, carried over from the tab this one replaces */
     const proj = u.liquidityProjection(positions);
     const short = u.shortfall(positions);
     const maxFlow = Math.max(...proj.map((m) => Math.max(m.calls, m.dist)), 1);
@@ -816,74 +837,109 @@
     const y = (v) => H - ((v - lo) / (hi - lo || 1)) * (H - 20) - 10;
     const line = proj.map((m, i) => x(i) + "," + y(m.cash)).join(" ");
     const floor = D.liquidityAssumptions.reserveFloor;
-    const calls90 = D.capitalCalls.filter((c) => u.days(D.TODAY, c.date) <= 90 && u.days(D.TODAY, c.date) >= 0);
-    const ex = u.exitToday(positions);
-    const callTotal = u.sum(calls90, (c) => c.amount);
-    const raise = u.raiseCost(positions, callTotal);
 
     return (
       <>
-        {/* DW [D]: everything converts to cash immediately, so there is no
-            redemption schedule to report. What is worth reporting is the
-            price of using that. END-STATE. */}
         <div className="band mt16">
-          <div className="cell"><div className="stat-l">Realisable today</div>
-            <div className="stat-v"><Money v={ex.gross} compact /></div>
-            <div className="stat-s">every position, at carrying value</div></div>
-          <div className="cell"><div className="stat-l">Net of the bid</div>
-            <div className="stat-v"><Money v={ex.net} compact /></div>
-            <div className="stat-s">what a same-day sale of the book returns</div></div>
-          <div className="cell"><div className="stat-l">Cost of selling it all</div>
-            <div className="stat-v" style={{ color: "var(--neg)" }}>{u.usdC(ex.cost)}</div>
-            <div className="stat-s">{u.pct(ex.haircut)} of carrying value</div></div>
-          <div className="cell"><div className="stat-l">Sells at par</div>
-            <div className="stat-v"><Money v={ex.parFree} compact /></div>
-            <div className="stat-s">{ex.affiliate > 0 ? "excludes the " + u.usdC(ex.affiliate) + " operating company" : "no discount to the mark"}</div></div>
-          <div className="cell"><div className="stat-l">Capital calls · next 90 days</div>
+          <div className="cell"><div className="stat-l">Borrowing power</div>
+            <div className="stat-v"><Money v={bp.now} compact /></div>
+            <div className="stat-s">{u.pct(bp.ltvNow)} of the book, no sale required</div></div>
+          <div className="cell"><div className="stat-l">Before the rail</div>
+            <div className="stat-v"><Money v={bp.was} compact /></div>
+            <div className="stat-s">{u.pct(bp.ltvWas)} — listed lines only</div></div>
+          <div className="cell"><div className="stat-l">Unlocked by a market price</div>
+            <div className="stat-v" style={{ color: "var(--pos)" }}>{u.usdC(bp.unlocked)}</div>
+            <div className="stat-s">against the private half of the book</div></div>
+          <div className="cell"><div className="stat-l">Indicative rate</div>
+            <div className="stat-v">{u.pct(bp.rate)}</div>
+            <div className="stat-s">{D.creditTerms.baseName} + {u.pct(D.creditTerms.spread)}</div></div>
+          <div className="cell"><div className="stat-l">Calls · next 90 days</div>
             <div className="stat-v"><Money v={callTotal} compact /></div>
-            <div className="stat-s">{calls90.length} calls · {raise.cost > 0 ? u.usdC(raise.cost) + " to fund by selling" : "fundable from par"}</div></div>
+            <div className="stat-s">{callTotal <= bp.now ? "coverable without selling anything" : "exceeds the facility"}</div></div>
         </div>
 
-        {/* where the discount actually sits */}
         <div className="panel mt16">
           <div className="panel-hd">
             <div>
-              <h3>What immediacy costs</h3>
+              <h3>What a lender will advance</h3>
               <div className="tri" style={{ fontSize: 11.5, marginTop: 2 }}>
-                Nothing here has a notice period. Everything here has a bid, and a bid is not a mark.
+                Set by how tight a market is, not by what kind of asset it is
               </div>
             </div>
-            <span className="tri" style={{ fontSize: 11 }}>{ex.discountedCount} of {positions.length} positions trade below the mark</span>
+            <button className="btn sm p" onClick={() => setAsk(true)}>Request a facility</button>
           </div>
           <table className="t dense">
-            <thead><tr><th>Position</th><th>Where it sits</th><th className="n">Carrying value</th>
-              <th className="n">Clears at</th><th className="n">Given up</th></tr></thead>
+            <thead><tr><th>Held as</th><th className="n">Value</th>
+              <th className="n">Advance</th><th className="n">Before the rail</th>
+              <th style={{ width: "24%" }}>Borrowing power</th><th className="n">Unlocked</th></tr></thead>
             <tbody>
-              {ex.worst.map((w) => (
-                <tr key={w.p.id} className="clickable" onClick={() => S.navigate("/portfolio/" + w.p.cls + "?sub=" + w.p.sub)}>
-                  <td><div className="tname">{w.p.name}</div>
-                    <div className="tsub">{u.subLabel(w.p.sub)}</div></td>
-                  <td>{(() => { const pl = placeOf(w.p); return (
-                    <span style={{ display: "inline-flex", gap: 7, alignItems: "center" }}>
-                      <i className="sw" style={{ width: 8, height: 8, display: "inline-block", background: pl.color }} />
-                      <span style={{ fontSize: 12 }}>{pl.label}</span>
-                    </span>); })()}</td>
-                  <td className="n num">{u.usd(w.p.value)}</td>
-                  <td className="n num tri">{u.pct(w.pc)}</td>
-                  <td className="n num" style={{ color: "var(--neg)" }}>−{u.usd(w.loss)}</td>
+              {bp.rows.map((r) => (
+                <tr key={r.sub}>
+                  <td><span className="tname">{r.label}</span>
+                    <div className="tsub">{r.count} position{r.count === 1 ? "" : "s"}</div></td>
+                  <td className="n num">{u.usd(r.value)}</td>
+                  <td className="n num">{u.pct(r.rate.now, 0)}</td>
+                  <td className="n num tri">{r.rate.was === 0 ? "none" : u.pct(r.rate.was, 0)}</td>
+                  <td><div className="wbar" title={u.usdC(r.now) + " against " + u.usdC(r.value)}>
+                    <i style={{ width: Math.min(100, (r.now / maxUnlock) * 100) + "%", background: "#1B2A4A" }} />
+                    <b style={{ left: Math.min(100, (r.was / maxUnlock) * 100) + "%" }} />
+                  </div></td>
+                  <td className="n num" style={{ color: r.now - r.was > 0 ? "var(--pos)" : undefined }}>
+                    {r.now - r.was > 0 ? "+" + u.usd(r.now - r.was) : "—"}
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
           <div className="why" style={{ borderTop: "1px solid var(--g3)" }}>
-            {u.usdC(ex.parFree)} sells at the mark with nothing given up. The remaining {u.usdC(ex.discounted)} is
-            where the {u.usdC(ex.cost)} goes — and none of it is a reason not to sell, only a number to know before doing it.
+            The filled bar is what the position supports today; the tick is what it supported before it had a
+            market price. Everything to the right of a tick is collateral that existed all along and could not
+            be used. Borrowing is the Principal's decision — this screen states capacity, not advice.
           </div>
         </div>
 
+        {/* a position with no market price is not collateral, whatever it is */}
+        {mk.unmarked.length > 0 && (
+          <div className="panel mt16">
+            <div className="panel-hd">
+              <div>
+                <h3>Not priced by the market</h3>
+                <div className="tri" style={{ fontSize: 11.5, marginTop: 2 }}>
+                  Held outside the platform, so valued by the family rather than by a market
+                </div>
+              </div>
+              <span className="tri" style={{ fontSize: 11 }}>
+                {u.pct(100 - mk.share)} of the book · carries no borrowing power
+              </span>
+            </div>
+            <table className="t dense">
+              <thead><tr><th>Position</th><th>Mark</th><th className="n">Value</th><th className="n">Would advance</th><th></th></tr></thead>
+              <tbody>
+                {mk.unmarked.map((p) => (
+                  <tr key={p.id}>
+                    <td><div className="tname">{p.name}</div><div className="tsub">{u.subLabel(p.sub)}</div></td>
+                    <td><span className="bdg plain">{u.markSource(p).label}</span>
+                      <div className="tsub">{u.fmtDate(p.asOf || p.acquired)}</div></td>
+                    <td className="n num">{u.usd(p.value)}</td>
+                    <td className="n num tri">{u.usd(p.value * (u.advanceOf(p).now / 100))}</td>
+                    <td className="right"><button className="btn sm"
+                      onClick={() => S.toast("Onboarding request sent — " + p.name)}>Bring onto the platform</button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div className="why" style={{ borderTop: "1px solid var(--g3)" }}>
+              Nothing is wrong with these holdings. They simply have no price anyone else agrees to, which is the
+              one thing a lender cannot work around.
+            </div>
+          </div>
+        )}
+
+        {/* the forward cash picture still matters: a facility is cheaper than a
+            sale, but it is not free, and a call still has to be met somehow */}
         <div className="panel mt16">
           <div className="panel-hd">
-            <h3>24-month liquidity</h3>
+            <h3>24 months of cash</h3>
             <div className="legend" style={{ marginTop: 0 }}>
               <span className="it"><i className="sw" style={{ background: "var(--neg)", opacity: .75 }} />Capital calls</span>
               <span className="it"><i className="sw" style={{ background: "var(--pos)", opacity: .7 }} />Distributions</span>
@@ -955,11 +1011,33 @@
             </table>
           </Panel>
         </div>
+
+        {ask && (
+          <Modal title="Request a facility" sub="Secured on the book · indicative terms" onClose={() => setAsk(false)}
+            footer={<>
+              <div className="tri" style={{ fontSize: 11.5 }}>Nothing is drawn by sending this.</div>
+              <div className="btn-row">
+                <button className="btn" onClick={() => setAsk(false)}>Cancel</button>
+                <button className="btn p" onClick={() => { setAsk(false); S.toast("Facility request sent to Hanwha"); }}>Send the request</button>
+              </div>
+            </>}>
+            <div className="kv">
+              <span className="k">Maximum advance</span><span className="v">{u.usdC(bp.now)}</span>
+              <span className="k">Indicative rate</span><span className="v">{D.creditTerms.baseName} + {u.pct(D.creditTerms.spread)} · {u.pct(bp.rate)} today</span>
+              <span className="k">Collateral</span><span className="v">The book, marked by the market</span>
+              <span className="k">Margin call at</span><span className="v">{u.pct(D.creditTerms.ltvCall, 0)} of advance value</span>
+              <span className="k">Settlement on a call</span><span className="v">Same day — collateral sells on the rail</span>
+            </div>
+            <div className="note mt12" style={{ fontSize: 12 }}>
+              The same immediacy that makes this collateral acceptable is what makes a margin call fast. A lender
+              that can sell your position inside a day will.
+            </div>
+          </Modal>
+        )}
       </>
     );
   }
 
-  /* -------------------------------------------------------------- tax tab */
   function TaxTab({ positions }) {
     const [sell, setSell] = useState(null);
     const lots = u.taxLots(positions).sort((a, b) => b.value - a.value);
@@ -1078,7 +1156,7 @@
     const stale = ps.filter((p) => p.prov === "self" && u.staleness(p).d > 90);
     const calls90 = D.capitalCalls.filter((c) => u.days(D.TODAY, c.date) <= 90 && u.days(D.TODAY, c.date) >= 0);
 
-    const tabs = [{ k: "alloc", label: "Allocation" }, { k: "liq", label: "Liquidity" }, { k: "tax", label: "Tax" }];
+    const tabs = [{ k: "alloc", label: "Allocation" }, { k: "credit", label: "Credit" }, { k: "tax", label: "Tax" }];
 
     return (
       <div className="wrap page hasagent">
@@ -1123,7 +1201,7 @@
 
         <div className="mt16"><Tabs tabs={tabs} active={tab} onChange={setTab} /></div>
         {tab === "alloc" && <AllocationTab positions={ps} openSignal={focus && focus.id === "sec-provenance" ? focus.n : 0} />}
-        {tab === "liq" && <LiquidityTab positions={ps} />}
+        {tab === "credit" && <CreditTab positions={ps} />}
         {tab === "tax" && <TaxTab positions={ps} />}
 
         {tab !== "alloc" && <QueryBar positions={ps} />}

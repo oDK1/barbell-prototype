@@ -38,7 +38,7 @@
           <div style={{ maxWidth: "70ch" }}>
             <div className="row tight" style={{ alignItems: "center" }}>
               <span className="bdg plain">{u.subLabel(m.fills)}</span>
-              <span className="bdg plain">{m.liq}{m.term && m.term !== "—" ? " · " + m.term : ""}</span>
+              {m.term && m.term !== "—" && <span className="bdg plain">{m.term}</span>}
               {m.hanwha && <span className="bdg hanwha"><i className="pt" />{(D.sourceTypes.find((x) => x.key === m.source) || {}).label || "Hanwha-originated"}</span>}
               {/* where a real manager is named, the page says outright that the
                   arrangement on it is invented */}
@@ -59,7 +59,7 @@
 
         <div className="band mt16">
           <div className="cell"><div className="stat-l">{isListed ? "Yield / return" : "Target return"}</div><div className="stat-v sm">{m.ret}</div></div>
-          <div className="cell"><div className="stat-l">Liquidity</div><div className="stat-v sm">{m.liq}</div><div className="stat-s">{m.term || "—"}</div></div>
+          <div className="cell"><div className="stat-l">Market</div><div className="stat-v sm">{u.pct(D.exitPct[m.fills] === undefined ? 100 : D.exitPct[m.fills], 0)} of mark</div><div className="stat-s">what a seller clears, same day</div></div>
           <div className="cell"><div className="stat-l">Availability</div><div className="stat-v sm" style={{ fontSize: 14 }}>{m.avail}</div></div>
           <div className="cell"><div className="stat-l">Fit</div><div className="stat-v sm"><Fit score={sc.score} /></div>
             <div className="stat-s">{m.why}</div></div>
@@ -68,17 +68,14 @@
         <div className="mt16">
           <Agent where="Deal fit"
             why={["Allocation " + sc.allocation + "/100 — " + place.label + " sits " + gapWord(mcDrift),
-                  "Liquidity " + sc.liquidity + "/100 — " + m.liq + (m.term ? " · " + m.term : "") + " against " +
-                    u.usdC(ctx.calls24) + " of calls over 24 months",
                   "Tax " + sc.tax + "/100 — " + u.usd(ctx.tax.realized) + " realised year to date",
                   "Merit " + sc.merit + "/100 — terms, manager, security, overlap with what is held",
-                  "Weighting: merit 35% · allocation 30% · liquidity 20% · tax 15%"]}
+                  "Weighting: merit 42% · allocation 36% · tax 22%. There is no liquidity score — everything here sells the same day."]}
             actions={<button className="btn sm" onClick={() => S.navigate("/marketplace")}>Compare the alternatives</button>}>
             {m.why}
             <table className="t dense mt12" style={{ maxWidth: 520 }}>
               <tbody>
                 {[["Allocation", sc.allocation, place.label + " " + gapWord(mcDrift)],
-                  ["Liquidity", sc.liquidity, "sells same day at " + u.pct(D.exitPct[m.fills] === undefined ? 100 : D.exitPct[m.fills]) + " of mark"],
                   ["Tax", sc.tax, ["pe", "vc", "preipo"].indexOf(m.fills) >= 0 ? "gain deferred to exit" : "taxable as it arrives"],
                   ["Instrument merit", sc.merit, "terms, manager, security"]].map((r) => (
                   <tr key={r[0]}>
@@ -175,7 +172,7 @@
                 <span className="k">Sizing</span><span className="v">Fractional — any amount</span>
                 <span className="k">Transferable</span><span className="v">Day one, on the secondary board</span>
                 <span className="k">Mechanic</span><span className="v">{isListed ? "Buy" : "Commit"}</span>
-                <span className="k">Liquidity</span><span className="v">{m.liq} · clears at {u.pct(D.exitPct[m.fills] === undefined ? 100 : D.exitPct[m.fills])}</span>
+                <span className="k">Marked by</span><span className="v">The board, continuously</span>
                 {m.expense !== undefined && <><span className="k">Expense ratio</span><span className="v">{u.pct(m.expense, 2)}</span></>}
                 {m.ytm !== undefined && <><span className="k">Yield to maturity</span><span className="v">{u.pct(m.ytm, 2)}</span></>}
                 {m.dur !== undefined && <><span className="k">Duration</span><span className="v">{m.dur} years</span></>}
@@ -259,7 +256,7 @@
             <div className="prose mt16">{m.overview}</div>
             <hr className="hr" />
             <div className="row" style={{ gap: 32 }}>
-              <div><div className="lbl">Liquidity</div><div>{m.liq}</div></div>
+              <div><div className="lbl">Advance rate</div><div>{u.pct((D.advanceRates[m.fills] || [0])[0], 0)}</div></div>
               <div><div className="lbl">Target return</div><div style={{ filter: "blur(5px)", userSelect: "none" }}>{m.ret}</div></div>
               <div><div className="lbl">Allocation remaining</div><div style={{ filter: "blur(5px)", userSelect: "none" }}>{m.avail}</div></div>
             </div>

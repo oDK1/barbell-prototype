@@ -42,10 +42,6 @@
                 <div className="tsub">thesis, not a target</div></>
             : <span className="num">{m.ret}</span>}
         </td>
-        <td>
-          <span className="bdg plain">{m.liq}</span>
-          {m.term && m.term !== "—" && <div className="tsub hide-narrow">{m.term}</div>}
-        </td>
         <td className="n">
           {sug
             ? <><span className="num" style={{ fontWeight: 600, opacity: sug.unfunded ? .5 : 1 }}>{u.usdC(sug.amount)}</span>
@@ -72,7 +68,7 @@
     return (
       <thead>
         <tr>
-          <th>Opportunity</th><th>Where it lands</th><th className="n">Target yield</th><th>Liquidity</th>
+          <th>Opportunity</th><th>Where it lands</th><th className="n">Target yield</th>
           <th className="n">Suggested</th><th className="n">Fit</th>
           <th className="hide-narrow" style={{ minWidth: 170 }}>Why</th><th></th>
         </tr>
@@ -265,17 +261,19 @@
             </div>
 
             <div className="mt16">
-              {/* nothing has a notice period, so the panel prices the exit
-                  instead of scheduling it */}
-              <Panel title="Liquidity context">
+              {/* nothing has a notice period and everything has a price, so
+                  what is worth knowing here is what the book will carry */}
+              <Panel title="Credit context">
                 <div className="kv">
-                  <span className="k">Sells at par</span><span className="v">{u.usdC(ctx.liq.parFree)}</span>
-                  <span className="k">Cost to sell it all</span>
-                  <span className="v" style={{ color: "var(--neg)" }}>{u.usdC(ctx.liq.cost)}</span>
+                  <span className="k">Borrowing power</span><span className="v">{u.usdC(ctx.credit.now)}</span>
+                  <span className="k">Rate</span><span className="v">{u.pct(ctx.credit.rate)}</span>
                   <span className="k">Calls · next 90 days</span><span className="v">{u.usdC(ctx.calls90)}</span>
                   <span className="k">Calls · 24 months</span><span className="v">{u.usdC(ctx.calls24)}</span>
                 </div>
-                <button className="btn sm block mt8" onClick={() => S.navigate("/portfolio?tab=liq")}>Open the liquidity view</button>
+                <div className="tri mt8" style={{ fontSize: 11, lineHeight: 1.5 }}>
+                  A commitment can be met from the facility instead of from a sale.
+                </div>
+                <button className="btn sm block mt8" onClick={() => S.navigate("/portfolio?tab=credit")}>Open the credit view</button>
               </Panel>
             </div>
 

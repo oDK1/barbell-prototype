@@ -1488,9 +1488,15 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
      "when can this be sold?" and starts asking "what does it fetch today?" —
      which is the question that still has a real answer.
 
-     `exitPct` is the share of carrying value a subcategory realises on an
-     immediate sale. Listed instruments and cash are at par; the discount
-     widens with how hard the thing is to price. */
+     And because everything trades, everything has a price. A private fund
+     interest is no longer marked by its manager once a quarter — it is marked
+     by the board, continuously, like a listed line. That is what makes it
+     usable as collateral, which is the third consequence and the one that
+     changes what a family can actually do.
+
+     `exitPct` is now read as how tight a subcategory's market is: the share
+     of the mark a seller clears against the spread. Listed instruments and
+     cash are at par; it widens with how hard the thing is to price. */
   const exitPct = {
     pubeq: 100, sov: 100, ig: 100, mmf: 100, tbill: 100, dep: 100, fx: 100,
     comm: 99.5,
@@ -1510,6 +1516,37 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
      which the screen shows rather than hides. */
   const cashFund = { name: "Cash reserve", yield: 3.8, liq: "Immediate", vol: 0.4,
     inside: "Money market funds, T-bills and bank deposits." };
+
+  /* ============================================== borrowing against the book
+     The third thing liquidity changes, after the redemption schedule and the
+     mark.
+
+     A lender advances against what it can price and sell. Before the rail a
+     private fund interest was neither — no market price, no way out — so the
+     advance rate against it was zero or close to it, and a family office
+     borrowed against its listed lines and nothing else. Give the same
+     interest a clearing price and same-day settlement and it becomes
+     collateral like any other, at an advance rate set by how tight its market
+     is rather than by what kind of thing it is.
+
+     `advanceRates` is [what a lender will advance now, what it would have
+     advanced before the rail]. The gap is the point. Rates are illustrative. */
+  const advanceRates = {
+    mmf: [95, 95], tbill: [95, 95], dep: [95, 95], sov: [95, 90], fx: [90, 90],
+    ig: [85, 75],
+    comm: [75, 60],
+    pubeq: [70, 50],
+    struct: [75, 25],
+    pcred: [70, 15],
+    infra: [65, 10],
+    re: [60, 20],
+    pe: [50, 0],
+    preipo: [50, 0],
+    vc: [45, 0],
+  };
+
+  /* What a facility against the book costs. Illustrative. */
+  const creditTerms = { base: 4.55, baseName: "SOFR", spread: 2.10, ltvCall: 85 };
 
   /* ================================================= conviction exposures
      Bucket 2 is a menu of things to have a view about, not an asset class.
@@ -2458,7 +2495,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     KRW, TODAY, family, accounts, classes, subs, positions,
     uploadFiles, ingestSteps, exceptions, mandates, survey, modelPortfolios,
     capitalCalls, distributions, benchmark, performance, attribution, modelGoals, ALT_SUBS,
-    sourceTypes, dueDiligence, anchorShelf, cashFund, exitPct, SHELF_FLOOR, SHELF_CEIL, themes, modelClasses, modelExcuses, buckets, bucketPresets, bucketMix, RISK_BASE, expectedReturn, expectedVol, classCorr, idiosyncraticVol,
+    sourceTypes, dueDiligence, anchorShelf, cashFund, exitPct, advanceRates, creditTerms, SHELF_FLOOR, SHELF_CEIL, themes, modelClasses, modelExcuses, buckets, bucketPresets, bucketMix, RISK_BASE, expectedReturn, expectedVol, classCorr, idiosyncraticVol,
     market, secondary, secondaryTrades, bidsSeed, approvalsSeed, activitySeed, opsLedger, referrals, liquidityAssumptions,
   };
 })();
@@ -2575,6 +2612,58 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   function realizedYTD(ps) { return sum(ps, (p) => p.realizedYTD || 0); }
 
   /* 90-day liquidity: cash equivalents plus anything redeemable inside the window. */
+  /* ------------------------------------------------------------- the mark ---
+     Everything trades, so everything has a price. A position on the platform
+     is marked by the market — an exchange if it has a ticker, the board if it
+     does not. The only positions still carrying a hand-kept number are the
+     ones the family holds outside the platform, and naming that difference is
+     more useful than the old "stale by N days". */
+  function markSource(p) {
+    if (p.prov === "self") return { key: "self", label: "Hand-kept", live: false,
+      note: "No market price — held outside the platform and valued by the family." };
+    if (isListed(p)) return { key: "exchange", label: "Exchange", live: true,
+      note: "Marked by the exchange, continuously." };
+    return { key: "rail", label: "Platform rail", live: true,
+      note: "Marked by the board, continuously — not by the manager once a quarter." };
+  }
+  function marked(ps) {
+    const live = ps.filter((p) => markSource(p).live);
+    return { live, liveValue: total(live), unmarked: ps.filter((p) => !markSource(p).live),
+      share: total(ps) ? (total(live) / total(ps)) * 100 : 0 };
+  }
+
+  /* ------------------------------------------------------------- credit ----
+     What the book will carry as collateral. A lender advances against what it
+     can price and sell; everything here is both, so the private half stops
+     being excluded. `was` is what the same book would have supported before
+     the rail, and the difference is the thing worth showing. */
+  function advanceOf(p) {
+    const r = D.advanceRates[p.sub] || [0, 0];
+    return { now: r[0], was: r[1] };
+  }
+  function borrowingPower(ps) {
+    let now = 0, was = 0;
+    const rows = {};
+    ps.forEach((p) => {
+      const a = advanceOf(p);
+      /* a position with no market price is not collateral, whatever it is */
+      const live = markSource(p).live;
+      const n = live ? p.value * (a.now / 100) : 0;
+      const w = live ? p.value * (a.was / 100) : 0;
+      now += n; was += w;
+      const k = p.sub;
+      if (!rows[k]) rows[k] = { sub: k, label: subLabel(k), value: 0, now: 0, was: 0, count: 0, rate: a };
+      rows[k].value += p.value; rows[k].now += n; rows[k].was += w; rows[k].count++;
+    });
+    const t = total(ps);
+    const list = Object.keys(rows).map((k) => rows[k]).sort((a, b) => (b.now - b.was) - (a.now - a.was));
+    return {
+      now, was, unlocked: now - was, rows: list,
+      ltvNow: t ? (now / t) * 100 : 0, ltvWas: t ? (was / t) * 100 : 0,
+      rate: D.creditTerms.base + D.creditTerms.spread,
+    };
+  }
+
   /* --------------------------------------------------------------- exit ----
      DW [D]: everything on this platform converts to cash immediately. So the
      old question — how much could be redeemed inside 90 days — has no content
@@ -3286,7 +3375,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     D.subs.forEach((s) => { under[s.key] = model.subs[s.key] - (cur[s.key] || 0); });
 
     const short = shortfall(ps);
-    const liq = exitToday(ps);
+    const credit = borrowingPower(ps);
     const calls24 = sum(D.capitalCalls, (c) => c.amount);
     const calls90 = sum(D.capitalCalls.filter((c) => days(D.TODAY, c.date) <= 90 && days(D.TODAY, c.date) >= 0), (c) => c.amount);
 
@@ -3300,11 +3389,13 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     };
 
     /* 0 = calls are comfortably covered, 1 = the runway breaks inside 24 months */
-    const stress = short ? 1 : Math.min(1, calls24 / Math.max(liq.within90, 1));
+    /* how pressed the book is: calls ahead against what it can borrow without
+       selling anything */
+    const stress = short ? 1 : Math.min(1, calls24 / Math.max(credit.now, 1));
     const worst = D.subs.map((s) => ({ ...s, under: under[s.key] }))
       .sort((a, b) => b.under - a.under)[0];
 
-    return { t, model, cur, under, short, liq, calls24, calls90, tax, stress, worst };
+    return { t, model, cur, under, short, credit, calls24, calls90, tax, stress, worst };
   }
 
   /* A score with its reasons attached. Instrument merit still counts, but it
@@ -3313,15 +3404,6 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     const merit = m.fit;
     const allocation = Math.round(Math.max(0, Math.min(100, 50 + (ctx.under[m.fills] || 0) * 6)));
 
-    /* Everything exits the same day, so the liquidity score stops measuring
-       the wait and starts measuring the bid: what this would clear at if the
-       family had to sell it back. Under cash stress a wide spread matters
-       more, because a forced seller is the one who pays it. */
-    const pc = D.exitPct[m.fills] === undefined ? 100 : D.exitPct[m.fills];
-    const tight = ctx.stress > 0.6;
-    const spread = 100 - pc;                       /* 0 at par, 13 at the widest */
-    const liquidity = Math.round(Math.max(0, Math.min(100, 100 - spread * (tight ? 5.0 : 2.2))));
-
     /* Interest and coupons are taxed as they arrive; capital gains wait for the
        exit. With gains already booked this year, deferral is worth something. */
     const deferred = ["pe", "vc", "preipo"].indexOf(m.fills) >= 0;
@@ -3329,8 +3411,11 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     let tax = 50 + (deferred ? 25 : 0) - (incomeNow && ctx.tax.realized > 250000 ? 20 : 0);
     tax = Math.max(0, Math.min(100, tax));
 
-    const score = Math.round(0.35 * merit + 0.30 * allocation + 0.20 * liquidity + 0.15 * tax);
-    return { score, merit, allocation, liquidity, tax };
+    /* Three grounds, not four. Liquidity was a real question when some of the
+       book could not be sold; now that all of it can, scoring it would be
+       scoring a constant. */
+    const score = Math.round(0.42 * merit + 0.36 * allocation + 0.22 * tax);
+    return { score, merit, allocation, tax };
   }
 
   /* What it would take of this offering to bring its subcategory to the model.
@@ -3408,7 +3493,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   BB.u = {
     usd, usdC, krwC, krwFull, pct, pp, sgn, sgnUsd, num, localPx, days, fmtDate, fmtTs, monthKey, monthLabel,
     staleness, provLabel, sum, total, byClass, bySub, gaps, unrealized, realizedYTD,
-    isListed, exitValue, exitToday, raiseCost, liquidityProjection, shortfall, coverage, projectMix,
+    isListed, markSource, marked, advanceOf, borrowingPower, exitValue, exitToday, raiseCost, liquidityProjection, shortfall, coverage, projectMix,
     modelSix, convPct, bySix, sixToFour, sixToSubs, pickForClass, holdingsSix, geoBucket, GEO_BUCKETS, listingDocs, listingView, currentIRR, tradeHistory, impactSix, impactBucket, modelClassOf, modelClassLabel, bucketOf, bucketLabel, byBucket, spread, engineDrag, posReturn, rungOf, bucketKeyOf, inBucket, splitForBand, modelFour, buildAnchor, anchorLadder, offerBucket, offerRung, offerTheme, offerPlace, byTheme, SUB_RETURN, topHoldings, affiliateExposure, taxLots, eligibility,
     fitFor, subLabel, clsLabel, clsOf, impact, modelWeights, marketContext, scoreFor, suggestAmount,
   };
@@ -4443,7 +4528,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       .sort((a, b) => b.s.score - a.s.score);
     return {
       label: hits.map((x) => x[1]).concat(cap ? ["minimum under " + (cap >= 1e6 ? "$" + cap / 1e6 + "M" : "$" + cap / 1000 + "K")] : []).join(" · "),
-      rows, note: "Ranked as everything else is — merit, allocation, liquidity, tax.",
+      rows, note: "Ranked as everything else is — merit, allocation, tax.",
     };
   }
 
@@ -4504,7 +4589,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     return {
       label: hits.map((x) => x[1]).concat(cap ? ["under " + (cap >= 1e6 ? "$" + cap / 1e6 + "M" : "$" + cap / 1000 + "K") + " to buy"] : []).join(" · "),
       rows: rows.filter((r) => hits.every((x) => x[2](r)) && (!cap || r.v.consideration <= cap)).sort(byScore),
-      note: "Ranked as the board is — merit, allocation, liquidity, tax.",
+      note: "Ranked as the board is — merit, allocation, tax.",
     };
   }
 
@@ -6125,16 +6210,18 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
         <div className="panel mt16" id="sec-provenance">
           <div className="panel-hd clickable" onClick={() => setOpen(!open)} style={{ cursor: "pointer" }}>
             <div>
-              <h3><span style={{ fontSize: 11, color: "var(--g1)", marginRight: 7 }}>{open ? "▾" : "▸"}</span>Data provenance</h3>
+              <h3><span style={{ fontSize: 11, color: "var(--g1)", marginRight: 7 }}>{open ? "▾" : "▸"}</span>Where the marks come from</h3>
               <div className="tri" style={{ fontSize: 11.5, marginTop: 2, paddingLeft: 18 }}>
-                {counts.live} live · {counts.hanwha} Hanwha-sourced · {counts.self} self-maintained
-                {open ? "" : " · open to review and update the self-maintained marks"}
+                {/* everything on the platform is priced by a market; the only
+                    hand-kept numbers left are the holdings outside it */}
+                {counts.live + counts.hanwha} priced by a market · {counts.self} hand-kept
+                {open ? "" : " · open to review and update the hand-kept marks"}
               </div>
             </div>
             {stale.length > 0 && <span className="bdg self warn"><i className="pt" />{stale.length} positions stale</span>}
           </div>
           {open && <table className="t dense">
-            <thead><tr><th>Self-maintained position</th><th>Source</th><th className="n">Carrying value</th><th className="n">Last updated</th><th></th></tr></thead>
+            <thead><tr><th>Hand-kept position</th><th>Source</th><th className="n">Carrying value</th><th className="n">Last updated</th><th></th></tr></thead>
             <tbody>
               {self.map((p) => {
                 const st = u.staleness(p);
@@ -6195,7 +6282,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       if (k === "cls") return placeOf(p).sortKey;
       if (k === "sub") return u.subLabel(p.sub);
       if (k === "prov") return u.provLabel(p);
-      if (k === "liq") return p.liq;
+      if (k === "liq") return u.markSource(p).label;
       if (k === "gain") return p.value - p.cost;
       if (k === "gainPct") return (p.value - p.cost) / p.cost;
       return p[k];
@@ -6247,7 +6334,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 <Th k="cls" label="Where it sits" />
                 <Th k="sub" label="Instrument" />
                 <Th k="prov" label="Provenance" />
-                <Th k="liq" label="Liquidity" />
+                <Th k="liq" label="Marked by" />
                 <Th k="cost" label="Cost basis" n opt />
                 <Th k="value" label="Value" n />
                 <Th k="gain" label="Unrealised" n />
@@ -6272,7 +6359,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                   </td>
                   <td>{u.subLabel(p.sub)}</td>
                   <td><ProvBadge p={p} showDate={false} /></td>
-                  <td><span className="bdg plain">{p.liq}</span></td>
+                  <td><span className="bdg plain">{u.markSource(p).label}</span></td>
                   <td className="n num hide-narrow">{u.usd(p.cost)}</td>
                   <td className="n num">{u.usd(p.value)}</td>
                   <td className="n"><Delta v={p.value - p.cost} usd />
@@ -6300,7 +6387,26 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   }
 
   /* -------------------------------------------------------- liquidity tab */
-  function LiquidityTab({ positions }) {
+  /* ------------------------------------------------------------- credit tab */
+  /* What liquidity is actually for. A lender advances against what it can
+     price and sell, and until everything on the platform was both, a family
+     office borrowed against its listed lines and nothing else. The whole
+     private half of the book was worth zero as collateral — not because it
+     was bad collateral, but because nobody could value it or take it.
+
+     This tab is the Liquidity tab's slot, which is the right place for it:
+     the schedule that used to live here had no content once everything
+     settled same-day, and what immediacy buys does. */
+  function CreditTab({ positions }) {
+    const bp = u.borrowingPower(positions);
+    const mk = u.marked(positions);
+    const t = u.total(positions);
+    const calls90 = D.capitalCalls.filter((c) => u.days(D.TODAY, c.date) <= 90 && u.days(D.TODAY, c.date) >= 0);
+    const callTotal = u.sum(calls90, (c) => c.amount);
+    const [ask, setAsk] = useState(false);
+    const maxUnlock = Math.max(1, ...bp.rows.map((r) => r.now));
+
+    /* the forward cash picture, carried over from the tab this one replaces */
     const proj = u.liquidityProjection(positions);
     const short = u.shortfall(positions);
     const maxFlow = Math.max(...proj.map((m) => Math.max(m.calls, m.dist)), 1);
@@ -6312,74 +6418,109 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     const y = (v) => H - ((v - lo) / (hi - lo || 1)) * (H - 20) - 10;
     const line = proj.map((m, i) => x(i) + "," + y(m.cash)).join(" ");
     const floor = D.liquidityAssumptions.reserveFloor;
-    const calls90 = D.capitalCalls.filter((c) => u.days(D.TODAY, c.date) <= 90 && u.days(D.TODAY, c.date) >= 0);
-    const ex = u.exitToday(positions);
-    const callTotal = u.sum(calls90, (c) => c.amount);
-    const raise = u.raiseCost(positions, callTotal);
 
     return (
       <>
-        {/* DW [D]: everything converts to cash immediately, so there is no
-            redemption schedule to report. What is worth reporting is the
-            price of using that. END-STATE. */}
         <div className="band mt16">
-          <div className="cell"><div className="stat-l">Realisable today</div>
-            <div className="stat-v"><Money v={ex.gross} compact /></div>
-            <div className="stat-s">every position, at carrying value</div></div>
-          <div className="cell"><div className="stat-l">Net of the bid</div>
-            <div className="stat-v"><Money v={ex.net} compact /></div>
-            <div className="stat-s">what a same-day sale of the book returns</div></div>
-          <div className="cell"><div className="stat-l">Cost of selling it all</div>
-            <div className="stat-v" style={{ color: "var(--neg)" }}>{u.usdC(ex.cost)}</div>
-            <div className="stat-s">{u.pct(ex.haircut)} of carrying value</div></div>
-          <div className="cell"><div className="stat-l">Sells at par</div>
-            <div className="stat-v"><Money v={ex.parFree} compact /></div>
-            <div className="stat-s">{ex.affiliate > 0 ? "excludes the " + u.usdC(ex.affiliate) + " operating company" : "no discount to the mark"}</div></div>
-          <div className="cell"><div className="stat-l">Capital calls · next 90 days</div>
+          <div className="cell"><div className="stat-l">Borrowing power</div>
+            <div className="stat-v"><Money v={bp.now} compact /></div>
+            <div className="stat-s">{u.pct(bp.ltvNow)} of the book, no sale required</div></div>
+          <div className="cell"><div className="stat-l">Before the rail</div>
+            <div className="stat-v"><Money v={bp.was} compact /></div>
+            <div className="stat-s">{u.pct(bp.ltvWas)} — listed lines only</div></div>
+          <div className="cell"><div className="stat-l">Unlocked by a market price</div>
+            <div className="stat-v" style={{ color: "var(--pos)" }}>{u.usdC(bp.unlocked)}</div>
+            <div className="stat-s">against the private half of the book</div></div>
+          <div className="cell"><div className="stat-l">Indicative rate</div>
+            <div className="stat-v">{u.pct(bp.rate)}</div>
+            <div className="stat-s">{D.creditTerms.baseName} + {u.pct(D.creditTerms.spread)}</div></div>
+          <div className="cell"><div className="stat-l">Calls · next 90 days</div>
             <div className="stat-v"><Money v={callTotal} compact /></div>
-            <div className="stat-s">{calls90.length} calls · {raise.cost > 0 ? u.usdC(raise.cost) + " to fund by selling" : "fundable from par"}</div></div>
+            <div className="stat-s">{callTotal <= bp.now ? "coverable without selling anything" : "exceeds the facility"}</div></div>
         </div>
 
-        {/* where the discount actually sits */}
         <div className="panel mt16">
           <div className="panel-hd">
             <div>
-              <h3>What immediacy costs</h3>
+              <h3>What a lender will advance</h3>
               <div className="tri" style={{ fontSize: 11.5, marginTop: 2 }}>
-                Nothing here has a notice period. Everything here has a bid, and a bid is not a mark.
+                Set by how tight a market is, not by what kind of asset it is
               </div>
             </div>
-            <span className="tri" style={{ fontSize: 11 }}>{ex.discountedCount} of {positions.length} positions trade below the mark</span>
+            <button className="btn sm p" onClick={() => setAsk(true)}>Request a facility</button>
           </div>
           <table className="t dense">
-            <thead><tr><th>Position</th><th>Where it sits</th><th className="n">Carrying value</th>
-              <th className="n">Clears at</th><th className="n">Given up</th></tr></thead>
+            <thead><tr><th>Held as</th><th className="n">Value</th>
+              <th className="n">Advance</th><th className="n">Before the rail</th>
+              <th style={{ width: "24%" }}>Borrowing power</th><th className="n">Unlocked</th></tr></thead>
             <tbody>
-              {ex.worst.map((w) => (
-                <tr key={w.p.id} className="clickable" onClick={() => S.navigate("/portfolio/" + w.p.cls + "?sub=" + w.p.sub)}>
-                  <td><div className="tname">{w.p.name}</div>
-                    <div className="tsub">{u.subLabel(w.p.sub)}</div></td>
-                  <td>{(() => { const pl = placeOf(w.p); return (
-                    <span style={{ display: "inline-flex", gap: 7, alignItems: "center" }}>
-                      <i className="sw" style={{ width: 8, height: 8, display: "inline-block", background: pl.color }} />
-                      <span style={{ fontSize: 12 }}>{pl.label}</span>
-                    </span>); })()}</td>
-                  <td className="n num">{u.usd(w.p.value)}</td>
-                  <td className="n num tri">{u.pct(w.pc)}</td>
-                  <td className="n num" style={{ color: "var(--neg)" }}>−{u.usd(w.loss)}</td>
+              {bp.rows.map((r) => (
+                <tr key={r.sub}>
+                  <td><span className="tname">{r.label}</span>
+                    <div className="tsub">{r.count} position{r.count === 1 ? "" : "s"}</div></td>
+                  <td className="n num">{u.usd(r.value)}</td>
+                  <td className="n num">{u.pct(r.rate.now, 0)}</td>
+                  <td className="n num tri">{r.rate.was === 0 ? "none" : u.pct(r.rate.was, 0)}</td>
+                  <td><div className="wbar" title={u.usdC(r.now) + " against " + u.usdC(r.value)}>
+                    <i style={{ width: Math.min(100, (r.now / maxUnlock) * 100) + "%", background: "#1B2A4A" }} />
+                    <b style={{ left: Math.min(100, (r.was / maxUnlock) * 100) + "%" }} />
+                  </div></td>
+                  <td className="n num" style={{ color: r.now - r.was > 0 ? "var(--pos)" : undefined }}>
+                    {r.now - r.was > 0 ? "+" + u.usd(r.now - r.was) : "—"}
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
           <div className="why" style={{ borderTop: "1px solid var(--g3)" }}>
-            {u.usdC(ex.parFree)} sells at the mark with nothing given up. The remaining {u.usdC(ex.discounted)} is
-            where the {u.usdC(ex.cost)} goes — and none of it is a reason not to sell, only a number to know before doing it.
+            The filled bar is what the position supports today; the tick is what it supported before it had a
+            market price. Everything to the right of a tick is collateral that existed all along and could not
+            be used. Borrowing is the Principal's decision — this screen states capacity, not advice.
           </div>
         </div>
 
+        {/* a position with no market price is not collateral, whatever it is */}
+        {mk.unmarked.length > 0 && (
+          <div className="panel mt16">
+            <div className="panel-hd">
+              <div>
+                <h3>Not priced by the market</h3>
+                <div className="tri" style={{ fontSize: 11.5, marginTop: 2 }}>
+                  Held outside the platform, so valued by the family rather than by a market
+                </div>
+              </div>
+              <span className="tri" style={{ fontSize: 11 }}>
+                {u.pct(100 - mk.share)} of the book · carries no borrowing power
+              </span>
+            </div>
+            <table className="t dense">
+              <thead><tr><th>Position</th><th>Mark</th><th className="n">Value</th><th className="n">Would advance</th><th></th></tr></thead>
+              <tbody>
+                {mk.unmarked.map((p) => (
+                  <tr key={p.id}>
+                    <td><div className="tname">{p.name}</div><div className="tsub">{u.subLabel(p.sub)}</div></td>
+                    <td><span className="bdg plain">{u.markSource(p).label}</span>
+                      <div className="tsub">{u.fmtDate(p.asOf || p.acquired)}</div></td>
+                    <td className="n num">{u.usd(p.value)}</td>
+                    <td className="n num tri">{u.usd(p.value * (u.advanceOf(p).now / 100))}</td>
+                    <td className="right"><button className="btn sm"
+                      onClick={() => S.toast("Onboarding request sent — " + p.name)}>Bring onto the platform</button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div className="why" style={{ borderTop: "1px solid var(--g3)" }}>
+              Nothing is wrong with these holdings. They simply have no price anyone else agrees to, which is the
+              one thing a lender cannot work around.
+            </div>
+          </div>
+        )}
+
+        {/* the forward cash picture still matters: a facility is cheaper than a
+            sale, but it is not free, and a call still has to be met somehow */}
         <div className="panel mt16">
           <div className="panel-hd">
-            <h3>24-month liquidity</h3>
+            <h3>24 months of cash</h3>
             <div className="legend" style={{ marginTop: 0 }}>
               <span className="it"><i className="sw" style={{ background: "var(--neg)", opacity: .75 }} />Capital calls</span>
               <span className="it"><i className="sw" style={{ background: "var(--pos)", opacity: .7 }} />Distributions</span>
@@ -6451,11 +6592,33 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
             </table>
           </Panel>
         </div>
+
+        {ask && (
+          <Modal title="Request a facility" sub="Secured on the book · indicative terms" onClose={() => setAsk(false)}
+            footer={<>
+              <div className="tri" style={{ fontSize: 11.5 }}>Nothing is drawn by sending this.</div>
+              <div className="btn-row">
+                <button className="btn" onClick={() => setAsk(false)}>Cancel</button>
+                <button className="btn p" onClick={() => { setAsk(false); S.toast("Facility request sent to Hanwha"); }}>Send the request</button>
+              </div>
+            </>}>
+            <div className="kv">
+              <span className="k">Maximum advance</span><span className="v">{u.usdC(bp.now)}</span>
+              <span className="k">Indicative rate</span><span className="v">{D.creditTerms.baseName} + {u.pct(D.creditTerms.spread)} · {u.pct(bp.rate)} today</span>
+              <span className="k">Collateral</span><span className="v">The book, marked by the market</span>
+              <span className="k">Margin call at</span><span className="v">{u.pct(D.creditTerms.ltvCall, 0)} of advance value</span>
+              <span className="k">Settlement on a call</span><span className="v">Same day — collateral sells on the rail</span>
+            </div>
+            <div className="note mt12" style={{ fontSize: 12 }}>
+              The same immediacy that makes this collateral acceptable is what makes a margin call fast. A lender
+              that can sell your position inside a day will.
+            </div>
+          </Modal>
+        )}
       </>
     );
   }
 
-  /* -------------------------------------------------------------- tax tab */
   function TaxTab({ positions }) {
     const [sell, setSell] = useState(null);
     const lots = u.taxLots(positions).sort((a, b) => b.value - a.value);
@@ -6574,7 +6737,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     const stale = ps.filter((p) => p.prov === "self" && u.staleness(p).d > 90);
     const calls90 = D.capitalCalls.filter((c) => u.days(D.TODAY, c.date) <= 90 && u.days(D.TODAY, c.date) >= 0);
 
-    const tabs = [{ k: "alloc", label: "Allocation" }, { k: "liq", label: "Liquidity" }, { k: "tax", label: "Tax" }];
+    const tabs = [{ k: "alloc", label: "Allocation" }, { k: "credit", label: "Credit" }, { k: "tax", label: "Tax" }];
 
     return (
       <div className="wrap page hasagent">
@@ -6619,7 +6782,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
         <div className="mt16"><Tabs tabs={tabs} active={tab} onChange={setTab} /></div>
         {tab === "alloc" && <AllocationTab positions={ps} openSignal={focus && focus.id === "sec-provenance" ? focus.n : 0} />}
-        {tab === "liq" && <LiquidityTab positions={ps} />}
+        {tab === "credit" && <CreditTab positions={ps} />}
         {tab === "tax" && <TaxTab positions={ps} />}
 
         {tab !== "alloc" && <QueryBar positions={ps} />}
@@ -6872,10 +7035,6 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 <div className="tsub">thesis, not a target</div></>
             : <span className="num">{m.ret}</span>}
         </td>
-        <td>
-          <span className="bdg plain">{m.liq}</span>
-          {m.term && m.term !== "—" && <div className="tsub hide-narrow">{m.term}</div>}
-        </td>
         <td className="n">
           {sug
             ? <><span className="num" style={{ fontWeight: 600, opacity: sug.unfunded ? .5 : 1 }}>{u.usdC(sug.amount)}</span>
@@ -6902,7 +7061,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     return (
       <thead>
         <tr>
-          <th>Opportunity</th><th>Where it lands</th><th className="n">Target yield</th><th>Liquidity</th>
+          <th>Opportunity</th><th>Where it lands</th><th className="n">Target yield</th>
           <th className="n">Suggested</th><th className="n">Fit</th>
           <th className="hide-narrow" style={{ minWidth: 170 }}>Why</th><th></th>
         </tr>
@@ -7095,17 +7254,19 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
             </div>
 
             <div className="mt16">
-              {/* nothing has a notice period, so the panel prices the exit
-                  instead of scheduling it */}
-              <Panel title="Liquidity context">
+              {/* nothing has a notice period and everything has a price, so
+                  what is worth knowing here is what the book will carry */}
+              <Panel title="Credit context">
                 <div className="kv">
-                  <span className="k">Sells at par</span><span className="v">{u.usdC(ctx.liq.parFree)}</span>
-                  <span className="k">Cost to sell it all</span>
-                  <span className="v" style={{ color: "var(--neg)" }}>{u.usdC(ctx.liq.cost)}</span>
+                  <span className="k">Borrowing power</span><span className="v">{u.usdC(ctx.credit.now)}</span>
+                  <span className="k">Rate</span><span className="v">{u.pct(ctx.credit.rate)}</span>
                   <span className="k">Calls · next 90 days</span><span className="v">{u.usdC(ctx.calls90)}</span>
                   <span className="k">Calls · 24 months</span><span className="v">{u.usdC(ctx.calls24)}</span>
                 </div>
-                <button className="btn sm block mt8" onClick={() => S.navigate("/portfolio?tab=liq")}>Open the liquidity view</button>
+                <div className="tri mt8" style={{ fontSize: 11, lineHeight: 1.5 }}>
+                  A commitment can be met from the facility instead of from a sale.
+                </div>
+                <button className="btn sm block mt8" onClick={() => S.navigate("/portfolio?tab=credit")}>Open the credit view</button>
               </Panel>
             </div>
 
@@ -7191,7 +7352,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
           <div style={{ maxWidth: "70ch" }}>
             <div className="row tight" style={{ alignItems: "center" }}>
               <span className="bdg plain">{u.subLabel(m.fills)}</span>
-              <span className="bdg plain">{m.liq}{m.term && m.term !== "—" ? " · " + m.term : ""}</span>
+              {m.term && m.term !== "—" && <span className="bdg plain">{m.term}</span>}
               {m.hanwha && <span className="bdg hanwha"><i className="pt" />{(D.sourceTypes.find((x) => x.key === m.source) || {}).label || "Hanwha-originated"}</span>}
               {/* where a real manager is named, the page says outright that the
                   arrangement on it is invented */}
@@ -7212,7 +7373,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
         <div className="band mt16">
           <div className="cell"><div className="stat-l">{isListed ? "Yield / return" : "Target return"}</div><div className="stat-v sm">{m.ret}</div></div>
-          <div className="cell"><div className="stat-l">Liquidity</div><div className="stat-v sm">{m.liq}</div><div className="stat-s">{m.term || "—"}</div></div>
+          <div className="cell"><div className="stat-l">Market</div><div className="stat-v sm">{u.pct(D.exitPct[m.fills] === undefined ? 100 : D.exitPct[m.fills], 0)} of mark</div><div className="stat-s">what a seller clears, same day</div></div>
           <div className="cell"><div className="stat-l">Availability</div><div className="stat-v sm" style={{ fontSize: 14 }}>{m.avail}</div></div>
           <div className="cell"><div className="stat-l">Fit</div><div className="stat-v sm"><Fit score={sc.score} /></div>
             <div className="stat-s">{m.why}</div></div>
@@ -7221,17 +7382,14 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
         <div className="mt16">
           <Agent where="Deal fit"
             why={["Allocation " + sc.allocation + "/100 — " + place.label + " sits " + gapWord(mcDrift),
-                  "Liquidity " + sc.liquidity + "/100 — " + m.liq + (m.term ? " · " + m.term : "") + " against " +
-                    u.usdC(ctx.calls24) + " of calls over 24 months",
                   "Tax " + sc.tax + "/100 — " + u.usd(ctx.tax.realized) + " realised year to date",
                   "Merit " + sc.merit + "/100 — terms, manager, security, overlap with what is held",
-                  "Weighting: merit 35% · allocation 30% · liquidity 20% · tax 15%"]}
+                  "Weighting: merit 42% · allocation 36% · tax 22%. There is no liquidity score — everything here sells the same day."]}
             actions={<button className="btn sm" onClick={() => S.navigate("/marketplace")}>Compare the alternatives</button>}>
             {m.why}
             <table className="t dense mt12" style={{ maxWidth: 520 }}>
               <tbody>
                 {[["Allocation", sc.allocation, place.label + " " + gapWord(mcDrift)],
-                  ["Liquidity", sc.liquidity, "sells same day at " + u.pct(D.exitPct[m.fills] === undefined ? 100 : D.exitPct[m.fills]) + " of mark"],
                   ["Tax", sc.tax, ["pe", "vc", "preipo"].indexOf(m.fills) >= 0 ? "gain deferred to exit" : "taxable as it arrives"],
                   ["Instrument merit", sc.merit, "terms, manager, security"]].map((r) => (
                   <tr key={r[0]}>
@@ -7328,7 +7486,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 <span className="k">Sizing</span><span className="v">Fractional — any amount</span>
                 <span className="k">Transferable</span><span className="v">Day one, on the secondary board</span>
                 <span className="k">Mechanic</span><span className="v">{isListed ? "Buy" : "Commit"}</span>
-                <span className="k">Liquidity</span><span className="v">{m.liq} · clears at {u.pct(D.exitPct[m.fills] === undefined ? 100 : D.exitPct[m.fills])}</span>
+                <span className="k">Marked by</span><span className="v">The board, continuously</span>
                 {m.expense !== undefined && <><span className="k">Expense ratio</span><span className="v">{u.pct(m.expense, 2)}</span></>}
                 {m.ytm !== undefined && <><span className="k">Yield to maturity</span><span className="v">{u.pct(m.ytm, 2)}</span></>}
                 {m.dur !== undefined && <><span className="k">Duration</span><span className="v">{m.dur} years</span></>}
@@ -7412,7 +7570,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
             <div className="prose mt16">{m.overview}</div>
             <hr className="hr" />
             <div className="row" style={{ gap: 32 }}>
-              <div><div className="lbl">Liquidity</div><div>{m.liq}</div></div>
+              <div><div className="lbl">Advance rate</div><div>{u.pct((D.advanceRates[m.fills] || [0])[0], 0)}</div></div>
               <div><div className="lbl">Target return</div><div style={{ filter: "blur(5px)", userSelect: "none" }}>{m.ret}</div></div>
               <div><div className="lbl">Allocation remaining</div><div style={{ filter: "blur(5px)", userSelect: "none" }}>{m.avail}</div></div>
             </div>
@@ -7710,17 +7868,14 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
         <div className="mt16">
           <Agent where="Deal fit"
             why={["Allocation " + sc.allocation + "/100 — " + place.label + " sits " + gapWord(mcDrift),
-                  "Liquidity " + sc.liquidity + "/100 — a transferred interest is locked until the fund returns capital, against " +
-                    u.usdC(ctx.calls24) + " of calls over 24 months",
                   "Tax " + sc.tax + "/100 — " + u.usd(ctx.tax.realized) + " realised year to date",
                   "Merit " + sc.merit + "/100 — the discount to the last mark, which is the whole argument on a secondary",
-                  "Weighting: merit 35% · allocation 30% · liquidity 20% · tax 15%"]}
+                  "Weighting: merit 42% · allocation 36% · tax 22%. There is no liquidity score — everything here sells the same day."]}
             actions={<button className="btn sm" onClick={() => S.navigate("/secondary")}>Compare the board</button>}>
             {why}
             <table className="t dense mt12" style={{ maxWidth: 520 }}>
               <tbody>
                 {[["Allocation", sc.allocation, place.label + " " + gapWord(mcDrift)],
-                  ["Liquidity", sc.liquidity, "sells same day · this one is asked at " + u.pct(l.askPct) + " of mark"],
                   ["Tax", sc.tax, ["pe", "vc", "preipo"].indexOf(l.sub) >= 0 ? "gain deferred to exit" : "taxable as it arrives"],
                   ["Instrument merit", sc.merit, discount > 0 ? u.pct(discount) + " below the last mark" : "above the last mark"]].map((r) => (
                   <tr key={r[0]}>
@@ -7807,7 +7962,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 <span className="k">You pay</span><span className="v">{u.usd(consideration)}</span>
                 <span className="k">IRR to date</span>
                 <span className="v">{u.currentIRR(l) ? u.sgn(u.currentIRR(l).irr) : "—"}</span>
-                <span className="k">Liquidity</span><span className="v">Immediate — transferred on the rail</span>
+                <span className="k">Marked by</span><span className="v">This board, continuously</span>
                 {l.unfunded ? <><span className="k">Unfunded</span><span className="v">{u.usd(l.unfunded)}</span></> : null}
                 <span className="k">Days listed</span><span className="v">{l.days}</span>
               </div>

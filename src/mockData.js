@@ -386,9 +386,15 @@
      "when can this be sold?" and starts asking "what does it fetch today?" —
      which is the question that still has a real answer.
 
-     `exitPct` is the share of carrying value a subcategory realises on an
-     immediate sale. Listed instruments and cash are at par; the discount
-     widens with how hard the thing is to price. */
+     And because everything trades, everything has a price. A private fund
+     interest is no longer marked by its manager once a quarter — it is marked
+     by the board, continuously, like a listed line. That is what makes it
+     usable as collateral, which is the third consequence and the one that
+     changes what a family can actually do.
+
+     `exitPct` is now read as how tight a subcategory's market is: the share
+     of the mark a seller clears against the spread. Listed instruments and
+     cash are at par; it widens with how hard the thing is to price. */
   const exitPct = {
     pubeq: 100, sov: 100, ig: 100, mmf: 100, tbill: 100, dep: 100, fx: 100,
     comm: 99.5,
@@ -408,6 +414,37 @@
      which the screen shows rather than hides. */
   const cashFund = { name: "Cash reserve", yield: 3.8, liq: "Immediate", vol: 0.4,
     inside: "Money market funds, T-bills and bank deposits." };
+
+  /* ============================================== borrowing against the book
+     The third thing liquidity changes, after the redemption schedule and the
+     mark.
+
+     A lender advances against what it can price and sell. Before the rail a
+     private fund interest was neither — no market price, no way out — so the
+     advance rate against it was zero or close to it, and a family office
+     borrowed against its listed lines and nothing else. Give the same
+     interest a clearing price and same-day settlement and it becomes
+     collateral like any other, at an advance rate set by how tight its market
+     is rather than by what kind of thing it is.
+
+     `advanceRates` is [what a lender will advance now, what it would have
+     advanced before the rail]. The gap is the point. Rates are illustrative. */
+  const advanceRates = {
+    mmf: [95, 95], tbill: [95, 95], dep: [95, 95], sov: [95, 90], fx: [90, 90],
+    ig: [85, 75],
+    comm: [75, 60],
+    pubeq: [70, 50],
+    struct: [75, 25],
+    pcred: [70, 15],
+    infra: [65, 10],
+    re: [60, 20],
+    pe: [50, 0],
+    preipo: [50, 0],
+    vc: [45, 0],
+  };
+
+  /* What a facility against the book costs. Illustrative. */
+  const creditTerms = { base: 4.55, baseName: "SOFR", spread: 2.10, ltvCall: 85 };
 
   /* ================================================= conviction exposures
      Bucket 2 is a menu of things to have a view about, not an asset class.
@@ -1356,7 +1393,7 @@
     KRW, TODAY, family, accounts, classes, subs, positions,
     uploadFiles, ingestSteps, exceptions, mandates, survey, modelPortfolios,
     capitalCalls, distributions, benchmark, performance, attribution, modelGoals, ALT_SUBS,
-    sourceTypes, dueDiligence, anchorShelf, cashFund, exitPct, SHELF_FLOOR, SHELF_CEIL, themes, modelClasses, modelExcuses, buckets, bucketPresets, bucketMix, RISK_BASE, expectedReturn, expectedVol, classCorr, idiosyncraticVol,
+    sourceTypes, dueDiligence, anchorShelf, cashFund, exitPct, advanceRates, creditTerms, SHELF_FLOOR, SHELF_CEIL, themes, modelClasses, modelExcuses, buckets, bucketPresets, bucketMix, RISK_BASE, expectedReturn, expectedVol, classCorr, idiosyncraticVol,
     market, secondary, secondaryTrades, bidsSeed, approvalsSeed, activitySeed, opsLedger, referrals, liquidityAssumptions,
   };
 })();

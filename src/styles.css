@@ -765,3 +765,9 @@ tr.rung-cash td{background:#FCFBF8}
 .rl-w{font-weight:600}
 .rl-t{font-size:11px}
 @media (max-width:960px){ .allocsplit{grid-template-columns:1fr} .bookring{max-width:210px} }
+
+/* The legend doubles as the ring's controls, so it is made of buttons. */
+.rl-row{width:100%;text-align:left;background:none;border:0;border-left:2px solid transparent;
+  font:inherit;cursor:pointer;padding-left:7px;margin-left:-9px}
+.rl-row:hover{background:#FCFBF8}
+.rl-row.on{border-left-color:var(--ink);background:#FCFBF8}

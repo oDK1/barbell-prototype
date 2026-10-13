@@ -83,7 +83,7 @@
   /* Two segments, because the book has two parts. Held is the ring; the tick
      on the rim is what the family asked for, so a book that has drifted says
      so without a second chart. */
-  function BookRing({ rows, total }) {
+  function BookRing({ rows, total, onPick, active }) {
     const C = 150, RO = 138, RI = 92;
     const pt = (r, a) => [(C + r * Math.sin(a)).toFixed(2), (C - r * Math.cos(a)).toFixed(2)];
     const arc = (r0, r1, a0, a1) => {
@@ -106,11 +106,17 @@
     return (
       <svg viewBox="0 0 300 300" className="bookring" role="img"
         aria-label={"Book split: " + rows.map((r) => r.label + " " + u.pct(r.wt)).join(", ")}>
-        {segs.map((r) => (
-          <path key={r.key} d={arc(RI, RO, r.a0, r.a1)} fill={r.color} stroke="var(--paper)" strokeWidth="2">
-            <title>{r.label + " · " + u.pct(r.wt) + " · " + u.usdC(r.value)}</title>
-          </path>
-        ))}
+        {segs.map((r) => {
+          const on = active === r.key, dim = active && !on;
+          return (
+            <path key={r.key} d={arc(on ? RI - 5 : RI, on ? RO + 5 : RO, r.a0, r.a1)}
+              fill={r.color} stroke="var(--paper)" strokeWidth="2"
+              opacity={dim ? .42 : 1} style={{ cursor: "pointer" }}
+              onClick={() => onPick(r.key)}>
+              <title>{r.label + " · " + u.pct(r.wt) + " · " + u.usdC(r.value) + " — click to open"}</title>
+            </path>
+          );
+        })}
         {drifted && <line x1={mx0} y1={my0} x2={mx1} y2={my1} stroke="var(--ink)" strokeWidth="2" />}
         <text x={C} y={C - 4} textAnchor="middle" fill="var(--ink)"
           style={{ fontSize: 30, fontWeight: 600, fontVariantNumeric: "tabular-nums", letterSpacing: "-.025em" }}>
@@ -130,6 +136,16 @@
     const lad = u.anchorLadder(positions, null);
     const themeRows = u.byTheme(positions, st.themes);
     const bucketRows = u.byBucket(positions, 100 - st.anchorPct);
+    /* Clicking a segment of the ring opens the bucket it stands for and takes
+       you to it — the graphic is the way into the detail, not a decoration
+       beside it. */
+    const openBucket = (k) => {
+      setBOpen({ ...bOpen, [k]: true });
+      setTimeout(() => {
+        const el = document.getElementById("bk-" + k);
+        if (el) el.scrollIntoView({ block: "center" });
+      }, 40);
+    };
 
     return (
       <>
@@ -139,15 +155,17 @@
             END-STATE. */}
         <div className="allocsplit mt16">
           <div className="ringwrap">
-            <BookRing rows={bucketRows} total={t} />
+            <BookRing rows={bucketRows} total={t} onPick={openBucket}
+              active={Object.keys(bOpen).filter((k) => bOpen[k])[0] || null} />
             <div className="ringlegend">
               {bucketRows.map((b) => (
-                <div key={b.key} className="rl-row">
+                <button key={b.key} className={"rl-row" + (bOpen[b.key] ? " on" : "")}
+                  onClick={() => openBucket(b.key)}>
                   <i style={{ background: b.color }} />
                   <span className="rl-n">{b.label}</span>
                   <span className="rl-w num">{u.pct(b.wt)}</span>
                   <span className="rl-t tri num">asked {u.pct(b.target)}</span>
-                </div>
+                </button>
               ))}
             </div>
           </div>
@@ -158,7 +176,7 @@
             const open = !!bOpen[b.key];
             const isAnchor = b.key === "engine";
             return (
-              <div key={b.key} className="bk">
+              <div key={b.key} className="bk" id={"bk-" + b.key}>
                 <div className="bk-hd clickable" onClick={() => setBOpen({ ...bOpen, [b.key]: !open })}>
                   <div className="bk-id">
                     <i style={{ background: b.color }} />

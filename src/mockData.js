@@ -977,7 +977,7 @@
       docs: [["Basket memorandum", "PDF · 48pp"], ["Programme-by-programme summaries", "PDF · 112pp"], ["Specialist review notes", "PDF · 26pp"]], qa: [] },
 
     /* --- 8 · Talent ---------------------------------------------------- */
-    { id: "m57", kind: "private", name: "Korea Talent Participation Programme — Series 1", fills: "preipo", cls: "equity", theme: "koreatalent",
+    { id: "m57", kind: "private", name: "Hanwha Korean Talent Fund I", fills: "preipo", cls: "equity", theme: "koreatalent",
       ret: "2.8x target", retNum: 22.5, liq: "Locked", term: "10yr", min: 0, avail: "$2.4M of $35M", fit: 72,
       why: "Korean professionals, athletes and creators are priced on the home market and reprice when they reach a larger one.",
       sector: "Media", geo: "Korea", ccy: "USD", manager: "Hanwha Asset Management", closing: "2027-03-12",
@@ -988,8 +988,8 @@
       dd: ["Each participant screened by the group", "Participations capped at a single-digit share of any individual's earnings", "Basket of 60+ participants, none above 5%", "Structured and reviewed by Korean counsel"],
       overview: "A diversified basket of participations in the future earnings of Korean professionals moving abroad, athletes reaching a major league, and creators whose work is finding a global audience. Earnings step up sharply at the point of that move; the home market has never priced that step. Selection is the entire risk, and selection is also the only thing on offer here.",
       terms: [["Target", "2.8x over ten years"], ["Structure", "Participation basket, 60+ individuals"], ["Concentration", "No individual above 5%"], ["Cap", "Single-digit share of any individual's earnings"], ["Sizing", "Fractional — any amount"], ["Closing", "12 March 2027"]],
-      docs: [["Programme memorandum", "PDF · 44pp"], ["Screening methodology", "PDF · 18pp"], ["Counsel opinion — participation structure", "PDF · 29pp"]],
-      qa: [["Is a participation in someone's earnings a security?", "That is unresolved. The structure is being reviewed against the group's BD/ATS permissions and the programme is flagged on the platform until it is settled."]] },
+      docs: [["Fund memorandum", "PDF · 44pp"], ["Screening methodology", "PDF · 18pp"], ["Counsel opinion — participation structure", "PDF · 29pp"]],
+      qa: [["Is a participation in someone's earnings a security?", "That is unresolved. The structure is being reviewed against the group's BD/ATS permissions and the fund is flagged on the platform until it is settled."]] },
 
     { id: "m08", kind: "listed", name: "Invesco Senior Loan ETF", ticker: "BKLN", fills: "pcred", cls: "debt",
       ret: "7.60% yield", retNum: 7.6, liq: "Daily", term: "Open-ended", min: 1000, avail: "Continuous", fit: 76,
@@ -1081,17 +1081,19 @@
       sector: "Info Tech", geo: "United States", ccy: "USD", px: 96.88, chg: 0.06, ytm: 4.74, dur: 5.8, rating: "AA+",
       overview: "Intermediate Apple paper. The book already holds the 2043 line at $2.41M.",
       terms: [["Settlement", "T+1"], ["Coupon", "4.30% semi-annual"], ["Minimum", "$10,000 face"]], docs: [], qa: [] },
-    { id: "m19", kind: "private", name: "Meridian Venture Partners XII — LP tranche", fills: "vc", cls: "equity",
-      ret: "3.1x target net", retNum: 22.0, liq: "Locked", term: "10 years", min: 250000, avail: "$3.5M of $45M tranche", fit: 91,
-      why: "Access tranche in a fund that is otherwise closed; sits inside the Alpha sleeve's remaining capacity.",
-      sector: "Technology", geo: "United States", ccy: "USD", manager: "Meridian Venture Partners", closing: "2026-10-15",
-      hanwha: true, anchor: "Hanwha Life is the cornerstone LP in Fund XII at $60M; the member tranche is carved out of that commitment.",
+    { id: "m19", kind: "private", name: "Sequoia Capital — LP tranche", fills: "vc", cls: "equity",
+      ret: "Top-quartile venture", retNum: 22.0, liq: "Locked", term: "10 years", min: 0, avail: "$3.5M of $45M tranche", fit: 91,
+      why: "An access tranche in a fund that is closed to new LPs, carved out of Hanwha's own commitment.",
+      sector: "Technology", geo: "United States", ccy: "USD", manager: "Sequoia Capital", closing: "2026-10-15",
+      hanwha: true, anchor: "Hanwha is an LP in the fund; the member tranche is carved out of that commitment.",
       theme: "venture",
       trust: "strong",
-      source: "fund", role: "Hanwha is the cornerstone LP. The access tranche exists because of that position and not otherwise.",
-      overview: "Early-stage US venture fund, twelfth vintage. Funds VIII–X are marking at 4.2x, 3.1x and 2.4x net. The tranche exists because the GP reserved capacity for platform investors; the family could not access this fund directly at a $250K commitment.",
-      terms: [["Target", "3.1x net / 22% net IRR"], ["Term", "10 years + 2 one-year extensions"], ["Minimum", "$250,000"], ["Fees", "2.0% / 20% over 8%"], ["Drawdown", "Over 4 years, ~25% per year"], ["Closing", "15 October 2026"]],
-      docs: [["Fund XII PPM", "PDF · 142pp"], ["Track record — Funds VIII-XI", "PDF · 24pp"], ["LPA (tranche)", "PDF · 96pp"], ["Side letter", "PDF · 6pp"]],
+      illustrative: true,
+      source: "fund", role: "Hanwha's LP position is the access. Without it there is no tranche, at any cheque size.",
+      dd: ["Access carved from the group's own LP commitment", "Side-letter terms extended to the member tranche", "Transfer pre-cleared with the GP for platform members", "Hanwha invested on identical terms"],
+      overview: "An access tranche in an established US venture fund. The reason this exists is not diligence or pricing — it is that the fund does not take commitments of this size, and Hanwha's existing LP position does. Terms, sizes and timing on this page are illustrative and do not describe any actual arrangement with the manager named.",
+      terms: [["Access", "Carved from Hanwha's LP commitment"], ["Term", "10 years + 2 one-year extensions"], ["Sizing", "Fractional — any amount"], ["Drawdown", "Over 4 years, ~25% per year"], ["Closing", "15 October 2026"]],
+      docs: [["Fund PPM", "PDF · 142pp"], ["LPA (tranche)", "PDF · 96pp"], ["Side letter", "PDF · 6pp"]],
       qa: [["What are the drawdown mechanics?", "Approximately 25% per year over four years on 10 business days' notice. Model the commitment, not the cheque."],
            ["Can the tranche be resold?", "After a 12-month hold, on the Barbell secondary board only. The GP's consent right is pre-cleared for platform transfers."]] },
     { id: "m20", kind: "private", name: "Aeris Aerospace — Series G secondary block", fills: "preipo", cls: "equity",
@@ -1304,14 +1306,14 @@
     { id: "l7", ts: "2026-08-31T18:00:00+09:00", who: "system", kind: "Valuation", text: "Hanwha-sourced NAVs refreshed for 9 positions", detail: "As of 30 June 2026 capital accounts." },
     { id: "l8", ts: "2026-08-29T08:15:00+09:00", who: "principal", kind: "Approval", text: "Approved proposal — Commit $250,000 to Helios AI Infrastructure SPV II", detail: "Comment: keep single-company exposure under 5% of the sleeve." },
     { id: "l9", ts: "2026-08-15T10:02:00+09:00", who: "principal", kind: "Approval", text: "Returned proposal — Sell $600,000 Apple 3.85% 2043", detail: "Returned with comment for resubmission." },
-    { id: "l10", ts: "2026-08-04T11:40:00+09:00", who: "successor", kind: "Commitment", text: "Committed $250,000 to Meridian Venture Partners XII", detail: "Within Alpha sleeve capacity. Executed directly." },
+    { id: "l10", ts: "2026-08-04T11:40:00+09:00", who: "successor", kind: "Commitment", text: "Committed $400,000 to the Sequoia Capital LP tranche", detail: "Within the conviction sleeve. Executed directly." },
     { id: "l11", ts: "2026-07-22T15:05:00+09:00", who: "principal", kind: "Onboarding", text: "Portfolio ingestion completed — 42 positions mapped", detail: "3 source files. 2 exceptions resolved by the Principal." },
   ];
 
   /* ------------------------------------------------ operations (internal) */
   const opsLedger = [
     { id: "x1", ts: "2026-09-08T14:48:12+09:00", instr: "NVDA", desc: "NVIDIA Corporation", qty: "2,000", ref: "BBL-2026-0908-0041", finality: "2026-09-08T14:48:14+09:00", state: "Final" },
-    { id: "x2", ts: "2026-08-04T11:40:02+09:00", instr: "MVP-XII-T", desc: "Meridian Venture Partners XII tranche", qty: "$250,000", ref: "BBL-2026-0804-0018", finality: "2026-08-04T11:40:04+09:00", state: "Final" },
+    { id: "x2", ts: "2026-08-04T11:40:02+09:00", instr: "SEQ-LP-T", desc: "Sequoia Capital LP tranche", qty: "$400,000", ref: "BBL-2026-0804-0018", finality: "2026-08-04T11:40:04+09:00", state: "Final" },
     { id: "x3", ts: "2026-06-30T23:59:58+09:00", instr: "SONGDO-I", desc: "Songdo Hyperscale DC Platform — NAV update", qty: "—", ref: "BBL-2026-0630-0902", finality: "2026-06-30T23:59:59+09:00", state: "Final" },
     { id: "x4", ts: "2026-05-22T10:02:31+09:00", instr: "HELIOS-I", desc: "Helios AI Infrastructure SPV I", qty: "$400,000", ref: "BBL-2026-0522-0007", finality: "2026-05-22T10:02:33+09:00", state: "Final" },
     { id: "x5", ts: "2026-01-10T09:14:07+09:00", instr: "HKLR-I", desc: "Hanwha Korea Logistics REIT Co-Invest", qty: "$1,500,000", ref: "BBL-2026-0110-0003", finality: "2026-01-10T09:14:09+09:00", state: "Final" },
@@ -1320,7 +1322,7 @@
   const referrals = { sent: 3, joined: 1,
     invites: [
       { id: "r1", to: "Member of Daesan family office", deal: "Northgate Data Center Credit Facility II", ts: "2026-09-10", state: "Viewed" },
-      { id: "r2", to: "S.H. Chung", deal: "Meridian Venture Partners XII", ts: "2026-08-22", state: "Joined" },
+      { id: "r2", to: "S.H. Chung", deal: "Sequoia Capital — LP tranche", ts: "2026-08-22", state: "Joined" },
       { id: "r3", to: "Kwon family office", deal: "Songdo Hyperscale DC Platform II", ts: "2026-07-30", state: "Committed" },
     ] };
 

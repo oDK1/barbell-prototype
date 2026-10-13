@@ -40,6 +40,9 @@
               <span className="bdg plain">{u.subLabel(m.fills)}</span>
               <span className="bdg plain">{m.liq}{m.term && m.term !== "—" ? " · " + m.term : ""}</span>
               {m.hanwha && <span className="bdg hanwha"><i className="pt" />{(D.sourceTypes.find((x) => x.key === m.source) || {}).label || "Hanwha-originated"}</span>}
+              {/* where a real manager is named, the page says outright that the
+                  arrangement on it is invented */}
+              {m.illustrative && <span className="bdg plain">illustrative — no actual arrangement</span>}
             </div>
             <h1 className="mt8">{m.name}</h1>
             <div className="sub mt8">{m.ticker ? <span className="mono">{m.ticker}</span> : m.manager} · {m.sector} · {m.geo}</div>

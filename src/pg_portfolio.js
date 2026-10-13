@@ -353,12 +353,12 @@
                 <span className="sl-sep">%</span>
               </div>
               <div className="sl-leg">
-                <span>built from <b>{built.rows.length}</b> funds plus the cash reserve</span>
+                <span>built from <b>{built.rows.length}</b> {built.rows.length === 1 ? "fund" : "funds"} plus the cash reserve</span>
               </div>
             </div>
             <div className="sl-track">
               <div className="sl-chips">
-                {[5, 7, 9, 11, 13, 15].map((v) => (
+                {[4, 6, 8, 10, 12].map((v) => (
                   <button key={v} onClick={() => setYld(v)} className={Math.abs(yld - v) < 0.05 ? "on" : ""}
                     style={{ left: "calc(" + (fy(v) * 100) + "% + " + ((0.5 - fy(v)) * THUMB).toFixed(1) + "px)" }}>
                     {v}%

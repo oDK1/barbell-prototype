@@ -1449,34 +1449,33 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
      at that risk. Fixed income at the bottom, absolute-return and yield
      strategies at the top.
 
-     The family never picks one. A target yield is stated and the basket is
-     built across these funds to reach it.
+     The family never picks one. A target yield between 4% and 12% is stated
+     and the basket is built across these funds to reach it.
 
      Fund names are placeholders. No real manager or strategy is named. */
   const anchorShelf = [
-    { band: 5,  name: "Target Yield 5%",  liq: "Immediate",     vol: 2.4,
-      inside: "Developed-market sovereigns and investment-grade credit. The return is what the curve gives." },
-    { band: 6,  name: "Target Yield 6%",  liq: "Immediate",     vol: 3.1,
-      inside: "Investment-grade credit with a longer duration, and short-dated structured paper." },
-    { band: 7,  name: "Target Yield 7%",  liq: "Immediate",   vol: 4.6,
+    { band: 4,  name: "Target Yield 4%",  liq: "Immediate", vol: 1.9,
+      inside: "Developed-market sovereigns, bills and bank deposits. The return is what the curve gives." },
+    { band: 5,  name: "Target Yield 5%",  liq: "Immediate", vol: 2.6,
+      inside: "Investment-grade corporate credit, short duration." },
+    { band: 6,  name: "Target Yield 6%",  liq: "Immediate", vol: 3.4,
+      inside: "Investment-grade credit further out the curve, and short-dated structured paper." },
+    { band: 7,  name: "Target Yield 7%",  liq: "Immediate", vol: 4.6,
       inside: "Structured income notes and listed real-asset income. Contractual coupons, repriced quarterly." },
-    { band: 8,  name: "Target Yield 8%",  liq: "Immediate",   vol: 5.9,
+    { band: 8,  name: "Target Yield 8%",  liq: "Immediate", vol: 5.9,
       inside: "Diversified senior credit and core property income, across more than one currency." },
     { band: 9,  name: "Target Yield 9%",  liq: "Immediate", vol: 7.2,
       inside: "Senior secured direct lending to sponsor-backed borrowers. First lien, floating rate." },
-    { band: 10, name: "Target Yield 10%", liq: "Immediate", vol: 8.4,
-      inside: "Direct lending with a mezzanine sleeve, and infrastructure credit against contracted cash flows." },
-    { band: 11, name: "Target Yield 11%", liq: "Immediate", vol: 9.6,
-      inside: "Opportunistic and bridge credit, special situations, shorter duration against harder collateral." },
-    { band: 12, name: "Target Yield 12%", liq: "Immediate", vol: 10.8,
-      inside: "Absolute-return and multi-strategy funds. Return is manager skill, not market direction. DW [P]." },
-    { band: 13, name: "Target Yield 13%", liq: "Immediate", vol: 12.1,
-      inside: "Systematic and market-neutral quantitative strategies. DW [P]." },
-    { band: 14, name: "Target Yield 14%", liq: "Immediate", vol: 13.5,
-      inside: "Fund of funds across uncorrelated alternatives, plus high-yield emerging-market deposits. DW [P]." },
-    { band: 15, name: "Target Yield 15%", liq: "Immediate",    vol: 15.2,
-      inside: "On-chain lending yield and unhedged emerging-market deposit programmes. DW [P]." },
+    { band: 10, name: "Target Yield 10%", liq: "Immediate", vol: 8.6,
+      inside: "Direct lending with a mezzanine sleeve, infrastructure credit, and absolute-return funds whose return is manager skill rather than market direction. DW [P]." },
+    { band: 11, name: "Target Yield 11%", liq: "Immediate", vol: 10.0,
+      inside: "Systematic and market-neutral quantitative strategies, alongside opportunistic and bridge credit against harder collateral. DW [P]." },
+    { band: 12, name: "Target Yield 12%", liq: "Immediate", vol: 11.6,
+      inside: "Fund of funds across uncorrelated alternatives, high-yield emerging-market deposits, and on-chain lending yield. DW [P]." },
   ];
+
+  const SHELF_FLOOR = 4;   /* the lowest fund on the shelf */
+  const SHELF_CEIL  = 12;
 
   /* ================================================= exit, not redemption
      DW [D]: every asset on this platform converts to cash immediately. There
@@ -1503,9 +1502,6 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     pe: 91.0,
     vc: 87.0,
   };
-
-  const SHELF_FLOOR = 5;   /* below this a holding is not on the shelf at all */
-  const SHELF_CEIL  = 15;
 
   /* The fund that always sits beneath the basket. A minimum dollar amount is
      held here whatever the target yield. Nothing is locked any more, so this
@@ -3066,10 +3062,12 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   function modelFour(target, conv) {
     const b = Math.max(D.SHELF_FLOOR, Math.min(D.SHELF_CEIL, target)) - D.SHELF_FLOOR;
     const a = (100 - conv) / 100;
+    /* eight rungs now, not ten, so the tilt per rung widens to span the same
+       distance between the most defensive fund and the most aggressive */
     return {
-      equity: a * (5 + b * 3) + conv,
-      debt:   a * (70 - b * 4),
-      real:   a * (15 + b * 1),
+      equity: a * (4 + b * 3.75) + conv,
+      debt:   a * (72 - b * 5.0),
+      real:   a * (14 + b * 1.25),
       cash:   a * 10,
     };
   }
@@ -5325,11 +5323,11 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
               <div className="sl-hd">
                 <div className="lbl">2 · Target yield</div>
                 <div className="sl-read"><span className="sl-a num">{yld.toFixed(1)}</span><span className="sl-sep">%</span></div>
-                <div className="sl-leg"><span>built from <b>{built.rows.length}</b> funds plus the cash reserve</span></div>
+                <div className="sl-leg"><span>built from <b>{built.rows.length}</b> {built.rows.length === 1 ? "fund" : "funds"} plus the cash reserve</span></div>
               </div>
               <div className="sl-track">
                 <div className="sl-chips">
-                  {[5, 7, 9, 11, 13, 15].map((v) => {
+                  {[4, 6, 8, 10, 12].map((v) => {
                     const f2 = (v - D.SHELF_FLOOR) / (D.SHELF_CEIL - D.SHELF_FLOOR);
                     return (
                       <button key={v} onClick={() => setYld(v)} className={Math.abs(yld - v) < 0.05 ? "on" : ""}
@@ -5857,12 +5855,12 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 <span className="sl-sep">%</span>
               </div>
               <div className="sl-leg">
-                <span>built from <b>{built.rows.length}</b> funds plus the cash reserve</span>
+                <span>built from <b>{built.rows.length}</b> {built.rows.length === 1 ? "fund" : "funds"} plus the cash reserve</span>
               </div>
             </div>
             <div className="sl-track">
               <div className="sl-chips">
-                {[5, 7, 9, 11, 13, 15].map((v) => (
+                {[4, 6, 8, 10, 12].map((v) => (
                   <button key={v} onClick={() => setYld(v)} className={Math.abs(yld - v) < 0.05 ? "on" : ""}
                     style={{ left: "calc(" + (fy(v) * 100) + "% + " + ((0.5 - fy(v)) * THUMB).toFixed(1) + "px)" }}>
                     {v}%

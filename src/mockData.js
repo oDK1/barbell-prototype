@@ -347,34 +347,33 @@
      at that risk. Fixed income at the bottom, absolute-return and yield
      strategies at the top.
 
-     The family never picks one. A target yield is stated and the basket is
-     built across these funds to reach it.
+     The family never picks one. A target yield between 4% and 12% is stated
+     and the basket is built across these funds to reach it.
 
      Fund names are placeholders. No real manager or strategy is named. */
   const anchorShelf = [
-    { band: 5,  name: "Target Yield 5%",  liq: "Immediate",     vol: 2.4,
-      inside: "Developed-market sovereigns and investment-grade credit. The return is what the curve gives." },
-    { band: 6,  name: "Target Yield 6%",  liq: "Immediate",     vol: 3.1,
-      inside: "Investment-grade credit with a longer duration, and short-dated structured paper." },
-    { band: 7,  name: "Target Yield 7%",  liq: "Immediate",   vol: 4.6,
+    { band: 4,  name: "Target Yield 4%",  liq: "Immediate", vol: 1.9,
+      inside: "Developed-market sovereigns, bills and bank deposits. The return is what the curve gives." },
+    { band: 5,  name: "Target Yield 5%",  liq: "Immediate", vol: 2.6,
+      inside: "Investment-grade corporate credit, short duration." },
+    { band: 6,  name: "Target Yield 6%",  liq: "Immediate", vol: 3.4,
+      inside: "Investment-grade credit further out the curve, and short-dated structured paper." },
+    { band: 7,  name: "Target Yield 7%",  liq: "Immediate", vol: 4.6,
       inside: "Structured income notes and listed real-asset income. Contractual coupons, repriced quarterly." },
-    { band: 8,  name: "Target Yield 8%",  liq: "Immediate",   vol: 5.9,
+    { band: 8,  name: "Target Yield 8%",  liq: "Immediate", vol: 5.9,
       inside: "Diversified senior credit and core property income, across more than one currency." },
     { band: 9,  name: "Target Yield 9%",  liq: "Immediate", vol: 7.2,
       inside: "Senior secured direct lending to sponsor-backed borrowers. First lien, floating rate." },
-    { band: 10, name: "Target Yield 10%", liq: "Immediate", vol: 8.4,
-      inside: "Direct lending with a mezzanine sleeve, and infrastructure credit against contracted cash flows." },
-    { band: 11, name: "Target Yield 11%", liq: "Immediate", vol: 9.6,
-      inside: "Opportunistic and bridge credit, special situations, shorter duration against harder collateral." },
-    { band: 12, name: "Target Yield 12%", liq: "Immediate", vol: 10.8,
-      inside: "Absolute-return and multi-strategy funds. Return is manager skill, not market direction. DW [P]." },
-    { band: 13, name: "Target Yield 13%", liq: "Immediate", vol: 12.1,
-      inside: "Systematic and market-neutral quantitative strategies. DW [P]." },
-    { band: 14, name: "Target Yield 14%", liq: "Immediate", vol: 13.5,
-      inside: "Fund of funds across uncorrelated alternatives, plus high-yield emerging-market deposits. DW [P]." },
-    { band: 15, name: "Target Yield 15%", liq: "Immediate",    vol: 15.2,
-      inside: "On-chain lending yield and unhedged emerging-market deposit programmes. DW [P]." },
+    { band: 10, name: "Target Yield 10%", liq: "Immediate", vol: 8.6,
+      inside: "Direct lending with a mezzanine sleeve, infrastructure credit, and absolute-return funds whose return is manager skill rather than market direction. DW [P]." },
+    { band: 11, name: "Target Yield 11%", liq: "Immediate", vol: 10.0,
+      inside: "Systematic and market-neutral quantitative strategies, alongside opportunistic and bridge credit against harder collateral. DW [P]." },
+    { band: 12, name: "Target Yield 12%", liq: "Immediate", vol: 11.6,
+      inside: "Fund of funds across uncorrelated alternatives, high-yield emerging-market deposits, and on-chain lending yield. DW [P]." },
   ];
+
+  const SHELF_FLOOR = 4;   /* the lowest fund on the shelf */
+  const SHELF_CEIL  = 12;
 
   /* ================================================= exit, not redemption
      DW [D]: every asset on this platform converts to cash immediately. There
@@ -401,9 +400,6 @@
     pe: 91.0,
     vc: 87.0,
   };
-
-  const SHELF_FLOOR = 5;   /* below this a holding is not on the shelf at all */
-  const SHELF_CEIL  = 15;
 
   /* The fund that always sits beneath the basket. A minimum dollar amount is
      held here whatever the target yield. Nothing is locked any more, so this

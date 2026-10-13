@@ -595,10 +595,12 @@
   function modelFour(target, conv) {
     const b = Math.max(D.SHELF_FLOOR, Math.min(D.SHELF_CEIL, target)) - D.SHELF_FLOOR;
     const a = (100 - conv) / 100;
+    /* eight rungs now, not ten, so the tilt per rung widens to span the same
+       distance between the most defensive fund and the most aggressive */
     return {
-      equity: a * (5 + b * 3) + conv,
-      debt:   a * (70 - b * 4),
-      real:   a * (15 + b * 1),
+      equity: a * (4 + b * 3.75) + conv,
+      debt:   a * (72 - b * 5.0),
+      real:   a * (14 + b * 1.25),
       cash:   a * 10,
     };
   }

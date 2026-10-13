@@ -751,3 +751,17 @@ tr.rung-cash td{background:#FCFBF8}
 
 /* The rest of the exposure menu, shown only when the family goes looking. */
 .themeadd{margin-top:12px;padding-top:12px;border-top:1px solid var(--g3)}
+
+/* ---- the book as a ring ------------------------------------------------
+   The ring sits beside the two bucket cards rather than above them, so the
+   same two numbers are drawn once and listed once. */
+.allocsplit{display:grid;grid-template-columns:300px 1fr;gap:16px;align-items:start}
+.ringwrap{border:1px solid var(--g3);background:var(--paper);padding:14px}
+.bookring{width:100%;max-width:260px;height:auto;display:block;margin:0 auto}
+.ringlegend{margin-top:10px;border-top:1px solid var(--g3);padding-top:10px}
+.rl-row{display:flex;align-items:baseline;gap:8px;padding:5px 0;font-size:12px}
+.rl-row i{width:9px;height:9px;display:inline-block;flex-shrink:0;position:relative;top:1px}
+.rl-n{font-weight:600;flex:1}
+.rl-w{font-weight:600}
+.rl-t{font-size:11px}
+@media (max-width:960px){ .allocsplit{grid-template-columns:1fr} .bookring{max-width:210px} }

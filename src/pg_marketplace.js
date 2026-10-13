@@ -36,7 +36,12 @@
           </span>
           <div className="tsub">{place.detail}</div>
         </td>
-        <td className="n num">{m.ret}</td>
+        <td className="n">
+          {place.bucket === "conviction"
+            ? <><span className="tri">—</span>
+                <div className="tsub">thesis, not a target</div></>
+            : <span className="num">{m.ret}</span>}
+        </td>
         <td>
           <span className="bdg plain">{m.liq}</span>
           {m.term && m.term !== "—" && <div className="tsub hide-narrow">{m.term}</div>}
@@ -67,7 +72,7 @@
     return (
       <thead>
         <tr>
-          <th>Opportunity</th><th>Where it lands</th><th className="n">Return</th><th>Liquidity</th>
+          <th>Opportunity</th><th>Where it lands</th><th className="n">Target yield</th><th>Liquidity</th>
           <th className="n">Suggested</th><th className="n">Fit</th>
           <th className="hide-narrow" style={{ minWidth: 170 }}>Why</th><th></th>
         </tr>
@@ -105,7 +110,7 @@
       if (f.liq && m.liq !== f.liq) return false;
       if (f.sector && m.sector !== f.sector) return false;
       if (f.geo && u.geoBucket(m.geo) !== f.geo) return false;
-      if (f.ret && m.retNum < +f.ret) return false;
+      if (f.ret && (u.offerBucket(m) === "conviction" || m.retNum < +f.ret)) return false;
       if (q && !(m.name + " " + (m.ticker || "") + " " + m.sector).toLowerCase().includes(q.toLowerCase())) return false;
       return true;
     };
@@ -189,7 +194,7 @@
                     <select value={f.geo} onChange={(e) => setF({ ...f, geo: e.target.value })}>
                       <option value="">Any</option>{u.GEO_BUCKETS.map((g) => <option key={g}>{g}</option>)}
                     </select></label></div>
-                  <div className="f-item"><label className="f"><span>Target return</span>
+                  <div className="f-item"><label className="f"><span>Target yield</span>
                     <select value={f.ret} onChange={(e) => setF({ ...f, ret: e.target.value })}>
                       <option value="">Any</option><option value="4">4%+</option><option value="6">6%+</option>
                       <option value="8">8%+</option><option value="12">12%+</option>

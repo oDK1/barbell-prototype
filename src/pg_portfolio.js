@@ -79,6 +79,49 @@
      improved, including wider diversification across uncorrelated exposures.
      Tokenised fractional sizing is what makes that reachable at small ticket
      sizes — the sizing line below says so explicitly. END-STATE. */
+  /* ------------------------------------------------------- the book, as a ring */
+  /* Two segments, because the book has two parts. Held is the ring; the tick
+     on the rim is what the family asked for, so a book that has drifted says
+     so without a second chart. */
+  function BookRing({ rows, total }) {
+    const C = 150, RO = 138, RI = 92;
+    const pt = (r, a) => [(C + r * Math.sin(a)).toFixed(2), (C - r * Math.cos(a)).toFixed(2)];
+    const arc = (r0, r1, a0, a1) => {
+      const big = a1 - a0 > Math.PI ? 1 : 0;
+      const [x0, y0] = pt(r1, a0), [x1, y1] = pt(r1, a1);
+      const [x2, y2] = pt(r0, a1), [x3, y3] = pt(r0, a0);
+      return `M${x0} ${y0}A${r1} ${r1} 0 ${big} 1 ${x1} ${y1}L${x2} ${y2}A${r0} ${r0} 0 ${big} 0 ${x3} ${y3}Z`;
+    };
+    let a = 0;
+    const segs = rows.filter((r) => r.wt > 0).map((r) => {
+      const a0 = a, a1 = a + (r.wt / 100) * Math.PI * 2;
+      a = a1;
+      return { ...r, a0, a1 };
+    });
+    /* the asked-for boundary, measured round the same circle */
+    const markAt = (rows[0].target / 100) * Math.PI * 2;
+    const [mx0, my0] = pt(RI - 6, markAt), [mx1, my1] = pt(RO + 6, markAt);
+    const drifted = Math.abs(rows[0].drift) > 0.5;
+
+    return (
+      <svg viewBox="0 0 300 300" className="bookring" role="img"
+        aria-label={"Book split: " + rows.map((r) => r.label + " " + u.pct(r.wt)).join(", ")}>
+        {segs.map((r) => (
+          <path key={r.key} d={arc(RI, RO, r.a0, r.a1)} fill={r.color} stroke="var(--paper)" strokeWidth="2">
+            <title>{r.label + " · " + u.pct(r.wt) + " · " + u.usdC(r.value)}</title>
+          </path>
+        ))}
+        {drifted && <line x1={mx0} y1={my0} x2={mx1} y2={my1} stroke="var(--ink)" strokeWidth="2" />}
+        <text x={C} y={C - 4} textAnchor="middle" fill="var(--ink)"
+          style={{ fontSize: 30, fontWeight: 600, fontVariantNumeric: "tabular-nums", letterSpacing: "-.025em" }}>
+          {u.usdC(total)}
+        </text>
+        <text x={C} y={C + 18} textAnchor="middle" fill="var(--g2)"
+          style={{ fontSize: 9.5, letterSpacing: ".11em" }}>TOTAL ASSETS</text>
+      </svg>
+    );
+  }
+
   /* ------------------------------------------------------- allocation tab */
   function AllocationTab({ positions, openSignal }) {
     const t = u.total(positions);
@@ -86,6 +129,7 @@
     const [bOpen, setBOpen] = useState({});
     const lad = u.anchorLadder(positions, null);
     const themeRows = u.byTheme(positions, st.themes);
+    const bucketRows = u.byBucket(positions, 100 - st.anchorPct);
 
     return (
       <>
@@ -93,8 +137,23 @@
             class: the Anchor opens onto the shelf of funds it is spread
             across, and Conviction opens onto the themes it is pointed at.
             END-STATE. */}
-        <div className="buckets mt16">
-          {u.byBucket(positions, 100 - st.anchorPct).map((b) => {
+        <div className="allocsplit mt16">
+          <div className="ringwrap">
+            <BookRing rows={bucketRows} total={t} />
+            <div className="ringlegend">
+              {bucketRows.map((b) => (
+                <div key={b.key} className="rl-row">
+                  <i style={{ background: b.color }} />
+                  <span className="rl-n">{b.label}</span>
+                  <span className="rl-w num">{u.pct(b.wt)}</span>
+                  <span className="rl-t tri num">asked {u.pct(b.target)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+        <div className="buckets">
+          {bucketRows.map((b) => {
             const sp = u.spread(b.items, null);
             const open = !!bOpen[b.key];
             const isAnchor = b.key === "engine";
@@ -195,6 +254,7 @@
               </div>
             );
           })}
+        </div>
         </div>
 
         <QueryBar positions={positions} />

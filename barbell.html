@@ -7883,7 +7883,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
           <table className="t">
             <thead>
               <tr>
-                <th style={{ minWidth: 240 }}>Instrument</th><th>Where it lands</th><th className="n">Current IRR</th><th className="n">Clears at</th>
+                <th style={{ minWidth: 240 }}>Instrument</th><th>Where it lands</th><th className="n">Current IRR</th><th>Liquidity depth</th>
                 <th className="n">Last NAV</th><th className="n">Size offered</th><th className="n">Fit</th>
                 <th className="hide-narrow" style={{ minWidth: 170 }}>Why</th><th></th>
               </tr>
@@ -7916,9 +7916,17 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                           </span>
                         : <span className="tri">—</span>}
                     </td>
-                    {/* the board's own answer to "what does immediacy cost" */}
-                    <td className="n num">{u.pct(l.askPct)}
-                      <div className="tsub">{l.askPct >= 100 ? "premium to mark" : "discount to mark"}</div></td>
+                    {/* the ask is already on the buy button; what the column
+                        adds is how much of this clears at the mark at all */}
+                    <td>{(() => {
+                      const dep = u.depthOf({ sub: l.sub });
+                      return dep
+                        ? <><span className="depth" style={{ color: dep.color, borderColor: dep.color }}>
+                              <i style={{ background: dep.color }} />{dep.label}
+                            </span>
+                            <div className="tsub num">{u.usdC(dep.clears)} clears at the mark</div></>
+                        : <span className="tri">—</span>;
+                    })()}</td>
                     <td className="n num">{u.usd(l.nav)}</td>
                     <td className="n num">{u.usd(l.size)}</td>
                     <td className="n"><Fit score={v.sc.score} /></td>
@@ -8176,6 +8184,9 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 <span className="k">IRR to date</span>
                 <span className="v">{u.currentIRR(l) ? u.sgn(u.currentIRR(l).irr) : "—"}</span>
                 <span className="k">Marked by</span><span className="v">This board, continuously</span>
+                  <span className="k">Liquidity depth</span>
+                  <span className="v">{(u.depthOf({ sub: l.sub }) || {}).label || "—"}
+                    {u.depthOf({ sub: l.sub }) ? " · " + u.usdC(u.depthOf({ sub: l.sub }).clears) + " clears at the mark" : ""}</span>
                 {l.unfunded ? <><span className="k">Unfunded</span><span className="v">{u.usd(l.unfunded)}</span></> : null}
                 <span className="k">Days listed</span><span className="v">{l.days}</span>
               </div>

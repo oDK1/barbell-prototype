@@ -1650,16 +1650,18 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
      pre-IPO block is a different kind of asset from an index fund even when
      both settle this afternoon.
 
+     Three tiers, not four. A tier called "Liquid" described nothing on a
+     platform where everything is liquid by construction — it was a softer
+     word for deep. Deep, Moderate and Thin all name the same property.
+
      `clears` is the size a seller can move in a day without moving the
      price. Figures are illustrative. */
   const depthTiers = [
     { key: "deep", label: "Deep", rank: 1, color: "#2F5D3A",
-      note: "An exchange book. Size is not the constraint." },
-    { key: "liquid", label: "Liquid", rank: 2, color: "#3F7183",
-      note: "Clears in size, with a spread that widens on a bad day." },
-    { key: "moderate", label: "Moderate", rank: 3, color: "#9A7B2E",
+      note: "An exchange book, or close to one. Size is not the constraint." },
+    { key: "moderate", label: "Moderate", rank: 2, color: "#9A7B2E",
       note: "A real market, but one a large seller can move on their own." },
-    { key: "thin", label: "Thin", rank: 4, color: "#8C4A3A",
+    { key: "thin", label: "Thin", rank: 3, color: "#8C4A3A",
       note: "A handful of buyers. Size has to be worked, and a forced sale shows." },
   ];
 
@@ -1670,9 +1672,9 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     dep:    { tier: "deep",     clears:  60000000 },
     fx:     { tier: "deep",     clears:  60000000 },
     pubeq:  { tier: "deep",     clears:  40000000 },
-    ig:     { tier: "liquid",   clears:  18000000 },
-    comm:   { tier: "liquid",   clears:  12000000 },
-    struct: { tier: "liquid",   clears:   6000000 },
+    ig:     { tier: "deep",     clears:  18000000 },
+    comm:   { tier: "deep",     clears:  12000000 },
+    struct: { tier: "moderate", clears:   6000000 },
     pcred:  { tier: "moderate", clears:   2500000 },
     infra:  { tier: "moderate", clears:   1600000 },
     pe:     { tier: "thin",     clears:    900000 },

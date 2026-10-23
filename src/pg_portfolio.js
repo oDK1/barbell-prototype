@@ -307,335 +307,249 @@
     );
   }
 
-  /* ------------------------------------------------- the model, in two parts */
-  /* Two settings the family makes, and one that follows. How much sits in the
-     anchor; what the anchor is asked to earn; and conviction, which is simply
-     what is left. There is no asset allocation anywhere on this screen. */
+  /* ------------------------------------------------- the model portfolio ----
+     The deck's own slide, made live: three published family sizes as stacked
+     bars with this family's beneath them, what changes as wealth grows, and
+     the three inputs that tune the mix beyond size. */
+  function TierBar({ groups, muted }) {
+    return (
+      <div className={"tierbar" + (muted ? " muted" : "")}>
+        {groups.filter((g) => g.pct > 0.4).map((g) => (
+          <div key={g.key} className="tb-seg" style={{ width: g.pct + "%", background: g.color }}
+            title={g.label + " · " + u.pct(g.pct)}>
+            <span style={{ color: g.key === "residence" ? "var(--ink)" : "#FAFAF8" }}>{u.pct(g.pct, 0)}</span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   function ModelPanel({ positions }) {
     const st = S.useStore();
     const t = u.total(positions);
     const [fp, setFp] = useState(st.frontierPct);
-    const pctA = 100 - fp;
-    const [yld, setYld] = useState(st.targetYield);
-    const floor = st.cashFloor;          /* fixed by the product, not by the family */
-    React.useEffect(() => { setFp(st.frontierPct); setYld(st.targetYield); },
-      [st.frontierPct, st.targetYield]);
+    const [yrs, setYrs] = useState(st.cashYears);
+    React.useEffect(() => { setFp(st.frontierPct); setYrs(st.cashYears); }, [st.frontierPct, st.cashYears]);
     const [path, setPath] = useState(false);
-    const [menu, setMenu] = useState(false);
 
-    const conv = fp;
-    const mp = u.modelBook(positions, fp);
-    const anchorValue = (pctA / 100) * t;
-    const built = u.buildAnchor(anchorValue, yld, floor);
-    const lad = u.anchorLadder(positions, null);
-    const themeRows = u.byTheme(positions, st.themes);
-    const bk = u.byBucket(positions, conv);
-    const anchorRow = bk[0], convRow = bk[1];
-    const whatIf = fp !== st.frontierPct || yld !== st.targetYield;
+    const mb = u.modelBook(positions, fp);
+    const mine = u.tierShape(t / 1e6, fp);
+    const tiers = [10, 100, 1000].map((m) => ({
+      m, label: m === 1000 ? "$1B family" : "$" + m + "M family",
+      shape: u.tierShape(m, null), published: D.tierYield[m],
+    }));
+    const whatIf = fp !== st.frontierPct || yrs !== st.cashYears;
     const confirmed = st.activity.find((a) => a.kind === "Mandate");
 
-    const THUMB = 16;
-    const fy = (v) => (v - D.SHELF_FLOOR) / (D.SHELF_CEIL - D.SHELF_FLOOR);
-    const maxBar = Math.max(1, ...built.rows.map((r) => r.pct), built.cashPct);
+    /* what changes as wealth grows, read off the published tiers */
+    const atTier = (key, m) => (D.allocLines.find((l) => l.key === key) || { tiers: {} }).tiers[m];
+    const shifts = [
+      { t: "Fixed needs shrink",
+        d: "The primary residence falls from " + atTier("residence", 10) + "% to "
+          + atTier("residence", 1000) + "% of net worth." },
+      { t: "Capacity binds",
+        d: "Shallow pools shrink: market-making vaults " + atTier("mmv", 10) + "% to "
+          + atTier("mmv", 1000) + "%." },
+      { t: "Liquidity needs ease",
+        d: "Thin-market lines grow: pre-IPO " + atTier("preipo", 10) + "% to " + atTier("preipo", 1000)
+          + "%, novelty RWA " + atTier("rwa", 10) + "% to " + atTier("rwa", 1000) + "%." },
+      { t: "Tickets set terms",
+        d: "Funds give way to direct deals; a $1B family co-underwrites loans and buys pre-IPO blocks." },
+    ];
+
+    /* 02 · cash needs — living cash sized in years of spending */
+    const annualSpend = D.liquidityAssumptions.monthlySpend * 12;
+    const livingCash = yrs * annualSpend;
+    const treasTarget = (mine.lines.ttreas / 100) * t;
+
+    /* 03 · existing assets — concentration the family already carries */
+    const aff = u.affiliateExposure(positions);
+    const sp = u.spread(positions, null);
 
     return (
       <>
         <div className="panel mt16" id="model-panel">
           <div className="panel-hd">
             <div>
-              <h3>How this book is built</h3>
-              <div className="tri" style={{ fontSize: 11.5, marginTop: 2 }}>
-                Two settings. Core is whatever Frontier Growth does not take.
+              <h3>As wealth grows, the frontier widens and fixed needs shrink</h3>
+              <div className="tri" style={{ fontSize: 11.5, marginTop: 3, maxWidth: "88ch", lineHeight: 1.55 }}>
+                Every family holds a barbell: an 80–90% core that protects principal, compounds and funds
+                spending, and a 10–20% frontier of asymmetric bets.
               </div>
             </div>
             <button className="btn sm" onClick={() => setPath(true)}>What to do about it</button>
           </div>
 
-          {/* 1 — risk preference, which the model says moves Frontier Growth
-              inside a 10–20% band. Core is the remainder and splits itself. */}
-          <div className="splitlever">
-            <div className="sl-hd">
-              <div className="lbl">1 · Frontier Growth</div>
-              <div className="sl-read">
-                <span className="sl-a num" style={{ color: "#9A7B2E" }}>{fp}</span>
-                <span className="sl-sep">%</span>
+          {/* the published sizes, then this family */}
+          <div className="tiers">
+            {tiers.map((x) => (
+              <div key={x.m} className="tier">
+                <div className="tier-hd">
+                  <span className="tier-n">{x.label}</span>
+                  <span className="spacer" />
+                  <span className="tri">Portfolio yield {u.pct(x.published)} of net worth</span>
+                </div>
+                <TierBar groups={x.shape.groups} muted />
               </div>
-              <div className="sl-leg">
-                <span><i style={{ background: "#1B2A4A" }} />Core {u.usdC(((100 - fp) / 100) * t)}</span>
-                <span><i style={{ background: "#9A7B2E" }} />Frontier {u.usdC((fp / 100) * t)}</span>
+            ))}
+            <div className="tier mine">
+              <div className="tier-hd">
+                <span className="tier-n">This family · {u.usdC(t)}</span>
+                <span className="spacer" />
+                <span className="tri">Portfolio yield {u.pct(mine.yieldPct)} of net worth</span>
               </div>
+              <TierBar groups={mine.groups} />
             </div>
-            <div className="sl-track">
-              <div className="sl-chips">
-                {[10, 12, 15, 17, 20].map((v) => (
-                  <button key={v} onClick={() => setFp(v)} className={fp === v ? "on" : ""}
-                    style={{ left: "calc(" + (((v - 10) / 10) * 100) + "% + " + ((0.5 - (v - 10) / 10) * THUMB).toFixed(1) + "px)" }}>
-                    {v}%
-                  </button>
-                ))}
-              </div>
-              <input type="range" min="10" max="20" step="1" value={fp}
-                onChange={(e) => setFp(+e.target.value)} />
-            </div>
-            <div className="sl-inside tri">
-              Core takes the rest and splits itself by the published model for a book this size —
-              residence {u.pct(mp.groups[0].target)}, yield engines {u.pct(mp.groups[1].target)},
-              traditional {u.pct(mp.groups[2].target)}.
-            </div>
-          </div>
-
-          {/* 2 — what the anchor is asked to earn */}
-          <div className="splitlever">
-            <div className="sl-hd">
-              <div className="lbl">2 · Yield engines target</div>
-              <div className="sl-read">
-                <span className="sl-a num" style={{ color: "#1B2A4A" }}>{yld.toFixed(1)}</span>
-                <span className="sl-sep">%</span>
-              </div>
-              <div className="sl-leg">
-                <span>built from <b>{built.rows.length}</b> {built.rows.length === 1 ? "fund" : "funds"} plus the cash reserve</span>
-              </div>
-            </div>
-            <div className="sl-track">
-              <div className="sl-chips">
-                {[4, 6, 8, 10, 12].map((v) => (
-                  <button key={v} onClick={() => setYld(v)} className={Math.abs(yld - v) < 0.05 ? "on" : ""}
-                    style={{ left: "calc(" + (fy(v) * 100) + "% + " + ((0.5 - fy(v)) * THUMB).toFixed(1) + "px)" }}>
-                    {v}%
-                  </button>
-                ))}
-              </div>
-              <input type="range" min={D.SHELF_FLOOR * 10} max={D.SHELF_CEIL * 10} step="1" value={Math.round(yld * 10)}
-                onChange={(e) => setYld(+e.target.value / 10)} />
-            </div>
-
-            {/* the cash floor sits with the yield, because it is what makes the
-                rest of the basket work harder */}
-            <div className="sl-split">
-              <div className="ss-l">
-                <span className="lbl">Always in cash</span>
-                <span className="ss-read num">{u.usdC(floor)}</span>
-                <span className="tri" style={{ fontSize: 11 }}>
-                  {u.pct(built.cashPct)} of the yield engines at {u.pct(D.cashFund.yield)}
-                </span>
-              </div>
-              <span className="spacer" />
-              <span className="tri" style={{ fontSize: 11 }}>Fixed — not a setting</span>
-            </div>
-            <div className="sl-inside tri">
-              Holding {u.usdC(floor)} at {u.pct(D.cashFund.yield)} means the other {u.usdC(built.rest)} has to
-              earn <b>{u.pct(built.needed)}</b> for the yield engines to return {yld.toFixed(1)}%.
-              {!built.reachable && " That is past the top of the shelf — the basket is as high as it goes."}
-            </div>
-
-            {whatIf ? (
-              <div className="lever-note warn">
-                <span style={{ flex: 1 }}>
-                  A what-if. The family holds <b>{st.frontierPct}%</b> in Frontier Growth, with the yield engines at <b>{st.targetYield}%</b>.
-                </span>
-                <span className="btn-row">
-                  <button className="link g" onClick={() => { setFp(st.frontierPct); setYld(st.targetYield); }}>Discard</button>
-                  <button className="btn sm p" onClick={() => {
-                    S.actions.setFrontierPct(fp); S.actions.setTargetYield(yld);
-                    S.actions.commitSplit();
-                  }}>Adopt this</button>
-                </span>
-              </div>
-            ) : (
-              <div className="lever-note">
-                <span style={{ flex: 1 }}>
-<b>{pctA}%</b> Core · <b>{fp}%</b> Frontier Growth · yield engines at <b>{yld.toFixed(1)}%</b>
-                  {confirmed ? " · confirmed " + u.fmtDate(confirmed.ts) : ""}
-                </span>
-                <button className="link g" onClick={() => S.navigate("/onboarding/mandate")}>Refine with 8 questions</button>
-              </div>
-            )}
-          </div>
-
-          {/* the basket that target buys — built, not chosen */}
-          <div className="shelfwrap">
-            <div className="shelf-hd">
-              <span className="lbl">The basket this builds</span>
-              <span className="tri" style={{ fontSize: 11.5 }}>
-                {u.usdC(anchorValue)} across {built.rows.length + 1} funds, blended at <b>{u.pct(built.blended)}</b>
-              </span>
-            </div>
-            <table className="t dense">
-              <thead><tr><th style={{ width: 170 }}>Fund · named for its target</th><th>What it holds</th>
-                <th className="n" style={{ width: 90 }}>Targets</th>
-                <th style={{ width: "22%" }}>Weight</th>
-                <th className="n" style={{ width: 80 }}>Of anchor</th>
-                <th className="n" style={{ width: 110 }}>Amount</th></tr></thead>
-              <tbody>
-                <tr className="rung-cash">
-                  <td><span className="rung-n">{D.cashFund.name}</span>
-                    <div className="tsub">{D.cashFund.liq} · floor</div></td>
-                  <td className="tsub">{D.cashFund.inside}</td>
-                  <td className="n num tri">{u.pct(D.cashFund.yield)}</td>
-                  <td><div className="wbar"><i style={{ width: (built.cashPct / maxBar) * 100 + "%", background: "#A9A396" }} /></div></td>
-                  <td className="n num">{u.pct(built.cashPct)}</td>
-                  <td className="n num">{u.usd(built.cash)}</td>
-                </tr>
-                {built.rows.map((f) => (
-                  <tr key={f.band}>
-                    <td><span className="rung-n">{f.name}</span>
-                      <div className="tsub">{f.liq} · vol {u.pct(f.vol)}</div></td>
-                    <td className="tsub">{f.inside}</td>
-                    <td className="n num tri">{u.pct(f.band)}</td>
-                    <td><div className="wbar"><i style={{ width: (f.pct / maxBar) * 100 + "%", background: "#1B2A4A" }} /></div></td>
-                    <td className="n num">{u.pct(f.ofAnchor)}</td>
-                    <td className="n num">{u.usd(f.value)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <div className="shelf-ft tri">
-              The basket is built for the target, not picked from a list. Raising the target narrows it toward the
-              top of the shelf; lowering it narrows it toward the bottom.
-              {Math.abs(lad.blended - yld) > 0.5 && <> Against this, what the family actually holds
-                blends at <b>{u.pct(lad.blended)}</b>.</>}
-            </div>
-          </div>
-
-          {/* Conviction shows what the family has picked. The rest of the menu
-              is one click away but does not clutter the book with exposures
-              nobody chose. */}
-          <div className="themewrap">
-            <div className="shelf-hd">
-              <span className="lbl">3 · What conviction is pointed at</span>
-              <span className="tri" style={{ fontSize: 11.5 }}>
-                {u.usdC(convRow.value)} held · {u.pct(convRow.wt)} of the book against {u.pct(conv)} left for it
-              </span>
-              <span className="spacer" style={{ flex: 1 }} />
-              <button className="link g" onClick={() => setMenu(!menu)}>
-                {menu ? "Done" : "Change what is picked"}
-              </button>
-            </div>
-            <div className="themes">
-              {themeRows.filter((th) => st.themes.indexOf(th.key) >= 0 || th.count > 0).map((th) => (
-                <button key={th.key} className={"th on" + (th.count ? " held" : "")}
-                  onClick={() => S.actions.toggleTheme(th.key)} title={th.note}>
-                  <span className="th-hd">
-                    <i style={{ background: th.color }} />
-                    <span className="th-n">{th.label}</span>
-                    {th.flagged && <span className="bdg plain">open question</span>}
-                  </span>
-                  {th.sub && <span className="th-sub tri">{th.sub}</span>}
-                  <span className="th-v num">
-                    {th.count ? u.pct(th.wt) + " · " + u.usdC(th.value) : "picked, nothing held"}
-                  </span>
-                  {/* what the thing actually is to own, and through what */}
-                  <span className="th-claim">
-                    <b>{th.claim}</b>{th.candidates ? " · " + th.candidates : ""}
-                  </span>
-                </button>
+            <div className="tierlegend">
+              {D.allocGroups.map((g) => (
+                <span key={g.key}><i style={{ background: g.color }} />{g.label}</span>
               ))}
             </div>
+          </div>
 
-            {menu && (() => {
-              const rest = themeRows.filter((th) => st.themes.indexOf(th.key) < 0 && th.count === 0);
-              return (
-                <div className="themeadd">
-                  <div className="lbl" style={{ marginBottom: 8 }}>Not picked</div>
-                  {rest.length === 0
-                    ? <div className="empty">Every exposure on the menu is picked.</div>
-                    : <div className="themes">
-                        {rest.map((th) => (
-                          <button key={th.key} className="th" onClick={() => S.actions.toggleTheme(th.key)} title={th.note}>
-                            <span className="th-hd">
-                              <i style={{ background: th.color, opacity: .3 }} />
-                              <span className="th-n">{th.label}</span>
-                              {th.flagged && <span className="bdg plain">open question</span>}
-                            </span>
-                            {th.sub && <span className="th-sub tri">{th.sub}</span>}
-                            <span className="th-v num">not picked</span>
-                            <span className="th-claim"><b>{th.claim}</b>{th.candidates ? " · " + th.candidates : ""}</span>
-                          </button>
-                        ))}
-                      </div>}
-                </div>
-              );
-            })()}
+          {/* what moves between those rows, read off the tiers themselves */}
+          <div className="shifts">
+            {shifts.map((x) => (
+              <div key={x.t} className="shift">
+                <div className="shift-t">{x.t}</div>
+                <div className="shift-d">{x.d}</div>
+              </div>
+            ))}
+          </div>
 
-            <div className="shelf-ft tri">
-              Picking an exposure does not buy anything. It tells the marketplace what to rank first.
+          <div className="inputs-hd lbl">Beyond AUM, three family inputs tune the mix</div>
+          <div className="inputs">
+            <div className="inp">
+              <div className="inp-n"><b>01</b> Risk preference</div>
+              <div className="inp-d">Moves Frontier Growth within 10–20% of net worth.</div>
+              <div className="inp-read">
+                <span className="num" style={{ color: "#9A7B2E" }}>{fp}%</span>
+                <span className="tri">frontier · {u.usdC((fp / 100) * t)}</span>
+              </div>
+              <div className="sl-track" style={{ padding: 0 }}>
+                <input type="range" min="10" max="20" step="1" value={fp}
+                  onChange={(e) => setFp(+e.target.value)} />
+              </div>
+            </div>
+
+            <div className="inp">
+              <div className="inp-n"><b>02</b> Cash needs</div>
+              <div className="inp-d">
+                Living cash sits in tokenized Treasuries, sized in years of spending; a family spending
+                3–5% a year holds 2+ years.
+              </div>
+              <div className="inp-read">
+                <span className="num">{yrs} {yrs === 1 ? "year" : "years"}</span>
+                <span className="tri">{u.usdC(livingCash)} · spending {u.pct((annualSpend / t) * 100)} a year</span>
+              </div>
+              <div className="btn-row">
+                {[1, 2, 3, 4].map((v) => (
+                  <button key={v} className={"chip" + (yrs === v ? " on" : "")} onClick={() => setYrs(v)}>{v}y</button>
+                ))}
+              </div>
+              <div className="inp-foot tri">
+                Inside the {u.usdC(treasTarget)} the model puts in Treasuries
+                {livingCash > treasTarget ? " — more than it holds, so the line has to grow." : "."}
+              </div>
+            </div>
+
+            <div className="inp">
+              <div className="inp-n"><b>03</b> Existing assets</div>
+              <div className="inp-d">
+                Real estate, a business or concentrated stock count as exposure, so correlated lines shrink.
+              </div>
+              <div className="inp-read">
+                <span className="num">{u.pct(aff.wt)}</span>
+                <span className="tri">in {aff.items.length === 1 ? "one company" : aff.items.length + " affiliated lines"}</span>
+              </div>
+              <div className="inp-foot tri">
+                {aff.items.length ? aff.items.map((i2) => i2.name).join(", ") + ". " : ""}
+                {sp.topSector ? sp.topSector.v + " runs through " + u.pct(sp.topSector.wt) + " of the book, which public equities already carry." : ""}
+              </div>
             </div>
           </div>
 
-          <GrowthFan positions={positions} modelClasses={u.modelFour(yld, conv)}
-            modelLabel={pctA + "% anchor at " + yld.toFixed(1) + "%"}
+          {whatIf ? (
+            <div className="lever-note warn" style={{ margin: "0 14px 14px" }}>
+              <span style={{ flex: 1 }}>
+                A what-if. The family holds <b>{st.frontierPct}%</b> in Frontier Growth
+                and <b>{st.cashYears} {st.cashYears === 1 ? "year" : "years"}</b> of spending in cash.
+              </span>
+              <span className="btn-row">
+                <button className="link g" onClick={() => { setFp(st.frontierPct); setYrs(st.cashYears); }}>Discard</button>
+                <button className="btn sm p" onClick={() => {
+                  S.actions.setFrontierPct(fp); S.actions.setCashYears(yrs); S.actions.commitSplit();
+                }}>Adopt this</button>
+              </span>
+            </div>
+          ) : (
+            <div className="lever-note" style={{ margin: "0 14px 14px" }}>
+              <span style={{ flex: 1 }}>
+                <b>{100 - fp}%</b> Core · <b>{fp}%</b> Frontier Growth · {yrs} years of spending in cash
+                {confirmed ? " · confirmed " + u.fmtDate(confirmed.ts) : ""}
+              </span>
+              <button className="link g" onClick={() => S.navigate("/onboarding/mandate")}>Refine with 8 questions</button>
+            </div>
+          )}
+
+          <GrowthFan positions={positions} modelClasses={u.modelFour(8, fp)}
+            modelLabel={(100 - fp) + " / " + fp + " barbell"}
             collapsible defaultOpen={false} />
           <div style={{ padding: "8px 14px", borderTop: "1px solid var(--g3)", fontSize: 11, color: "var(--g2)" }}>
-            Fund returns are targets and holding returns are expectations. Neither is a promise.
+            Yields are illustrative, net of vehicle fees and before personal tax. Frontier returns are not modelled.
           </div>
         </div>
-        {path && <PathModal positions={positions} lad={lad} bk={bk} themeRows={themeRows}
-          built={built} yld={yld} t={t} onClose={() => setPath(false)} />}
+        {path && <PathModal positions={positions} mb={mb} fp={fp} t={t} onClose={() => setPath(false)} />}
       </>
     );
   }
 
   /* --------------------------------------------------- what to do about it */
-  function PathModal({ positions, lad, bk, themeRows, built, yld, t, onClose }) {
-    const convRow = bk[1];
+  function PathModal({ positions, mb, fp, t, onClose }) {
     const items = [];
 
-    const gap = lad.blended - yld;
-    if (Math.abs(gap) > 0.75) items.push({
-      t: "What is held blends at " + u.pct(lad.blended) + ", not " + yld.toFixed(1) + "%",
-      d: gap < 0
-        ? "It is " + u.pp(gap) + " short of the target. Moving capital into the basket closes it; so does lowering the target, which is the more honest fix if the risk is not wanted."
-        : "It is " + u.pp(gap) + " ahead of the target, which means more risk is being carried than the family asked for.",
+    /* where the book sits against the model it was given */
+    mb.groups.filter((g) => Math.abs(g.drift) > 1.5).forEach((g) => items.push({
+      t: g.label + " is " + u.pct(g.wt) + " against " + u.pct(g.target),
+      d: g.drift > 0
+        ? u.usdC((g.drift / 100) * t) + " more than the model asks for. " + g.note
+        : "Room for " + u.usdC((Math.abs(g.drift) / 100) * t) + " more. " + g.note,
       cta: "Open the marketplace", to: "/marketplace",
-    });
+    }));
 
-    if (Math.abs(convRow.drift) > 2) items.push({
-      t: "Conviction is " + u.pct(convRow.wt) + " against " + u.pct(convRow.target) + " left for it",
-      d: convRow.drift > 0
-        ? "Single-name equity and private positions add up to more of a view than the anchor setting leaves room for. Nothing is wrong with that — but it was arrived at, not chosen."
-        : "There is room for " + u.usdC((Math.abs(convRow.drift) / 100) * t) + " more conviction than is held.",
-      cta: "Review the exposures", to: "/portfolio#model-panel",
-    });
+    /* lines the model asks for and the book does not hold at all */
+    mb.lines.filter((l) => l.count === 0 && l.target > 1).forEach((l) => items.push({
+      t: l.label + " is empty against " + u.pct(l.target),
+      d: l.examples + " · " + l.access + ". That is " + u.usdC((l.target / 100) * t) + " the model puts somewhere the book does not.",
+      cta: "Find it", to: "/marketplace?ask=" + encodeURIComponent(l.label),
+    }));
 
-    /* Wider diversification across uncorrelated exposures. These used
-       to sit in a panel of their own on the portfolio; they belong with the
-       rest of what the family could act on. */
+    /* and lines held well past what the model wants */
+    mb.lines.filter((l) => l.count > 0 && l.drift > 4).forEach((l) => items.push({
+      t: l.label + " is " + u.pct(l.wt) + " against " + u.pct(l.target),
+      d: l.offModel
+        ? "The model asks for none of this and the book holds " + u.usdC(l.value) + ". It would rather own that risk through the credit lines than through buildings."
+        : u.usdC((l.drift / 100) * t) + " more than the model asks for.",
+      cta: "Review it", to: "/portfolio",
+    }));
+
+    /* concentration the allocation does not show */
     const all = u.spread(positions, null);
-    const conv = u.inBucket(positions, "conviction");
-    const cs = u.spread(conv, null);
     const aff = u.affiliateExposure(positions);
-
     if (aff.wt > 5) items.push({
       t: "One company carries " + u.pct(aff.wt) + " of the book",
-      d: aff.items.map((i) => i.name).join(", ") + ". The family's wealth and its income move together. Nothing here is uncorrelated with it.",
+      d: aff.items.map((i2) => i2.name).join(", ") + ". The family's wealth and its income move together.",
       cta: "See the holding", to: "/portfolio/equity?sub=pubeq",
     });
     if (all.topGeo && all.topGeo.wt > 40) items.push({
       t: all.topGeo.v + " is " + u.pct(all.topGeo.wt) + " of everything",
-      d: "Geography is the cheapest uncorrelated exposure to add. Fractional tokenised sizing means a position no longer has to clear a fund minimum to be worth taking.",
+      d: "Geography is the cheapest uncorrelated exposure to add, and fractional sizing means a position no longer has to clear a fund minimum to be worth taking.",
       cta: "Find exposure elsewhere", to: "/marketplace?ask=" + encodeURIComponent("outside " + all.topGeo.v),
     });
-    if (all.topSector && all.topSector.wt > 25) items.push({
-      t: all.topSector.v + " runs through " + u.pct(all.topSector.wt) + " of the book",
-      d: "Sector concentration survives any split between buckets — it does not show up against a yield target or an exposure menu.",
-      cta: "Open the marketplace", to: "/marketplace",
-    });
-    if (cs.effective < 6 && cs.n > 0) items.push({
-      t: "Conviction rests on " + cs.effective.toFixed(1) + " effective holdings",
-      d: "A conviction sleeve is meant to be concentrated, but "
-        + (cs.largest ? cs.largest.name + " alone is " + u.pct((cs.largest.value / t) * 100) + " of the book" : "it is narrow")
-        + ". Splitting one ticket across several theses costs nothing once positions are fractional.",
-      cta: "Widen the sleeve", to: "/marketplace?ask=" + encodeURIComponent("venture"),
-    });
-
-    themeRows.filter((th) => th.picked && th.count === 0 && !th.fixed).forEach((th) => items.push({
-      t: th.label + " is picked, and empty",
-      d: th.note + " Fractional tokenised sizing means a position here no longer has to clear a fund minimum to be worth taking.",
-      cta: "Find " + th.label, to: "/marketplace?ask=" + encodeURIComponent(th.label),
-    }));
 
     return (
-      <Modal title="What to do about it" sub="Everything the book could be doing better, ordered by what it costs to leave alone" onClose={onClose} wide
+      <Modal title="What to do about it" sub="Everything the book could be doing better, ordered by what it costs to leave alone"
+        onClose={onClose} wide
         footer={<>
           <div className="tri" style={{ fontSize: 11.5 }}>Observations. Every decision is the family's.</div>
           <div className="btn-row">
@@ -645,8 +559,8 @@
         </>}>
         {items.length === 0
           ? <div className="empty">The book sits where the family asked it to.</div>
-          : items.map((x, i) => (
-            <div key={i} className="improve">
+          : items.map((x, i2) => (
+            <div key={i2} className="improve">
               <div className="imp-t">{x.t}</div>
               <div className="imp-d">{x.d}</div>
               <button className="btn sm mt8" onClick={() => { onClose(); S.navigate(x.to); }}>{x.cta} →</button>
@@ -655,7 +569,6 @@
       </Modal>
     );
   }
-
 
   function ProvenancePanel({ positions, openSignal }) {
     const [edit, setEdit] = useState(null);

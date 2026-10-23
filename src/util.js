@@ -165,6 +165,24 @@
     return { total: t, frontierPct: fp, lines, groups, rows };
   }
 
+  /* The model shape at a given family size, as the deck draws it: four
+     numbers that sum to 100, and the portfolio yield they produce. */
+  function tierShape(aumM, frontierPct) {
+    const aum = aumM * 1e6;
+    const base = {};
+    D.allocLines.forEach((l) => { base[l.key] = tierPct(l.tiers, aum); });
+    const bf = D.allocLines.filter((l) => l.group === "frontier").reduce((a2, l) => a2 + base[l.key], 0);
+    const fp = frontierPct === undefined || frontierPct === null ? bf : frontierPct;
+    const fS = bf ? fp / bf : 0, cS = (100 - bf) ? (100 - fp) / (100 - bf) : 0;
+    const w = {};
+    D.allocLines.forEach((l) => { w[l.key] = base[l.key] * (l.group === "frontier" ? fS : cS); });
+    const groups = D.allocGroups.map((g) => ({
+      ...g, pct: D.allocLines.filter((l) => l.group === g.key).reduce((a2, l) => a2 + w[l.key], 0),
+    }));
+    const yieldPct = D.allocLines.reduce((a2, l) => a2 + (w[l.key] / 100) * (l.y || 0), 0);
+    return { groups, lines: w, yieldPct, frontierPct: fp };
+  }
+
   function lineOf(p) { return D.allocLines.find((l) => l.key === p.line) || null; }
   function groupOf(p) {
     const l = lineOf(p);
@@ -1067,7 +1085,7 @@
   BB.u = {
     usd, usdC, krwC, krwFull, pct, pp, sgn, sgnUsd, num, localPx, days, fmtDate, fmtTs, monthKey, monthLabel,
     staleness, provLabel, sum, total, byClass, bySub, gaps, unrealized, realizedYTD,
-    tierPct, modelBook, lineOf, groupOf, sleeveOf, isListed, markSource, marked, advanceOf, borrowingPower, depthOf, exitValue, exitToday, raiseCost, liquidityProjection, shortfall, coverage, projectMix,
+    tierPct, tierShape, modelBook, lineOf, groupOf, sleeveOf, isListed, markSource, marked, advanceOf, borrowingPower, depthOf, exitValue, exitToday, raiseCost, liquidityProjection, shortfall, coverage, projectMix,
     modelSix, convPct, bySix, sixToFour, sixToSubs, pickForClass, holdingsSix, geoBucket, GEO_BUCKETS, listingDocs, listingView, currentIRR, tradeHistory, impactSix, impactBucket, modelClassOf, modelClassLabel, bucketOf, bucketLabel, byBucket, spread, engineDrag, posReturn, rungOf, bucketKeyOf, inBucket, splitForBand, modelFour, buildAnchor, anchorLadder, offerBucket, offerRung, offerTheme, offerPlace, byTheme, SUB_RETURN, topHoldings, affiliateExposure, taxLots, eligibility,
     fitFor, subLabel, clsLabel, clsOf, impact, modelWeights, marketContext, scoreFor, suggestAmount,
   };

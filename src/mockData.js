@@ -671,65 +671,70 @@
       note: "Tail contracts, pre-IPO outliers and novelty real-world assets." },
   ];
 
-  /* tiers are percentages of net worth at $10M, $100M and $1B */
+  /* What the deck publishes as portfolio yield at each family size. Shown as
+     given; this family's own is computed from the line yields below. */
+  const tierYield = { 10: 4.0, 100: 4.7, 1000: 4.9 };
+
+  /* tiers are percentages of net worth at $10M, $100M and $1B.
+     `y` is the line's own yield, used to compute a family's portfolio yield. */
   const allocLines = [
     { key: "residence", group: "residence", label: "Primary residence",
       access: "Held directly", examples: "The family's home", payoff: "—",
-      tiers: { 10: 25, 100: 5, 1000: 1 } },
+      y: 0, tiers: { 10: 25, 100: 5, 1000: 1 } },
 
     { key: "ttreas", group: "yield", label: "Tokenized Treasuries",
       access: "Available today", examples: "BlackRock BUIDL", payoff: "~4%",
-      tiers: { 10: 17, 100: 9, 1000: 6 } },
+      y: 4.0, tiers: { 10: 17, 100: 9, 1000: 6 } },
     { key: "tpc", group: "yield", label: "Tokenized private credit",
       access: "Target partner", examples: "Apollo, Blackstone", payoff: "9–10%",
-      tiers: { 10: 12, 100: 14, 1000: 17 } },
+      y: 10.0, tiers: { 10: 12, 100: 14, 1000: 17 } },
     { key: "mmv", group: "yield", label: "Market-making vaults",
       access: "Available today", examples: "Lighter LLP, Hyperliquid HLP", payoff: "12–16%",
-      tiers: { 10: 6, 100: 5, 1000: 2 } },
+      y: 13.0, tiers: { 10: 6, 100: 5, 1000: 2 } },
     { key: "gpun", group: "yield", label: "GPU-backed notes",
       access: "Hanwha direct", examples: "Risk reduced via offtake", payoff: "11–13%",
-      tiers: { 10: 2, 100: 4, 1000: 5 } },
+      y: 12.5, tiers: { 10: 2, 100: 4, 1000: 5 } },
     { key: "ttf", group: "yield", label: "Tokenized trade finance",
       access: "Hanwha direct", examples: "Affiliate receivables", payoff: "6–8%",
-      tiers: { 10: 3, 100: 5, 1000: 6 } },
+      y: 7.5, tiers: { 10: 3, 100: 5, 1000: 6 } },
     { key: "hgrowth", group: "yield", label: "Hanwha Growth",
       access: "Hanwha direct", examples: "Shipbuilding, energy", payoff: "12–15%",
-      tiers: { 10: 5, 100: 7, 1000: 7 } },
+      y: 12.5, tiers: { 10: 5, 100: 7, 1000: 7 } },
     /* Not on the model. Direct property and infrastructure are held outside
        it, and the zero target is the model's own view: it would rather own
        that risk through the tokenized credit lines than through buildings. */
     { key: "realassets", group: "yield", label: "Direct property and infrastructure",
       access: "Held directly", examples: "Offices, REITs, data centres", payoff: "6–9%",
-      offModel: true, tiers: { 10: 0, 100: 0, 1000: 0 } },
+      offModel: true, y: 7.5, tiers: { 10: 0, 100: 0, 1000: 0 } },
 
     { key: "pubeq", group: "traditional", label: "Public equities",
       access: "Available today", examples: "QQQ, intl. tech, ex-tech", payoff: "1–2%",
-      tiers: { 10: 12, 100: 17, 1000: 14 } },
+      y: 1.5, tiers: { 10: 12, 100: 17, 1000: 14 } },
     { key: "multistrat", group: "traditional", label: "Multi-strategy funds",
       access: "Target partner", examples: "Citadel, Millennium", payoff: "—",
-      tiers: { 10: 2, 100: 6, 1000: 8 } },
+      y: 5.0, tiers: { 10: 2, 100: 6, 1000: 8 } },
     { key: "fof", group: "traditional", label: "Tokenized VC & PE FoF",
       access: "Target partner", examples: "Top-tier managers", payoff: "—",
-      tiers: { 10: 4, 100: 10, 1000: 10 } },
+      y: 0, tiers: { 10: 4, 100: 10, 1000: 10 } },
     { key: "store", group: "traditional", label: "Gold and bitcoin",
       access: "Available today", examples: "Gold, bitcoin", payoff: "—",
-      tiers: { 10: 2, 100: 3, 1000: 4 } },
+      y: 0, tiers: { 10: 2, 100: 3, 1000: 4 } },
 
     { key: "tail", group: "frontier", label: "Tail event contracts",
       access: "Hanwha direct", examples: "Macro, tariff and energy contracts on Kalshi", payoff: "10–50x",
-      tiers: { 10: 2, 100: 2, 1000: 1 } },
+      y: 0, tiers: { 10: 2, 100: 2, 1000: 1 } },
     { key: "preipo", group: "frontier", label: "Pre-IPO outliers",
       access: "Hanwha direct", examples: "OpenAI, Anthropic, Anduril, Saronic", payoff: "Asymmetric",
-      tiers: { 10: 3, 100: 6, 1000: 9 } },
+      y: 0, tiers: { 10: 3, 100: 6, 1000: 9 } },
     { key: "levered", group: "frontier", label: "Leveraged equities",
       access: "Available today", examples: "10x index and single-stock exposure", payoff: "Amplified equity",
-      tiers: { 10: 2, 100: 2, 1000: 3 } },
+      y: 0, tiers: { 10: 2, 100: 2, 1000: 3 } },
     { key: "rwa", group: "frontier", label: "Novelty RWA tokens",
       access: "Hanwha direct", examples: "Sports teams, blue-chip art, trophy real estate", payoff: "Asymmetric",
-      tiers: { 10: 1, 100: 3, 1000: 6 } },
+      y: 0, tiers: { 10: 1, 100: 3, 1000: 6 } },
     { key: "talent", group: "frontier", label: "Korean talent",
       access: "Hanwha direct", examples: "Income-share agreements with Korean talent", payoff: "Mispriced upside",
-      tiers: { 10: 2, 100: 2, 1000: 1 } },
+      y: 0, tiers: { 10: 2, 100: 2, 1000: 1 } },
   ];
 
   /* ===================================================== risk / return buckets
@@ -1639,7 +1644,7 @@
     KRW, TODAY, family, accounts, classes, subs, positions,
     uploadFiles, ingestSteps, exceptions, mandates, survey, modelPortfolios,
     capitalCalls, distributions, benchmark, performance, attribution, modelGoals, ALT_SUBS,
-    sourceTypes, dueDiligence, anchorShelf, cashFund, exitPct, depthTiers, marketDepth, advanceRates, creditTerms, SHELF_FLOOR, SHELF_CEIL, themes, modelClasses, modelExcuses, buckets, bucketPresets, bucketMix, RISK_BASE, sleeves, allocGroups, allocLines, expectedReturn, expectedVol, classCorr, idiosyncraticVol,
+    sourceTypes, dueDiligence, anchorShelf, cashFund, exitPct, depthTiers, marketDepth, advanceRates, creditTerms, SHELF_FLOOR, SHELF_CEIL, themes, modelClasses, modelExcuses, buckets, bucketPresets, bucketMix, RISK_BASE, sleeves, allocGroups, allocLines, tierYield, expectedReturn, expectedVol, classCorr, idiosyncraticVol,
     market, secondary, secondaryTrades, bidsSeed, approvalsSeed, activitySeed, opsLedger, referrals, liquidityAssumptions,
   };
 })();

@@ -814,45 +814,31 @@ tr.rung-cash td{background:#FCFBF8}
 
 /* ---- the model portfolio slide, made live ------------------------------- */
 .tiers{padding:14px;border-bottom:1px solid var(--g3)}
-.tier + .tier,.tier.mine{margin-top:12px}
 .tier.mine{padding-top:12px;border-top:1px solid var(--g3)}
 .tier-hd{display:flex;align-items:baseline;gap:10px;margin-bottom:5px;font-size:12px}
 .tier-hd .spacer{flex:1}
 .tier-n{font-weight:600}
 .tier-hd .tri{font-size:11.5px}
 .tierbar{display:flex;height:30px;overflow:hidden}
-.tierbar.muted{height:24px;opacity:.55}
 .tb-seg{display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;
   font-variant-numeric:tabular-nums;overflow:hidden;white-space:nowrap}
 .tierlegend{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:12px;font-size:11px;color:var(--g1)}
 .tierlegend span{display:inline-flex;align-items:center;gap:7px}
 .tierlegend i{width:10px;height:10px;display:inline-block}
 
-.shifts{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
-  border-bottom:1px solid var(--g3)}
-.shift{padding:12px 14px;border-right:1px solid var(--g3)}
-.shift:last-child{border-right:0}
-.shift-t{font-size:12.5px;font-weight:600}
-.shift-d{font-size:11.5px;color:var(--g1);line-height:1.55;margin-top:4px}
 
-.inputs-hd{padding:12px 14px 0}
-.inputs{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;padding:10px 14px 14px}
-.inp{border:1px solid var(--g3);background:#FCFBF8;padding:11px 12px;min-width:0}
-.inp-n{font-size:12.5px;font-weight:600}
-.inp-n b{color:var(--gold);margin-right:7px}
-.inp-d{font-size:11.5px;color:var(--g1);line-height:1.55;margin-top:4px}
-.inp-read{display:flex;align-items:baseline;gap:9px;margin:9px 0 7px;flex-wrap:wrap}
-.inp-read .num{font-size:21px;font-weight:600;letter-spacing:-.02em}
-.inp-read .tri{font-size:11px}
-.inp-foot{font-size:11px;line-height:1.5;margin-top:7px}
-.inp .chip{border:1px solid var(--g3);background:var(--paper);padding:2px 9px;font:inherit;
-  font-size:10.5px;font-weight:500;color:var(--g1);cursor:pointer;border-radius:var(--r)}
-.inp .chip.on{background:var(--ink);border-color:var(--ink);color:#fff;font-weight:600}
-@media (max-width:760px){ .shift{border-right:0;border-bottom:1px solid var(--g3)} }
 /* size, as a variable on the model rather than a fact about the family */
-.aumrail{display:flex;align-items:center;gap:12px;margin-top:14px;padding-top:12px;border-top:1px solid var(--g3)}
-.aumrail .aumval{font-size:15px;font-weight:600;letter-spacing:-.02em;min-width:52px;text-align:right}
 .tier-hd .link{font-size:11px}
+
+/* the two levers, side by side, and nothing else to set */
+.levers2{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:14px;border-bottom:1px solid var(--g3)}
+.lv{min-width:0}
+.lv-hd{display:flex;align-items:baseline;gap:10px;margin-bottom:9px}
+.lv-hd .spacer{flex:1}
+.lv-v{font-size:21px;font-weight:600;letter-spacing:-.02em}
+.lv-ft{font-size:11px;line-height:1.5;margin-top:8px}
+.tier.mine{margin-top:0}
+@media (max-width:760px){ .levers2{grid-template-columns:1fr} }
 
 </style>
 </head>
@@ -3961,8 +3947,6 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
        whatever is left, split across residence, yield engines and traditional
        by the published model for a family this size. */
     frontierPct: 10,
-    /* living cash, sized in years of spending */
-    cashYears: 2,
     anchorPct: 90,
     targetYield: D.RISK_BASE.band,
     cashFloor: 1000000,
@@ -4090,11 +4074,6 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       emit();
     },
 
-    setCashYears(v) {
-      state.cashYears = Math.max(1, Math.min(4, Math.round(v)));
-      emit();
-    },
-
     /* The one lever on the shape of the book. */
     setFrontierPct(v) {
       state.frontierPct = Math.max(0, Math.min(20, Math.round(v)));
@@ -4118,8 +4097,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     },
 
     commitSplit() {
-      log("Mandate", "Core " + (100 - state.frontierPct) + " / Frontier " + state.frontierPct
-        + " · " + state.cashYears + " years of spending in cash", "principal");
+      log("Mandate", "Core " + (100 - state.frontierPct) + " / Frontier " + state.frontierPct, "principal");
       emit();
     },
 
@@ -6326,12 +6304,12 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   }
 
   /* ------------------------------------------------- the model portfolio ----
-     The deck's own slide, made live: three published family sizes as stacked
-     bars with this family's beneath them, what changes as wealth grows, and
-     the three inputs that tune the mix beyond size. */
-  function TierBar({ groups, muted }) {
+     Two levers and the shape they produce. Size and risk preference are the
+     only things a family sets here; everything else — the four group weights
+     and the portfolio yield they imply — follows from the published model. */
+  function TierBar({ groups }) {
     return (
-      <div className={"tierbar" + (muted ? " muted" : "")}>
+      <div className="tierbar">
         {groups.filter((g) => g.pct > 0.4).map((g) => (
           <div key={g.key} className="tb-seg" style={{ width: g.pct + "%", background: g.color }}
             title={g.label + " · " + u.pct(g.pct)}>
@@ -6346,52 +6324,22 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     const st = S.useStore();
     const t = u.total(positions);
     const [fp, setFp] = useState(st.frontierPct);
-    const [yrs, setYrs] = useState(st.cashYears);
-    /* size is a what-if, not a saved setting: the cards above always measure
-       the real book, and this lets the model be read at another scale */
     const [aumM, setAumM] = useState(u.total(positions) / 1e6);
-    React.useEffect(() => { setFp(st.frontierPct); setYrs(st.cashYears); }, [st.frontierPct, st.cashYears]);
+    React.useEffect(() => { setFp(st.frontierPct); }, [st.frontierPct]);
     const [path, setPath] = useState(false);
 
     const mb = u.modelBook(positions, fp);
     const mine = u.tierShape(aumM, fp);
     const atToday = Math.abs(aumM - t / 1e6) < 0.5;
     const aumVal = aumM * 1e6;
+    const whatIf = fp !== st.frontierPct;
+    const confirmed = st.activity.find((a) => a.kind === "Mandate");
+
+    const THUMB = 16;
     /* log rail: 0 at $10M, 1 at $1B */
     const aPos = (m) => (Math.log10(Math.max(10, Math.min(1000, m))) - 1) / 2;
     const aFrom = (v) => Math.pow(10, 1 + v * 2);
     const shortM = (m) => m >= 1000 ? "$" + (m / 1000).toFixed(m % 1000 ? 1 : 0) + "B" : "$" + Math.round(m) + "M";
-    const tiers = [10, 100, 1000].map((m) => ({
-      m, label: m === 1000 ? "$1B family" : "$" + m + "M family",
-      shape: u.tierShape(m, null), published: D.tierYield[m],
-    }));
-    const whatIf = fp !== st.frontierPct || yrs !== st.cashYears;
-    const confirmed = st.activity.find((a) => a.kind === "Mandate");
-
-    /* what changes as wealth grows, read off the published tiers */
-    const atTier = (key, m) => (D.allocLines.find((l) => l.key === key) || { tiers: {} }).tiers[m];
-    const shifts = [
-      { t: "Fixed needs shrink",
-        d: "The primary residence falls from " + atTier("residence", 10) + "% to "
-          + atTier("residence", 1000) + "% of net worth." },
-      { t: "Capacity binds",
-        d: "Shallow pools shrink: market-making vaults " + atTier("mmv", 10) + "% to "
-          + atTier("mmv", 1000) + "%." },
-      { t: "Liquidity needs ease",
-        d: "Thin-market lines grow: pre-IPO " + atTier("preipo", 10) + "% to " + atTier("preipo", 1000)
-          + "%, novelty RWA " + atTier("rwa", 10) + "% to " + atTier("rwa", 1000) + "%." },
-      { t: "Tickets set terms",
-        d: "Funds give way to direct deals; a $1B family co-underwrites loans and buys pre-IPO blocks." },
-    ];
-
-    /* 02 · cash needs — living cash sized in years of spending */
-    const annualSpend = D.liquidityAssumptions.monthlySpend * 12;
-    const livingCash = yrs * annualSpend;
-    const treasTarget = (mine.lines.ttreas / 100) * aumVal;
-
-    /* 03 · existing assets — concentration the family already carries */
-    const aff = u.affiliateExposure(positions);
-    const sp = u.spread(positions, null);
 
     return (
       <>
@@ -6407,36 +6355,19 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
             <button className="btn sm" onClick={() => setPath(true)}>What to do about it</button>
           </div>
 
-          {/* the published sizes, then this family */}
-          <div className="tiers">
-            {tiers.map((x) => (
-              <div key={x.m} className="tier">
-                <div className="tier-hd">
-                  <span className="tier-n">{x.label}</span>
-                  <span className="spacer" />
-                  <span className="tri">Portfolio yield {u.pct(x.published)} of net worth</span>
-                </div>
-                <TierBar groups={x.shape.groups} muted />
-              </div>
-            ))}
-            <div className="tier mine">
-              <div className="tier-hd">
-                <span className="tier-n">
-                  {atToday ? "This family · " + u.usdC(t) : "Modelled at " + shortM(aumM)}
-                </span>
-                {!atToday && <button className="link g" onClick={() => setAumM(t / 1e6)}>Back to today</button>}
+          {/* the two levers, and nothing else to set */}
+          <div className="levers2">
+            <div className="lv">
+              <div className="lv-hd">
+                <span className="lbl">Size</span>
                 <span className="spacer" />
-                <span className="tri">Portfolio yield {u.pct(mine.yieldPct)} of net worth</span>
+                <span className="num lv-v">{shortM(aumM)}</span>
               </div>
-              <TierBar groups={mine.groups} />
-            </div>
-            <div className="aumrail">
-              <span className="lbl">Size</span>
-              <div className="sl-track" style={{ flex: 1, padding: "0 8px" }}>
+              <div className="sl-track">
                 <div className="sl-chips">
                   {[10, 100, 1000].map((m) => (
                     <button key={m} onClick={() => setAumM(m)} className={Math.abs(aumM - m) < 0.5 ? "on" : ""}
-                      style={{ left: "calc(" + (aPos(m) * 100) + "% + " + ((0.5 - aPos(m)) * 16).toFixed(1) + "px)" }}>
+                      style={{ left: "calc(" + (aPos(m) * 100) + "% + " + ((0.5 - aPos(m)) * THUMB).toFixed(1) + "px)" }}>
                       {shortM(m)}
                     </button>
                   ))}
@@ -6444,100 +6375,67 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 <input type="range" min="0" max="1000" step="1" value={Math.round(aPos(aumM) * 1000)}
                   onChange={(e) => setAumM(aFrom(+e.target.value / 1000))} />
               </div>
-              <span className="num aumval">{shortM(aumM)}</span>
+              <div className="lv-ft tri">
+                {atToday
+                  ? <>Today's assets.</>
+                  : <>A what-if — today's assets are {u.usdC(t)}. <button className="link g" onClick={() => setAumM(t / 1e6)}>Back to today</button></>}
+              </div>
             </div>
 
-            <div className="tierlegend">
-              {D.allocGroups.map((g) => (
-                <span key={g.key}><i style={{ background: g.color }} />{g.label}</span>
-              ))}
-            </div>
-          </div>
-
-          {/* what moves between those rows, read off the tiers themselves */}
-          <div className="shifts">
-            {shifts.map((x) => (
-              <div key={x.t} className="shift">
-                <div className="shift-t">{x.t}</div>
-                <div className="shift-d">{x.d}</div>
+            <div className="lv">
+              <div className="lv-hd">
+                <span className="lbl">Risk preference</span>
+                <span className="spacer" />
+                <span className="num lv-v" style={{ color: "#C6A64E" }}>{fp}%</span>
               </div>
-            ))}
-          </div>
-
-          <div className="inputs-hd lbl">Beyond AUM, three family inputs tune the mix</div>
-          <div className="inputs">
-            <div className="inp">
-              <div className="inp-n"><b>01</b> Risk preference</div>
-              <div className="inp-d">Moves Frontier Growth between 0% and 20% of net worth.</div>
-              <div className="inp-read">
-                <span className="num" style={{ color: "#9A7B2E" }}>{fp}%</span>
-                <span className="tri">frontier · {u.usdC((fp / 100) * aumVal)}</span>
-              </div>
-              {fp < 10 && (
-                <div className="inp-foot tri">
-                  The model starts at 10%. Below that the barbell stops being one and the book is all core.
+              <div className="sl-track">
+                <div className="sl-chips">
+                  {[0, 5, 10, 15, 20].map((v) => (
+                    <button key={v} onClick={() => setFp(v)} className={fp === v ? "on" : ""}
+                      style={{ left: "calc(" + ((v / 20) * 100) + "% + " + ((0.5 - v / 20) * THUMB).toFixed(1) + "px)" }}>
+                      {v}%
+                    </button>
+                  ))}
                 </div>
-              )}
-              <div className="sl-track" style={{ padding: 0 }}>
                 <input type="range" min="0" max="20" step="1" value={fp}
                   onChange={(e) => setFp(+e.target.value)} />
               </div>
-            </div>
-
-            <div className="inp">
-              <div className="inp-n"><b>02</b> Cash needs</div>
-              <div className="inp-d">
-                Living cash sits in tokenized Treasuries, sized in years of spending; a family spending
-                3–5% a year holds 2+ years.
-              </div>
-              <div className="inp-read">
-                <span className="num">{yrs} {yrs === 1 ? "year" : "years"}</span>
-                <span className="tri">{u.usdC(livingCash)} · spending {u.pct((annualSpend / aumVal) * 100)} a year</span>
-              </div>
-              <div className="btn-row">
-                {[1, 2, 3, 4].map((v) => (
-                  <button key={v} className={"chip" + (yrs === v ? " on" : "")} onClick={() => setYrs(v)}>{v}y</button>
-                ))}
-              </div>
-              <div className="inp-foot tri">
-                Inside the {u.usdC(treasTarget)} the model puts in Treasuries
-                {livingCash > treasTarget ? " — more than it holds, so the line has to grow." : "."}
+              <div className="lv-ft tri">
+                Frontier Growth · {u.usdC((fp / 100) * aumVal)}
+                {fp < 10 ? " — below the model's 10% floor, so the barbell stops being one." : "."}
               </div>
             </div>
+          </div>
 
-            <div className="inp">
-              <div className="inp-n"><b>03</b> Existing assets</div>
-              <div className="inp-d">
-                Real estate, a business or concentrated stock count as exposure, so correlated lines shrink.
+          {/* the shape those two produce */}
+          <div className="tiers">
+            <div className="tier mine">
+              <div className="tier-hd">
+                <span className="tier-n">{atToday ? "This family · " + u.usdC(t) : "Modelled at " + shortM(aumM)}</span>
+                <span className="spacer" />
+                <span className="tri">Portfolio yield {u.pct(mine.yieldPct)} of net worth</span>
               </div>
-              <div className="inp-read">
-                <span className="num">{u.pct(aff.wt)}</span>
-                <span className="tri">in {aff.items.length === 1 ? "one company" : aff.items.length + " affiliated lines"}</span>
-              </div>
-              <div className="inp-foot tri">
-                {aff.items.length ? aff.items.map((i2) => i2.name).join(", ") + ". " : ""}
-                {sp.topSector ? sp.topSector.v + " runs through " + u.pct(sp.topSector.wt) + " of the book, which public equities already carry." : ""}
-              </div>
+              <TierBar groups={mine.groups} />
+            </div>
+            <div className="tierlegend">
+              {D.allocGroups.map((g) => (
+                <span key={g.key}><i style={{ background: g.color }} />{g.label} {u.pct(mine.groups.find((x) => x.key === g.key).pct)}</span>
+              ))}
             </div>
           </div>
 
           {whatIf ? (
             <div className="lever-note warn" style={{ margin: "0 14px 14px" }}>
-              <span style={{ flex: 1 }}>
-                A what-if. The family holds <b>{st.frontierPct}%</b> in Frontier Growth
-                and <b>{st.cashYears} {st.cashYears === 1 ? "year" : "years"}</b> of spending in cash.
-              </span>
+              <span style={{ flex: 1 }}>A what-if. The family holds <b>{st.frontierPct}%</b> in Frontier Growth.</span>
               <span className="btn-row">
-                <button className="link g" onClick={() => { setFp(st.frontierPct); setYrs(st.cashYears); }}>Discard</button>
-                <button className="btn sm p" onClick={() => {
-                  S.actions.setFrontierPct(fp); S.actions.setCashYears(yrs); S.actions.commitSplit();
-                }}>Adopt this</button>
+                <button className="link g" onClick={() => setFp(st.frontierPct)}>Discard</button>
+                <button className="btn sm p" onClick={() => { S.actions.setFrontierPct(fp); S.actions.commitSplit(); }}>Adopt this</button>
               </span>
             </div>
           ) : (
             <div className="lever-note" style={{ margin: "0 14px 14px" }}>
               <span style={{ flex: 1 }}>
-                <b>{100 - fp}%</b> Core · <b>{fp}%</b> Frontier Growth · {yrs} years of spending in cash
+                <b>{100 - fp}%</b> Core · <b>{fp}%</b> Frontier Growth
                 {confirmed ? " · confirmed " + u.fmtDate(confirmed.ts) : ""}
               </span>
               <button className="link g" onClick={() => S.navigate("/onboarding/mandate")}>Refine with 8 questions</button>
@@ -6556,7 +6454,6 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     );
   }
 
-  /* --------------------------------------------------- what to do about it */
   function PathModal({ positions, mb, fp, t, onClose }) {
     const items = [];
 

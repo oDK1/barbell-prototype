@@ -40,8 +40,6 @@
        whatever is left, split across residence, yield engines and traditional
        by the published model for a family this size. */
     frontierPct: 10,
-    /* living cash, sized in years of spending */
-    cashYears: 2,
     anchorPct: 90,
     targetYield: D.RISK_BASE.band,
     cashFloor: 1000000,
@@ -169,11 +167,6 @@
       emit();
     },
 
-    setCashYears(v) {
-      state.cashYears = Math.max(1, Math.min(4, Math.round(v)));
-      emit();
-    },
-
     /* The one lever on the shape of the book. */
     setFrontierPct(v) {
       state.frontierPct = Math.max(0, Math.min(20, Math.round(v)));
@@ -197,8 +190,7 @@
     },
 
     commitSplit() {
-      log("Mandate", "Core " + (100 - state.frontierPct) + " / Frontier " + state.frontierPct
-        + " · " + state.cashYears + " years of spending in cash", "principal");
+      log("Mandate", "Core " + (100 - state.frontierPct) + " / Frontier " + state.frontierPct, "principal");
       emit();
     },
 

@@ -47,7 +47,9 @@
     /* eligible first: the rows that can actually be acted on */
     const mine = st.positions.filter((p) => !u.isListed(p))
       .sort((a, b) => (u.eligibility(b).ok ? 1 : 0) - (u.eligibility(a).ok ? 1 : 0) || b.value - a.value);
-    const SHOW = 5, SHOW_MINE = 4;
+    /* three is enough to show what a listing looks like; the family's own
+       positions matter more on this page and should not be below the fold */
+    const SHOW = 3, SHOW_MINE = 4;
     const shownRows = allRows ? rows : rows.slice(0, SHOW);
     const shownMine = allMine ? mine : mine.slice(0, SHOW_MINE);
 

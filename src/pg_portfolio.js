@@ -132,7 +132,9 @@
   function AllocationTab({ positions, openSignal }) {
     const t = u.total(positions);
     const st = S.useStore();
-    const [bOpen, setBOpen] = useState({});
+    /* Core arrives open: its three groups are the shape of the book, not a
+       detail to go looking for. Frontier is one group and stays folded. */
+    const [bOpen, setBOpen] = useState({ core: true });
     const mb = u.modelBook(positions, st.frontierPct);
     const [calls, setCalls] = useState(false);
     /* Clicking a segment of the ring opens the sleeve it stands for and takes

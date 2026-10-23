@@ -39,7 +39,7 @@
     /* Risk preference moves Frontier Growth inside its 10–20% band; Core is
        whatever is left, split across residence, yield engines and traditional
        by the published model for a family this size. */
-    frontierPct: 15,
+    frontierPct: 10,
     anchorPct: 90,
     targetYield: D.RISK_BASE.band,
     cashFloor: 1000000,

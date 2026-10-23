@@ -199,45 +199,62 @@
                     </button>
                   </div>
 
-                  {open && (
+                  {/* Core stops at its three groups. Frontier has no groups
+                      of its own, so it opens onto the model's lines — which
+                      are the interesting part of it. */}
+                  {open && r.groups.length > 1 && (
                     <div className="bk-in">
-                      {r.groups.map((g) => (
-                        <div key={g.key} className="agroup">
-                          {r.groups.length > 1 && (
-                            <div className="ag-hd">
-                              <i style={{ background: g.color }} />
-                              <span className="ag-n">{g.label}</span>
-                              <span className="spacer" />
-                              <span className="num ag-w">{u.pct(g.wt)}</span>
-                              <span className="tri num">model {u.pct(g.target)}</span>
-                            </div>
-                          )}
-                          <table className="t dense">
-                            <thead><tr>
-                              <th>Line</th><th className="hide-narrow">Access</th>
-                              <th className="hide-narrow">Examples</th><th className="n">Yield / payoff</th>
-                              <th className="n">Held</th><th className="n">Model</th><th className="n">Value</th>
-                            </tr></thead>
-                            <tbody>
-                              {g.lines.map((l) => (
-                                <tr key={l.key} className={l.count ? "" : "rung-muted"}>
-                                  <td>
-                                    <span className="rung-n">{l.label}</span>
-                                    {l.offModel && <span className="bdg plain" style={{ marginLeft: 7 }}>off the model</span>}
-                                    <div className="tsub">{l.count} position{l.count === 1 ? "" : "s"}</div>
-                                  </td>
-                                  <td className="tsub hide-narrow">{l.access}</td>
-                                  <td className="tsub hide-narrow">{l.examples}</td>
-                                  <td className="n num tri">{l.payoff}</td>
-                                  <td className="n num">{u.pct(l.wt)}</td>
-                                  <td className="n num tri">{u.pct(l.target)}</td>
-                                  <td className="n num">{l.count ? u.usd(l.value) : <span className="tri">—</span>}</td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      ))}
+                      <table className="t dense">
+                        <thead><tr><th>Group</th><th className="hide-narrow">What it is for</th>
+                          <th className="n">Held</th><th className="n">Model</th>
+                          <th className="n">Against model</th><th className="n">Value</th></tr></thead>
+                        <tbody>
+                          {r.groups.map((g) => (
+                            <tr key={g.key}>
+                              <td>
+                                <span style={{ display: "inline-flex", gap: 8, alignItems: "center" }}>
+                                  <i className="sw" style={{ width: 9, height: 9, display: "inline-block", background: g.color }} />
+                                  <span className="rung-n">{g.label}</span>
+                                </span>
+                                <div className="tsub">{g.count} position{g.count === 1 ? "" : "s"}</div>
+                              </td>
+                              <td className="tsub hide-narrow" style={{ maxWidth: 360 }}>{g.note}</td>
+                              <td className="n num">{u.pct(g.wt)}</td>
+                              <td className="n num tri">{u.pct(g.target)}</td>
+                              <td className="n"><VsTarget v={g.drift} /></td>
+                              <td className="n num">{g.value ? u.usd(g.value) : <span className="tri">—</span>}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {open && r.groups.length === 1 && (
+                    <div className="bk-in">
+                      <table className="t dense">
+                        <thead><tr>
+                          <th>Line</th><th className="hide-narrow">Access</th>
+                          <th className="hide-narrow">Examples</th><th className="n">Yield / payoff</th>
+                          <th className="n">Held</th><th className="n">Model</th><th className="n">Value</th>
+                        </tr></thead>
+                        <tbody>
+                          {r.groups[0].lines.map((l) => (
+                            <tr key={l.key} className={l.count ? "" : "rung-muted"}>
+                              <td>
+                                <span className="rung-n">{l.label}</span>
+                                <div className="tsub">{l.count} position{l.count === 1 ? "" : "s"}</div>
+                              </td>
+                              <td className="tsub hide-narrow">{l.access}</td>
+                              <td className="tsub hide-narrow">{l.examples}</td>
+                              <td className="n num tri">{l.payoff}</td>
+                              <td className="n num">{u.pct(l.wt)}</td>
+                              <td className="n num tri">{u.pct(l.target)}</td>
+                              <td className="n num">{l.count ? u.usd(l.value) : <span className="tri">—</span>}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
                   )}
                 </div>

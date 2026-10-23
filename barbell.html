@@ -2250,10 +2250,10 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       docs: [["Private placement memorandum", "PDF · 118pp"], ["Q2 2026 investor letter", "PDF · 12pp"]],
       qa: [["What does an exit actually cost?", "There is no gate and no queue — the position is sold on the rail. The cost is the spread to the last mark, which the secondary board publishes."]] },
     /* ---- listings beyond Hanwha's own direct deals -----------------------
-       Three placeholders standing for the three sources DW named that the
-       board did not previously carry: a product Hanwha co-created, on-chain
-       yield wrapped for a Korean family office, and an emerging-market
-       deposit programme. Names, counterparties and figures are invented. */
+       Three placeholders for sources the board did not previously carry: a
+       product Hanwha co-created, on-chain yield wrapped for a Korean family
+       office, and an emerging-market deposit programme. Names, counterparties
+       and figures are invented. */
     { id: "m43", kind: "private", name: "Hanwha Korea Income Participation Note 2026-A", fills: "struct", cls: "debt",
       ret: "8.8% target", retNum: 8.8, liq: "Immediate", term: "4yr", min: 0, avail: "₩90B tranche open", fit: 87,
       why: "Anchor-grade yield, exited on the rail — co-created, so the terms are Hanwha's own rather than a distributor's.",
@@ -3700,7 +3700,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
   /* What folding the working balance into Engine costs. Engine carries a
      7–20% target; the sovereigns, deposits and T-bills now inside it do not
-     earn anything like that. DW confirmed two buckets, so rather than hide
+     earn anything like that. The product settled on two buckets, so rather than hide
      this in a third line the product reads it off the book and says it. */
   const IDLE_SUBS = ["mmf", "tbill", "dep", "fx", "sov"];
   function engineDrag(ps) {
@@ -8429,7 +8429,7 @@ Two ways in: take the ask and it settles immediately, or bid below it and wait f
       } },
   ];
 
-  /* Illustrative. DW's ~$100 is a placeholder and is labelled as one. */
+  /* Illustrative. The fee is a placeholder and is labelled as one. */
   const DESKS = [
     { key: "fi", name: "Fixed income", who: "Hanwha Life — credit and duration",
       on: "Private credit terms, security packages, where a yield is actually coming from." },
@@ -8486,7 +8486,7 @@ Two ways in: take the ask and it settles immediately, or bid below it and wait f
                 Hanwha desks, booked by the hour. Pricing illustrative.
               </div>
             </div>
-            <span className="tri" style={{ fontSize: 11 }}>$100 per consult · DW's figure, placeholder</span>
+            <span className="tri" style={{ fontSize: 11 }}>$100 per consult · illustrative</span>
           </div>
           <table className="t">
             <thead><tr><th style={{ minWidth: 150 }}>Desk</th><th>Who</th><th>What they are useful for</th><th></th></tr></thead>

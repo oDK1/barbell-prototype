@@ -58,7 +58,7 @@
       } },
   ];
 
-  /* Illustrative. DW's ~$100 is a placeholder and is labelled as one. */
+  /* Illustrative. The fee is a placeholder and is labelled as one. */
   const DESKS = [
     { key: "fi", name: "Fixed income", who: "Hanwha Life — credit and duration",
       on: "Private credit terms, security packages, where a yield is actually coming from." },
@@ -115,7 +115,7 @@
                 Hanwha desks, booked by the hour. Pricing illustrative.
               </div>
             </div>
-            <span className="tri" style={{ fontSize: 11 }}>$100 per consult · DW's figure, placeholder</span>
+            <span className="tri" style={{ fontSize: 11 }}>$100 per consult · illustrative</span>
           </div>
           <table className="t">
             <thead><tr><th style={{ minWidth: 150 }}>Desk</th><th>Who</th><th>What they are useful for</th><th></th></tr></thead>

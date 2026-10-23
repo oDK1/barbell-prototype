@@ -888,7 +888,7 @@
 
   /* What folding the working balance into Engine costs. Engine carries a
      7–20% target; the sovereigns, deposits and T-bills now inside it do not
-     earn anything like that. DW confirmed two buckets, so rather than hide
+     earn anything like that. The product settled on two buckets, so rather than hide
      this in a third line the product reads it off the book and says it. */
   const IDLE_SUBS = ["mmf", "tbill", "dep", "fx", "sov"];
   function engineDrag(ps) {

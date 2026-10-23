@@ -1091,10 +1091,10 @@
       docs: [["Private placement memorandum", "PDF · 118pp"], ["Q2 2026 investor letter", "PDF · 12pp"]],
       qa: [["What does an exit actually cost?", "There is no gate and no queue — the position is sold on the rail. The cost is the spread to the last mark, which the secondary board publishes."]] },
     /* ---- listings beyond Hanwha's own direct deals -----------------------
-       Three placeholders standing for the three sources DW named that the
-       board did not previously carry: a product Hanwha co-created, on-chain
-       yield wrapped for a Korean family office, and an emerging-market
-       deposit programme. Names, counterparties and figures are invented. */
+       Three placeholders for sources the board did not previously carry: a
+       product Hanwha co-created, on-chain yield wrapped for a Korean family
+       office, and an emerging-market deposit programme. Names, counterparties
+       and figures are invented. */
     { id: "m43", kind: "private", name: "Hanwha Korea Income Participation Note 2026-A", fills: "struct", cls: "debt",
       ret: "8.8% target", retNum: 8.8, liq: "Immediate", term: "4yr", min: 0, avail: "₩90B tranche open", fit: 87,
       why: "Anchor-grade yield, exited on the rail — co-created, so the terms are Hanwha's own rather than a distributor's.",

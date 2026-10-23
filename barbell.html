@@ -584,8 +584,8 @@ table.t td.val .krw{font-weight:400}
 .btn.harvest:hover{background:var(--amber);border-color:var(--amber);color:#fff}
 
 /* ---------- risk / return buckets ---------- */
-.buckets{display:grid;gap:12px}
-.bk{border:1px solid var(--g3);background:var(--paper);border-left:3px solid var(--g3)}
+.buckets{display:grid;gap:12px;min-width:0}
+.bk{border:1px solid var(--g3);background:var(--paper);border-left:3px solid var(--g3);min-width:0}
 .bk:nth-child(1){border-left-color:#1B2A4A}
 .bk:nth-child(2){border-left-color:#9A7B2E}
 .bk-hd{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:13px 15px 9px;cursor:pointer}
@@ -601,7 +601,7 @@ table.t td.val .krw{font-weight:400}
 .bk-bar>b{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink)}
 .bk-ft{display:flex;align-items:center;gap:14px;padding:8px 15px 11px;font-size:11px}
 .bk-ft .spacer{flex:1}
-.bk-in{border-top:1px solid var(--g3)}
+.bk-in{overflow-x:auto;border-top:1px solid var(--g3)}
 .improve{padding:11px 15px;border-top:1px solid var(--g4)}
 .imp-t{font-size:12.5px;font-weight:600;color:var(--ink)}
 .imp-d{font-size:11.5px;color:var(--g1);line-height:1.55;margin-top:3px;max-width:90ch}
@@ -766,7 +766,8 @@ tr.rung-cash td{background:#FCFBF8}
 /* ---- the book as a ring ------------------------------------------------
    The ring sits beside the two bucket cards rather than above them, so the
    same two numbers are drawn once and listed once. */
-.allocsplit{display:grid;grid-template-columns:300px 1fr;gap:16px;align-items:start}
+.allocsplit{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:16px;align-items:start}
+.allocsplit>*{min-width:0}
 .ringwrap{border:1px solid var(--g3);background:var(--paper);padding:14px}
 .bookring{width:100%;max-width:260px;height:auto;display:block;margin:0 auto}
 .ringlegend{margin-top:10px;border-top:1px solid var(--g3);padding-top:10px}
@@ -775,7 +776,7 @@ tr.rung-cash td{background:#FCFBF8}
 .rl-n{font-weight:600;flex:1}
 .rl-w{font-weight:600}
 .rl-t{font-size:11px}
-@media (max-width:960px){ .allocsplit{grid-template-columns:1fr} .bookring{max-width:210px} }
+@media (max-width:960px){ .allocsplit{grid-template-columns:minmax(0,1fr)} .bookring{max-width:210px} }
 
 /* The legend doubles as the ring's controls, so it is made of buttons. */
 .rl-row{width:100%;text-align:left;background:none;border:0;border-left:2px solid transparent;
@@ -788,6 +789,23 @@ tr.rung-cash td{background:#FCFBF8}
 .th-sub{font-size:11px;color:var(--g2);margin-top:-2px}
 .th-claim{font-size:10.5px;color:var(--g1);margin-top:3px;padding-top:5px;border-top:1px solid var(--g3);line-height:1.45}
 .th-claim b{font-weight:600;color:var(--ink-2)}
+
+/* A group inside a sleeve: Core opens onto three of these, Frontier onto one. */
+.agroup{min-width:0}
+.agroup + .agroup{margin-top:14px;padding-top:12px;border-top:1px solid var(--g3)}
+.ag-hd{display:flex;align-items:baseline;gap:8px;padding:0 0 7px;font-size:12px}
+.ag-hd i{width:9px;height:9px;display:inline-block;position:relative;top:1px;flex-shrink:0}
+.ag-hd .spacer{flex:1}
+.ag-n{font-weight:600}
+.ag-w{font-weight:600}
+
+/* A group inside a sleeve: Core opens onto three of these, Frontier onto one. */
+.agroup + .agroup{margin-top:14px;padding-top:12px;border-top:1px solid var(--g3)}
+.ag-hd{display:flex;align-items:baseline;gap:8px;padding:0 0 7px;font-size:12px}
+.ag-hd i{width:9px;height:9px;display:inline-block;position:relative;top:1px;flex-shrink:0}
+.ag-hd .spacer{flex:1}
+.ag-n{font-weight:600}
+.ag-w{font-weight:600}
 
 </style>
 </head>
@@ -1183,98 +1201,117 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   const positions = [
     /* ---- EQUITY · Public (12) ------------------------------------------- */
     { id: "p01", name: "Hanmi Chemical Holdings Co., Ltd.", ticker: "004370.KS", cls: "equity", sub: "pubeq", grp: "KR listed",
+      line: "pubeq",
       sleeve: "core", prov: "live", value: 7111332, cost: 4374172, qty: 50052, px: 196500, ccy: "KRW", pxUsd: 142.08, chg: 0.82,
       sector: "Materials", geo: "Korea", liq: "Immediate", acquired: "2009-06-12", realizedYTD: 0, affiliate: true,
       src: { file: "Holdings_Master_2026Q3.xlsx", cell: "Sheet1!B14" },
       note: "Family operating company. Board seat held by the Principal." },
     { id: "p02", name: "Samsung Electronics Co., Ltd.", ticker: "005930.KS", cls: "equity", sub: "pubeq", grp: "KR listed",
+      line: "pubeq",
       bucket: "conviction", theme: "pubtech",
       sleeve: "core", prov: "live", value: 1158466, cost: 849612, qty: 21796, px: 73500, ccy: "KRW", pxUsd: 53.15, chg: -0.41,
       sector: "Info Tech", geo: "Korea", liq: "Immediate", acquired: "2016-03-02", realizedYTD: 84000,
       src: { file: "Holdings_Master_2026Q3.xlsx", cell: "Sheet1!B15" } },
     { id: "p03", name: "SK hynix Inc.", ticker: "000660.KS", cls: "equity", sub: "pubeq", grp: "KR listed",
+      line: "pubeq",
       bucket: "conviction", theme: "pubtech",
       sleeve: "core", prov: "live", value: 503159, cost: 291395, qty: 3563, px: 195300, ccy: "KRW", pxUsd: 141.20, chg: 1.94,
       sector: "Info Tech", geo: "Korea", liq: "Immediate", acquired: "2021-11-08", realizedYTD: 0,
       src: { file: "Holdings_Master_2026Q3.xlsx", cell: "Sheet1!B16" } },
     { id: "p04", name: "NVIDIA Corporation", ticker: "NVDA", cls: "equity", sub: "pubeq", grp: "US listed",
+      line: "pubeq",
       bucket: "conviction", theme: "pubtech",
       sleeve: "core", prov: "live", value: 1252182, cost: 434168, qty: 5852, px: 214.00, ccy: "USD", pxUsd: 214.00, chg: 1.12,
       sector: "Info Tech", geo: "United States", liq: "Immediate", acquired: "2022-10-14", realizedYTD: 312000,
       src: { file: "Holdings_Master_2026Q3.xlsx", cell: "Sheet1!B21" } },
     { id: "p05", name: "Microsoft Corporation", ticker: "MSFT", cls: "equity", sub: "pubeq", grp: "US listed",
+      line: "pubeq",
       bucket: "conviction", theme: "pubtech",
       sleeve: "core", prov: "live", value: 947551, cost: 645986, qty: 1948, px: 486.30, ccy: "USD", pxUsd: 486.30, chg: 0.34,
       sector: "Info Tech", geo: "United States", liq: "Immediate", acquired: "2020-05-19", realizedYTD: 0,
       src: { file: "Holdings_Master_2026Q3.xlsx", cell: "Sheet1!B22" } },
     { id: "p06", name: "Apple Inc.", ticker: "AAPL", cls: "equity", sub: "pubeq", grp: "US listed",
+      line: "pubeq",
       bucket: "conviction", theme: "pubtech",
       sleeve: "core", prov: "live", value: 690924, cost: 503799, qty: 2633, px: 262.40, ccy: "USD", pxUsd: 262.40, chg: -0.28,
       sector: "Info Tech", geo: "United States", liq: "Immediate", acquired: "2019-08-07", realizedYTD: 0,
       src: { file: "Holdings_Master_2026Q3.xlsx", cell: "Sheet1!B23" } },
     { id: "p07", name: "Alphabet Inc. Class A", ticker: "GOOGL", cls: "equity", sub: "pubeq", grp: "US listed",
+      line: "pubeq",
       bucket: "conviction", theme: "pubtech",
       sleeve: "alpha", prov: "live", value: 403920, cost: 285545, qty: 1907, px: 211.75, ccy: "USD", pxUsd: 211.75, chg: 0.61,
       sector: "Comm Services", geo: "United States", liq: "Immediate", acquired: "2024-02-21", realizedYTD: 0,
       src: { file: "Holdings_Master_2026Q3.xlsx", cell: "Sheet1!B24" } },
     { id: "p08", name: "Taiwan Semiconductor Mfg. (ADR)", ticker: "TSM", cls: "equity", sub: "pubeq", grp: "US listed",
+      line: "pubeq",
       bucket: "conviction", theme: "pubtech",
       sleeve: "core", prov: "live", value: 432690, cost: 241074, qty: 1610, px: 268.90, ccy: "USD", pxUsd: 268.90, chg: 1.47,
       sector: "Info Tech", geo: "Taiwan", liq: "Immediate", acquired: "2023-01-30", realizedYTD: 0,
       src: { file: "Holdings_Master_2026Q3.xlsx", cell: "Sheet1!B25" } },
     { id: "p09", name: "Toyota Motor Corporation", legacy: "TOYOTA (JPY口座) — 東証", ticker: "7203.T", cls: "equity", sub: "pubeq", grp: "US listed",
+      line: "pubeq",
       sleeve: "core", prov: "live", value: 1134268, cost: 980418, qty: 50278, px: 3320, ccy: "JPY", pxUsd: 22.56, chg: -0.62,
       sector: "Consumer Disc.", geo: "Japan", liq: "Immediate", acquired: "2018-09-11", realizedYTD: 0, fxFlag: true,
       src: { file: "Holdings_Master_2026Q3.xlsx", cell: "Sheet2!D7" },
       note: "JPY-denominated. Held in the Japan sub-account since the 2018 restructuring." },
     { id: "p10", name: "iShares MSCI ACWI ETF", ticker: "ACWI", cls: "equity", sub: "pubeq", grp: "ETF",
+      line: "pubeq",
       sleeve: "core", prov: "live", value: 2245830, cost: 1823409, qty: 16198, px: 138.65, ccy: "USD", pxUsd: 138.65, chg: 0.22,
       sector: "Diversified", geo: "Global", liq: "Immediate", acquired: "2021-04-06", realizedYTD: 0,
       src: { file: "Holdings_Master_2026Q3.xlsx", cell: "Sheet1!B31" } },
     { id: "p11", name: "Vanguard S&P 500 ETF", ticker: "VOO", cls: "equity", sub: "pubeq", grp: "ETF",
+      line: "pubeq",
       sleeve: "core", prov: "live", value: 1862804, cost: 1350798, qty: 3042, px: 612.40, ccy: "USD", pxUsd: 612.40, chg: 0.19,
       sector: "Diversified", geo: "United States", liq: "Immediate", acquired: "2022-01-18", realizedYTD: 0,
       src: { file: "Holdings_Master_2026Q3.xlsx", cell: "Sheet1!B32" } },
     { id: "p12", name: "KODEX 200 ETF", ticker: "069500.KS", cls: "equity", sub: "pubeq", grp: "ETF",
+      line: "pubeq",
       sleeve: "core", prov: "live", value: 871516, cost: 772603, qty: 26899, px: 44800, ccy: "KRW", pxUsd: 32.40, chg: 0.44,
       sector: "Diversified", geo: "Korea", liq: "Immediate", acquired: "2023-07-25", realizedYTD: 0,
       src: { file: "Holdings_Master_2026Q3.xlsx", cell: "Sheet1!B33" } },
 
     /* ---- EQUITY · Private (7) ------------------------------------------- */
     { id: "p13", name: "Woori Industrial Buyout Co-Invest II", cls: "equity", sub: "pe", grp: "Buyout co-invest",
+      line: "fof",
       bucket: "conviction", theme: "venture",
       sleeve: "core", prov: "hanwha", value: 1081732, cost: 819185, ccy: "USD", liq: "Immediate", term: "2029 wind-down",
       sector: "Industrials", geo: "Korea", asOf: "2026-06-30", acquired: "2022-05-18", onBarbell: true, vintage: "2022",
       src: { file: "PE_Capital_Calls_v7_FINAL.xlsx", cell: "Fund List!A4" },
       note: "Hanwha-originated. Capital account pushed from the platform." },
     { id: "p14", name: "Sunrise Growth Partners IV, L.P.", cls: "equity", sub: "pe", grp: "Growth",
+      line: "fof",
       bucket: "conviction", theme: "venture",
       sleeve: "alpha", prov: "hanwha", value: 713860, cost: 555875, ccy: "USD", liq: "Immediate", term: "2031 term",
       sector: "Diversified", geo: "United States", asOf: "2026-06-30", acquired: "2023-09-01", onBarbell: true, vintage: "2023",
       src: { file: "PE_Capital_Calls_v7_FINAL.xlsx", cell: "Fund List!A5" } },
     { id: "p15", name: "Foundry Venture Partners VII, L.P.", cls: "equity", sub: "vc", grp: "Funds",
+      line: "fof",
       bucket: "conviction", theme: "venture",
       sleeve: "alpha", prov: "hanwha", value: 614389, cost: 526618, ccy: "USD", liq: "Immediate", term: "2033 term",
       sector: "Technology", geo: "United States", asOf: "2026-06-30", acquired: "2024-03-14", onBarbell: true, vintage: "2024",
       unfunded: 819185,
       src: { file: "PE_Capital_Calls_v7_FINAL.xlsx", cell: "Fund List!A6" } },
     { id: "p16", name: "Daol Ventures Korea Fund III", cls: "equity", sub: "vc", grp: "Funds",
+      line: "fof",
       bucket: "conviction", theme: "venture",
       sleeve: "alpha", prov: "hanwha", value: 397890, cost: 351079, ccy: "USD", liq: "Immediate", term: "2032 term",
       sector: "Technology", geo: "Korea", asOf: "2026-06-30", acquired: "2023-02-09", onBarbell: true, vintage: "2023",
       unfunded: 187242,
       src: { file: "PE_Capital_Calls_v7_FINAL.xlsx", cell: "Fund List!A7" } },
     { id: "p17", name: "Helios AI Infrastructure SPV I", cls: "equity", sub: "vc", grp: "Direct SPV",
+      line: "preipo",
       bucket: "conviction", theme: "gpu",
       sleeve: "alpha", prov: "hanwha", value: 315971, cost: 234053, ccy: "USD", liq: "Immediate", term: "Exit-driven",
       sector: "Technology", geo: "United States", asOf: "2026-06-30", acquired: "2026-05-22", onBarbell: true, vintage: "2026",
       src: { file: "PE_Capital_Calls_v7_FINAL.xlsx", cell: "Fund List!A8" } },
     { id: "p18", name: "Aeris Aerospace — Series F secondary block", cls: "equity", sub: "preipo", grp: "Pre-IPO",
+      line: "preipo",
       bucket: "conviction", theme: "privco",
       sleeve: "alpha", prov: "hanwha", value: 479808, cost: 374484, ccy: "USD", liq: "Immediate", term: "Until listing",
       sector: "Aerospace", geo: "United States", asOf: "2026-08-31", acquired: "2025-01-16", onBarbell: true, vintage: "2025",
       src: { file: "PE_Capital_Calls_v7_FINAL.xlsx", cell: "Fund List!A9" } },
     { id: "p19", name: "Viva Republica (Toss) common — 2023 block", legacy: "비바리퍼블리카 구주 (2023년 매입)", cls: "equity", sub: "preipo", grp: "Pre-IPO",
+      line: "preipo",
       bucket: "conviction", theme: "privco",
       sleeve: "alpha", prov: "self", value: 257458, cost: 257458, ccy: "USD", liq: "Immediate", term: "Until listing",
       sector: "Fintech", geo: "Korea", asOf: "2026-03-31", acquired: "2023-06-30", onBarbell: false, vintage: "2023",
@@ -1283,48 +1320,58 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
     /* ---- DEBT · Public (6) ---------------------------------------------- */
     { id: "p20", name: "US Treasury 4.25% 15-Nov-2034", ticker: "US91282CLM1", cls: "debt", sub: "sov", grp: "Sovereign",
+      line: "ttreas",
       sleeve: "core", prov: "live", value: 5330729, cost: 5198728, qty: 5471904, px: 97.42, ccy: "USD", pxUsd: 0.9742, chg: 0.11,
       sector: "Government", geo: "United States", liq: "Immediate", acquired: "2024-11-20", realizedYTD: 0, ytm: 4.41, dur: 6.9,
       src: { file: "Holdings_Master_2026Q3.xlsx", cell: "Sheet1!B44" } },
     { id: "p21", name: "US Treasury 3.875% 15-Aug-2029", ticker: "US912828YB0", cls: "debt", sub: "sov", grp: "Sovereign",
+      line: "ttreas",
       sleeve: "core", prov: "live", value: 3586656, cost: 3549615, qty: 3628384, px: 98.85, ccy: "USD", pxUsd: 0.9885, chg: 0.06,
       sector: "Government", geo: "United States", liq: "Immediate", acquired: "2023-08-24", realizedYTD: 0, ytm: 4.14, dur: 2.7,
       src: { file: "Holdings_Master_2026Q3.xlsx", cell: "Sheet1!B45" } },
     { id: "p22", name: "Korea Treasury Bond 3.25% 10-Sep-2032", legacy: "국고03250-3209(22-8)", ticker: "KR103502GC93", cls: "debt", sub: "sov", grp: "Sovereign",
+      line: "ttreas",
       sleeve: "core", prov: "live", value: 3421862, cost: 3341800, qty: 3552967, px: 96.31, ccy: "KRW", pxUsd: 0.9631, chg: -0.04,
       sector: "Government", geo: "Korea", liq: "Immediate", acquired: "2022-09-15", realizedYTD: 0, ytm: 3.62, dur: 5.4,
       src: { file: "Holdings_Master_2026Q3.xlsx", cell: "Sheet1!B46" } },
     { id: "p23", name: "Apple Inc. 3.85% 04-May-2043", ticker: "US037833AT7", cls: "debt", sub: "ig", grp: "Corporate IG",
+      line: "ttreas",
       sleeve: "core", prov: "live", value: 4039050, cost: 4223338, qty: 4801533, px: 84.12, ccy: "USD", pxUsd: 0.8412, chg: 0.21,
       sector: "Info Tech", geo: "United States", liq: "Immediate", acquired: "2021-06-11", realizedYTD: 0, ytm: 5.02, dur: 11.4, rating: "AA+",
       src: { file: "Holdings_Master_2026Q3.xlsx", cell: "Sheet1!B51" } },
     { id: "p24", name: "SK Telecom 4.45% 21-Mar-2031", ticker: "US78440PAC3", cls: "debt", sub: "ig", grp: "Corporate IG",
+      line: "ttreas",
       sleeve: "core", prov: "live", value: 3992757, cost: 3955190, qty: 4089264, px: 97.64, ccy: "USD", pxUsd: 0.9764, chg: 0.09,
       sector: "Comm Services", geo: "Korea", liq: "Immediate", acquired: "2024-04-02", realizedYTD: 0, ytm: 4.92, dur: 3.9, rating: "A-",
       src: { file: "Holdings_Master_2026Q3.xlsx", cell: "Sheet1!B52" } },
     { id: "p25", name: "Hanwha TotalEnergies Petrochemical 4.10% 2028", ticker: "KR6008921D28", cls: "debt", sub: "ig", grp: "Corporate IG",
+      line: "ttreas",
       sleeve: "core", prov: "live", value: 3469150, cost: 3435652, qty: 3494309, px: 99.28, ccy: "KRW", pxUsd: 0.9928, chg: 0.02,
       sector: "Materials", geo: "Korea", liq: "Immediate", acquired: "2025-03-18", realizedYTD: 0, ytm: 4.28, dur: 1.9, rating: "A",
       src: { file: "Holdings_Master_2026Q3.xlsx", cell: "Sheet1!B53" } },
 
     /* ---- DEBT · Private (4) --------------------------------------------- */
     { id: "p26", name: "Northgate Data Center Credit Facility (Senior Secured)", cls: "debt", sub: "pcred", grp: "Direct lending",
+      line: "tpc",
       sleeve: "core", prov: "hanwha", value: 4013715, cost: 3854634, ccy: "USD", liq: "Immediate", term: "5yr · matures 2029",
       sector: "Infrastructure", geo: "United States", asOf: "2026-08-31", acquired: "2024-06-28", onBarbell: true, vintage: "2024",
       ytm: 9.10, rating: "Unrated (senior secured)",
       src: { file: "PE_Capital_Calls_v7_FINAL.xlsx", cell: "Fund List!A12" } },
     { id: "p27", name: "Meridian Direct Lending Fund II", cls: "debt", sub: "pcred", grp: "Direct lending",
+      line: "tpc",
       sleeve: "core", prov: "hanwha", value: 2212225, cost: 2094910, ccy: "USD", liq: "Immediate", term: "Evergreen",
       sector: "Diversified", geo: "United States", asOf: "2026-06-30", acquired: "2023-11-30", onBarbell: true, vintage: "2023",
       ytm: 8.40,
       src: { file: "PE_Capital_Calls_v7_FINAL.xlsx", cell: "Fund List!A13" } },
     { id: "p28", name: "Seongsu redevelopment bridge loan", legacy: "성수동 개인대여금 (김부장 건)", cls: "debt", sub: "pcred", grp: "Direct lending",
+      line: "tpc",
       sleeve: "core", prov: "self", value: 1307224, cost: 1307224, ccy: "KRW", liq: "Immediate", term: "Matures 2027-03",
       sector: "Real Estate", geo: "Korea", asOf: "2026-02-10", acquired: "2024-03-05", onBarbell: false,
       ytm: 7.50,
       src: { file: "부동산_임대현황.xlsx", cell: "Sheet1!F19" },
       note: "Legacy spreadsheet entry. Interest received in cash; principal unverified since February." },
     { id: "p29", name: "Hanwha Securities ELS 2024-11 (KOSPI200 / S&P 500 autocall)", cls: "debt", sub: "struct", grp: "Structured",
+      line: "mmv",
       sleeve: "core", prov: "hanwha", value: 4189820, cost: 4022227, ccy: "KRW", liq: "Immediate", term: "3yr · autocall observed quarterly",
       sector: "Structured", geo: "Korea", asOf: "2026-09-15", acquired: "2024-11-12", onBarbell: true, vintage: "2024",
       ytm: 6.80,
@@ -1332,32 +1379,38 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
     /* ---- REAL ASSETS (6) ------------------------------------------------- */
     { id: "p30", name: "Teheran-ro office — floors 3–4, Gangnam", legacy: "강남 테헤란로 빌딩 3,4층 (본사옆)", cls: "real", sub: "re", grp: "Direct",
+      line: "realassets",
       sleeve: "core", prov: "self", value: 6871304, cost: 4776394, ccy: "KRW", liq: "Immediate", term: "Direct title",
       sector: "Office", geo: "Korea", asOf: "2026-08-31", acquired: "2011-04-01", onBarbell: false,
       yieldPct: 4.2,
       src: { file: "부동산_임대현황.xlsx", cell: "Sheet1!B4" },
       note: "Appraisal-based. Last third-party valuation August 2026." },
     { id: "p31", name: "Yongsan residential — leased unit", legacy: "용산 아파트 (임대중) — 2호", cls: "real", sub: "re", grp: "Direct",
+      line: "realassets",
       sleeve: "core", prov: "self", value: 3100466, cost: 2212225, ccy: "KRW", liq: "Immediate", term: "Direct title",
       sector: "Residential", geo: "Korea", asOf: "2026-05-20", acquired: "2014-10-20", onBarbell: false,
       yieldPct: 2.6,
       src: { file: "부동산_임대현황.xlsx", cell: "Sheet1!B12" } },
     { id: "p32", name: "Hanwha Korea Logistics REIT Co-Invest", cls: "real", sub: "re", grp: "Funds",
+      line: "realassets",
       sleeve: "core", prov: "hanwha", value: 2715003, cost: 2513892, ccy: "KRW", liq: "Immediate", term: "2030 exit",
       sector: "Logistics", geo: "Korea", asOf: "2026-06-30", acquired: "2026-01-10", onBarbell: true, vintage: "2026",
       yieldPct: 6.1,
       src: { file: "PE_Capital_Calls_v7_FINAL.xlsx", cell: "Fund List!A16" } },
     { id: "p33", name: "Pacific Core Real Estate Fund IV", cls: "real", sub: "re", grp: "Funds",
+      line: "realassets",
       sleeve: "core", prov: "hanwha", value: 2983152, cost: 2849077, ccy: "USD", liq: "Immediate", term: "Open-end",
       sector: "Diversified RE", geo: "Asia-Pacific", asOf: "2026-06-30", acquired: "2022-11-04", onBarbell: true, vintage: "2022",
       unfunded: 1173149, yieldPct: 4.8,
       src: { file: "PE_Capital_Calls_v7_FINAL.xlsx", cell: "Fund List!A17" } },
     { id: "p34", name: "Songdo Hyperscale Data Center Platform", cls: "real", sub: "infra", grp: "Infrastructure",
+      line: "realassets",
       sleeve: "core", prov: "hanwha", value: 3921671, cost: 3519448, ccy: "USD", liq: "Immediate", term: "2034 concession",
       sector: "Data Centers", geo: "Korea", asOf: "2026-06-30", acquired: "2025-02-27", onBarbell: true, vintage: "2025",
       yieldPct: 7.4,
       src: { file: "PE_Capital_Calls_v7_FINAL.xlsx", cell: "Fund List!A18" } },
     { id: "p35", name: "Gold bullion — KRX custody account", cls: "real", sub: "comm", grp: "Commodities",
+      line: "store",
       /* bullion falls inside conviction's subcategory list, so it says plainly
          where it belongs: a store of value held for a return, not a view */
       bucket: "engine",
@@ -1367,27 +1420,34 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
     /* ---- CASH (7) -------------------------------------------------------- */
     { id: "p36", name: "Samsung KRW Money Market Fund", cls: "cash", sub: "mmf", grp: "MMF",
+      line: "ttreas",
       sleeve: "core", prov: "live", value: 1692687, cost: 1692687, ccy: "KRW", liq: "Immediate", sector: "Cash", geo: "Korea",
       acquired: "2026-01-05", ytm: 3.05, src: { file: "Holdings_Master_2026Q3.xlsx", cell: "Sheet1!B80" } },
     { id: "p37", name: "Mirae Asset USD Money Market Fund", cls: "cash", sub: "mmf", grp: "MMF",
+      line: "ttreas",
       sleeve: "alpha", prov: "live", value: 1273705, cost: 1273705, ccy: "USD", liq: "Immediate", sector: "Cash", geo: "United States",
       acquired: "2026-02-12", ytm: 4.18, dryPowder: true,
       src: { file: "Holdings_Master_2026Q3.xlsx", cell: "Sheet1!B81" },
       note: "Alpha sleeve dry powder." },
     { id: "p38", name: "US Treasury Bill — 4 week", ticker: "US912797MK2", cls: "cash", sub: "tbill", grp: "T-Bills",
+      line: "ttreas",
       sleeve: "core", prov: "live", value: 1644516, cost: 1640733, qty: 1650789, px: 99.62, ccy: "USD", pxUsd: 0.9962, chg: 0.01,
       sector: "Government", geo: "United States", liq: "Immediate", acquired: "2026-09-04", ytm: 4.22,
       src: { file: "Holdings_Master_2026Q3.xlsx", cell: "Sheet1!B82" } },
     { id: "p39", name: "KEB Hana Bank — KRW time deposit", cls: "cash", sub: "dep", grp: "Deposits",
+      line: "ttreas",
       sleeve: "core", prov: "live", value: 1439191, cost: 1439191, ccy: "KRW", liq: "Immediate", sector: "Cash", geo: "Korea",
       acquired: "2026-04-30", ytm: 3.40, src: { file: "Holdings_Master_2026Q3.xlsx", cell: "Sheet1!B83" } },
     { id: "p40", name: "Citibank N.A. — USD demand deposit", cls: "cash", sub: "dep", grp: "Deposits",
+      line: "ttreas",
       sleeve: "core", prov: "live", value: 871482, cost: 871482, ccy: "USD", liq: "Immediate", sector: "Cash", geo: "United States",
       acquired: "2025-12-01", ytm: 0.85, src: { file: "Holdings_Master_2026Q3.xlsx", cell: "Sheet1!B84" } },
     { id: "p41", name: "FX balance — JPY", cls: "cash", sub: "fx", grp: "FX",
+      line: "ttreas",
       sleeve: "core", prov: "live", value: 264797, cost: 276528, ccy: "JPY", liq: "Immediate", sector: "Cash", geo: "Japan",
       acquired: "2025-06-18", fxFlag: true, src: { file: "Holdings_Master_2026Q3.xlsx", cell: "Sheet2!D19" } },
     { id: "p42", name: "FX balance — EUR", cls: "cash", sub: "fx", grp: "FX",
+      line: "ttreas",
       sleeve: "core", prov: "live", value: 154185, cost: 150834, ccy: "EUR", liq: "Immediate", sector: "Cash", geo: "Europe",
       acquired: "2025-06-18", fxFlag: true, src: { file: "Holdings_Master_2026Q3.xlsx", cell: "Sheet2!D20" } },
 
@@ -1396,31 +1456,37 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
        so the book occupies the upper half of the shelf instead of leaving it
        empty. Rungs 8 through 12. Every figure is invented. */
     { id: "p43", name: "Korean Corporate Compute Offtake Note 2026-A", cls: "debt", sub: "struct", grp: "Structured",
+      line: "gpun",
       prov: "hanwha", value: 2379817, cost: 2346299, ccy: "KRW", liq: "Immediate", term: "4yr",
       sector: "Structured", geo: "Korea", asOf: "2026-06-30", acquired: "2026-02-18", onBarbell: true, vintage: "2026",
       yieldPct: 8.4, src: { file: "Holdings_Master_2026Q3.xlsx", cell: "Sheet1!B91" },
       note: "Lends against aggregated compute-usage contracts from Korean corporates. Hanwha underwrites offtaker credit that outside lenders cannot assess." },
     { id: "p44", name: "Qcells Residential Storage Programme — Texas", cls: "debt", sub: "struct", grp: "Structured",
+      line: "ttf",
       prov: "hanwha", value: 1977595, cost: 1927317, ccy: "USD", liq: "Immediate", term: "7yr amortising",
       sector: "Energy", geo: "United States", asOf: "2026-06-30", acquired: "2026-01-29", onBarbell: true, vintage: "2026",
       yieldPct: 9.2, src: { file: "Holdings_Master_2026Q3.xlsx", cell: "Sheet1!B92" },
       note: "Receivables from residential solar-and-battery installations. Panels at cost from the group; batteries recoverable on default." },
     { id: "p45", name: "Hanwha Compute Offtake Facility I", cls: "debt", sub: "pcred", grp: "Private Credit / Direct Lending",
+      line: "gpun",
       prov: "hanwha", value: 2949633, cost: 2849077, ccy: "USD", liq: "Immediate", term: "5yr · 2031 maturity",
       sector: "Infrastructure", geo: "United States", asOf: "2026-06-30", acquired: "2025-11-12", onBarbell: true, vintage: "2025",
       yieldPct: 9.6, src: { file: "PE_Capital_Calls_v7_FINAL.xlsx", cell: "Fund List!A21" },
       note: "GPU financing secured on a Hanwha offtake. The lender underwrites Hanwha's credit, not the hardware." },
     { id: "p46", name: "Hanwha Offtake-Backed Copper Facility", cls: "debt", sub: "pcred", grp: "Private Credit / Direct Lending",
+      line: "ttf",
       prov: "hanwha", value: 2078150, cost: 2011113, ccy: "USD", liq: "Immediate", term: "3yr",
       sector: "Materials", geo: "ROW", asOf: "2026-06-30", acquired: "2026-04-07", onBarbell: true, vintage: "2026",
       yieldPct: 10.9, src: { file: "PE_Capital_Calls_v7_FINAL.xlsx", cell: "Fund List!A22" },
       note: "Pre-export financing against a Hanwha purchase commitment. The commitment replaces the operator's credibility and concentrates the risk on Hanwha." },
     { id: "p47", name: "Kazakh Uranium Offtake Facility — Series 2", cls: "debt", sub: "pcred", grp: "Private Credit / Direct Lending",
+      line: "ttf",
       prov: "hanwha", value: 2530651, cost: 2430095, ccy: "USD", liq: "Immediate", term: "4yr",
       sector: "Energy", geo: "ROW", asOf: "2026-06-30", acquired: "2025-09-23", onBarbell: true, vintage: "2025",
       yieldPct: 11.8, src: { file: "PE_Capital_Calls_v7_FINAL.xlsx", cell: "Fund List!A23" },
       note: "The reference case for the trust argument: an asset discounted because investors cannot verify the operator, priced on Hanwha's commitment instead." },
     { id: "p48", name: "Hanwha Korean Talent Fund I — first close", cls: "equity", sub: "preipo", grp: "Participations",
+      line: "talent",
       bucket: "conviction", theme: "koreatalent",
       prov: "hanwha", value: 750000, cost: 700000, ccy: "USD", liq: "Immediate", term: "10yr",
       sector: "Media", geo: "Korea", asOf: "2026-06-30", acquired: "2026-06-30", onBarbell: true, vintage: "2026",
@@ -1618,6 +1684,100 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     { key: "players", label: "Sports players", color: "#C0A765", flagged: true,
       sub: "Athlete earnings participations", claim: "Income-share claim",
       note: "Participations in the future earnings of individual athletes." },
+  ];
+
+  /* ===================================================== the model portfolio
+     Every family holds a barbell: a Core of 80–90% that protects principal,
+     compounds and funds spending, and a Frontier of 10–20% in asymmetric
+     bets. Core is three groups — the residence, the yield engines and
+     traditional markets — and Frontier is one.
+
+     Targets are given at three family sizes and interpolated between them.
+     Reading across a row shows what changes with scale: the residence falls
+     from a quarter of net worth to a rounding error, shallow pools like
+     market-making vaults shrink as capacity binds, and thin-market lines like
+     pre-IPO grow as the need for liquidity eases. */
+  const sleeves = [
+    { key: "core", label: "Core", color: "#1B2A4A",
+      role: "Protects principal, compounds, funds spending",
+      band: "80–90% of net worth",
+      note: "The residence, the capital that pays for the family's life, and traditional markets." },
+    { key: "frontier", label: "Frontier Growth", color: "#9A7B2E",
+      role: "Asymmetric bets",
+      band: "10–20% of net worth",
+      note: "Sized so that losing all of any one line changes nothing. Judged on the thesis, not against a benchmark." },
+  ];
+
+  const allocGroups = [
+    { key: "residence", sleeve: "core", label: "Residence", color: "#6B7F8C",
+      note: "The family's own home. A fixed need rather than an allocation choice, and the line that shrinks fastest with scale." },
+    { key: "yield", sleeve: "core", label: "Yield Engines", color: "#1B2A4A",
+      note: "The capital that pays for the family's life. Income-producing, and the largest single group at every size." },
+    { key: "traditional", sleeve: "core", label: "Traditional", color: "#3F7183",
+      note: "Public markets, multi-strategy funds and stores of value." },
+    { key: "frontier", sleeve: "frontier", label: "Frontier Growth", color: "#9A7B2E",
+      note: "Tail contracts, pre-IPO outliers and novelty real-world assets." },
+  ];
+
+  /* tiers are percentages of net worth at $10M, $100M and $1B */
+  const allocLines = [
+    { key: "residence", group: "residence", label: "Primary residence",
+      access: "Held directly", examples: "The family's home", payoff: "—",
+      tiers: { 10: 25, 100: 5, 1000: 1 } },
+
+    { key: "ttreas", group: "yield", label: "Tokenized Treasuries",
+      access: "Available today", examples: "BlackRock BUIDL", payoff: "~4%",
+      tiers: { 10: 17, 100: 9, 1000: 6 } },
+    { key: "tpc", group: "yield", label: "Tokenized private credit",
+      access: "Target partner", examples: "Apollo, Blackstone", payoff: "9–10%",
+      tiers: { 10: 12, 100: 14, 1000: 17 } },
+    { key: "mmv", group: "yield", label: "Market-making vaults",
+      access: "Available today", examples: "Lighter LLP, Hyperliquid HLP", payoff: "12–16%",
+      tiers: { 10: 6, 100: 5, 1000: 2 } },
+    { key: "gpun", group: "yield", label: "GPU-backed notes",
+      access: "Hanwha direct", examples: "Risk reduced via offtake", payoff: "11–13%",
+      tiers: { 10: 2, 100: 4, 1000: 5 } },
+    { key: "ttf", group: "yield", label: "Tokenized trade finance",
+      access: "Hanwha direct", examples: "Affiliate receivables", payoff: "6–8%",
+      tiers: { 10: 3, 100: 5, 1000: 6 } },
+    { key: "hgrowth", group: "yield", label: "Hanwha Growth",
+      access: "Hanwha direct", examples: "Shipbuilding, energy", payoff: "12–15%",
+      tiers: { 10: 5, 100: 7, 1000: 7 } },
+    /* Not on the model. Direct property and infrastructure are held outside
+       it, and the zero target is the model's own view: it would rather own
+       that risk through the tokenized credit lines than through buildings. */
+    { key: "realassets", group: "yield", label: "Direct property and infrastructure",
+      access: "Held directly", examples: "Offices, REITs, data centres", payoff: "6–9%",
+      offModel: true, tiers: { 10: 0, 100: 0, 1000: 0 } },
+
+    { key: "pubeq", group: "traditional", label: "Public equities",
+      access: "Available today", examples: "QQQ, intl. tech, ex-tech", payoff: "1–2%",
+      tiers: { 10: 12, 100: 17, 1000: 14 } },
+    { key: "multistrat", group: "traditional", label: "Multi-strategy funds",
+      access: "Target partner", examples: "Citadel, Millennium", payoff: "—",
+      tiers: { 10: 2, 100: 6, 1000: 8 } },
+    { key: "fof", group: "traditional", label: "Tokenized VC & PE FoF",
+      access: "Target partner", examples: "Top-tier managers", payoff: "—",
+      tiers: { 10: 4, 100: 10, 1000: 10 } },
+    { key: "store", group: "traditional", label: "Gold and bitcoin",
+      access: "Available today", examples: "Gold, bitcoin", payoff: "—",
+      tiers: { 10: 2, 100: 3, 1000: 4 } },
+
+    { key: "tail", group: "frontier", label: "Tail event contracts",
+      access: "Hanwha direct", examples: "Macro, tariff and energy contracts on Kalshi", payoff: "10–50x",
+      tiers: { 10: 2, 100: 2, 1000: 1 } },
+    { key: "preipo", group: "frontier", label: "Pre-IPO outliers",
+      access: "Hanwha direct", examples: "OpenAI, Anthropic, Anduril, Saronic", payoff: "Asymmetric",
+      tiers: { 10: 3, 100: 6, 1000: 9 } },
+    { key: "levered", group: "frontier", label: "Leveraged equities",
+      access: "Available today", examples: "10x index and single-stock exposure", payoff: "Amplified equity",
+      tiers: { 10: 2, 100: 2, 1000: 3 } },
+    { key: "rwa", group: "frontier", label: "Novelty RWA tokens",
+      access: "Hanwha direct", examples: "Sports teams, blue-chip art, trophy real estate", payoff: "Asymmetric",
+      tiers: { 10: 1, 100: 3, 1000: 6 } },
+    { key: "talent", group: "frontier", label: "Korean talent",
+      access: "Hanwha direct", examples: "Income-share agreements with Korean talent", payoff: "Mispriced upside",
+      tiers: { 10: 2, 100: 2, 1000: 1 } },
   ];
 
   /* ===================================================== risk / return buckets
@@ -2527,7 +2687,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     KRW, TODAY, family, accounts, classes, subs, positions,
     uploadFiles, ingestSteps, exceptions, mandates, survey, modelPortfolios,
     capitalCalls, distributions, benchmark, performance, attribution, modelGoals, ALT_SUBS,
-    sourceTypes, dueDiligence, anchorShelf, cashFund, exitPct, advanceRates, creditTerms, SHELF_FLOOR, SHELF_CEIL, themes, modelClasses, modelExcuses, buckets, bucketPresets, bucketMix, RISK_BASE, expectedReturn, expectedVol, classCorr, idiosyncraticVol,
+    sourceTypes, dueDiligence, anchorShelf, cashFund, exitPct, advanceRates, creditTerms, SHELF_FLOOR, SHELF_CEIL, themes, modelClasses, modelExcuses, buckets, bucketPresets, bucketMix, RISK_BASE, sleeves, allocGroups, allocLines, expectedReturn, expectedVol, classCorr, idiosyncraticVol,
     market, secondary, secondaryTrades, bidsSeed, approvalsSeed, activitySeed, opsLedger, referrals, liquidityAssumptions,
   };
 })();
@@ -2644,6 +2804,73 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   function realizedYTD(ps) { return sum(ps, (p) => p.realizedYTD || 0); }
 
   /* 90-day liquidity: cash equivalents plus anything redeemable inside the window. */
+  /* ------------------------------------------------ the model portfolio ----
+     Targets are published at $10M, $100M and $1B. Anything between is
+     interpolated on log AUM, so a $300M family sits where it should rather
+     than snapping to the nearest published column. */
+  function tierPct(tiers, aum) {
+    const m = Math.max(10, Math.min(1000, aum / 1e6));
+    const x = Math.log10(m);                       /* 1 → $10M, 3 → $1B */
+    const lo = x < 2 ? 10 : 100, hi = x < 2 ? 100 : 1000;
+    const f = x < 2 ? x - 1 : x - 2;
+    return tiers[lo] * (1 - f) + tiers[hi] * f;
+  }
+
+  /* Held and modelled, one row per line, nested into groups and sleeves.
+     `tilt` scales Frontier to whatever the family has chosen inside the
+     10–20% band and takes the difference out of Core proportionally, so the
+     published shape bends without ever ceasing to sum to 100. */
+  function modelBook(ps, frontierPct) {
+    const t = total(ps);
+    const fp = frontierPct === undefined || frontierPct === null ? tierPct({ 10: 10, 100: 15, 1000: 20 }, t) : frontierPct;
+    const base = {};
+    D.allocLines.forEach((l) => { base[l.key] = tierPct(l.tiers, t); });
+    const baseFrontier = D.allocLines.filter((l) => l.group === "frontier")
+      .reduce((a, l) => a + base[l.key], 0);
+    const fScale = baseFrontier ? fp / baseFrontier : 0;
+    const cScale = (100 - baseFrontier) ? (100 - fp) / (100 - baseFrontier) : 0;
+
+    const lines = D.allocLines.map((l) => {
+      const items = ps.filter((p) => p.line === l.key);
+      const v = total(items);
+      const target = base[l.key] * (l.group === "frontier" ? fScale : cScale);
+      const wt = t ? (v / t) * 100 : 0;
+      return { ...l, items, value: v, count: items.length, wt, target, drift: wt - target,
+        unrealized: unrealized(items) };
+    });
+
+    const groups = D.allocGroups.map((g) => {
+      const kids = lines.filter((l) => l.group === g.key);
+      const value = kids.reduce((a, l) => a + l.value, 0);
+      const target = kids.reduce((a, l) => a + l.target, 0);
+      const wt = t ? (value / t) * 100 : 0;
+      return { ...g, lines: kids, value, target, wt, drift: wt - target,
+        count: kids.reduce((a, l) => a + l.count, 0) };
+    });
+
+    const rows = D.sleeves.map((sl) => {
+      const kids = groups.filter((g) => g.sleeve === sl.key);
+      const value = kids.reduce((a, g) => a + g.value, 0);
+      const target = kids.reduce((a, g) => a + g.target, 0);
+      const wt = t ? (value / t) * 100 : 0;
+      return { ...sl, groups: kids, value, target, wt, drift: wt - target,
+        count: kids.reduce((a, g) => a + g.count, 0),
+        items: ps.filter((p) => kids.some((g) => g.lines.some((l) => l.key === p.line))) };
+    });
+
+    return { total: t, frontierPct: fp, lines, groups, rows };
+  }
+
+  function lineOf(p) { return D.allocLines.find((l) => l.key === p.line) || null; }
+  function groupOf(p) {
+    const l = lineOf(p);
+    return l ? D.allocGroups.find((g) => g.key === l.group) || null : null;
+  }
+  function sleeveOf(p) {
+    const g = groupOf(p);
+    return g ? D.sleeves.find((s) => s.key === g.sleeve) || null : null;
+  }
+
   /* ------------------------------------------------------------- the mark ---
      Everything trades, so everything has a price. A position on the platform
      is marked by the market — an exchange if it has a ticker, the board if it
@@ -3525,7 +3752,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   BB.u = {
     usd, usdC, krwC, krwFull, pct, pp, sgn, sgnUsd, num, localPx, days, fmtDate, fmtTs, monthKey, monthLabel,
     staleness, provLabel, sum, total, byClass, bySub, gaps, unrealized, realizedYTD,
-    isListed, markSource, marked, advanceOf, borrowingPower, exitValue, exitToday, raiseCost, liquidityProjection, shortfall, coverage, projectMix,
+    tierPct, modelBook, lineOf, groupOf, sleeveOf, isListed, markSource, marked, advanceOf, borrowingPower, exitValue, exitToday, raiseCost, liquidityProjection, shortfall, coverage, projectMix,
     modelSix, convPct, bySix, sixToFour, sixToSubs, pickForClass, holdingsSix, geoBucket, GEO_BUCKETS, listingDocs, listingView, currentIRR, tradeHistory, impactSix, impactBucket, modelClassOf, modelClassLabel, bucketOf, bucketLabel, byBucket, spread, engineDrag, posReturn, rungOf, bucketKeyOf, inBucket, splitForBand, modelFour, buildAnchor, anchorLadder, offerBucket, offerRung, offerTheme, offerPlace, byTheme, SUB_RETURN, topHoldings, affiliateExposure, taxLots, eligibility,
     fitFor, subLabel, clsLabel, clsOf, impact, modelWeights, marketContext, scoreFor, suggestAmount,
   };
@@ -3571,6 +3798,10 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
        for it. `cashFloor` is fixed at $1M by the product, not chosen by the family.
        Nothing is locked any more, so it is not about being able to raise
        cash — it is about not having to sell into the bid to meet a call. */
+    /* Risk preference moves Frontier Growth inside its 10–20% band; Core is
+       whatever is left, split across residence, yield engines and traditional
+       by the published model for a family this size. */
+    frontierPct: 15,
     anchorPct: 90,
     targetYield: D.RISK_BASE.band,
     cashFloor: 1000000,
@@ -3694,6 +3925,14 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
        the remainder — it is never set directly. */
     setAnchorPct(v) {
       state.anchorPct = Math.max(40, Math.min(100, Math.round(v)));
+      syncPosture();
+      emit();
+    },
+
+    /* The one lever on the shape of the book. */
+    setFrontierPct(v) {
+      state.frontierPct = Math.max(10, Math.min(20, Math.round(v)));
+      state.anchorPct = 100 - state.frontierPct;
       syncPosture();
       emit();
     },
@@ -5746,14 +5985,12 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     const t = u.total(positions);
     const st = S.useStore();
     const [bOpen, setBOpen] = useState({});
-    const lad = u.anchorLadder(positions, null);
-    const themeRows = u.byTheme(positions, st.themes);
-    const bucketRows = u.byBucket(positions, 100 - st.anchorPct);
+    const mb = u.modelBook(positions, st.frontierPct);
     const [calls, setCalls] = useState(false);
-    /* Clicking a segment of the ring opens the bucket it stands for and takes
+    /* Clicking a segment of the ring opens the sleeve it stands for and takes
        you to it — the graphic is the way into the detail, not a decoration
        beside it. */
-    const openBucket = (k) => {
+    const openSleeve = (k) => {
       setBOpen({ ...bOpen, [k]: true });
       setTimeout(() => {
         const el = document.getElementById("bk-" + k);
@@ -5763,126 +6000,106 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
     return (
       <>
-        {/* Organised by risk and return. Neither bucket opens onto an asset
-            class: the Anchor opens onto the shelf of funds it is spread
-            across, and Conviction opens onto the themes it is pointed at.
-            */}
+        {/* Core and Frontier Growth, with Core opening onto its three groups
+            and every group onto its lines. The model is published at three
+            family sizes; the targets here are interpolated for this one. */}
         <div className="allocsplit mt16">
           <div className="ringwrap">
-            <BookRing rows={bucketRows} total={t} onPick={openBucket}
+            <BookRing rows={mb.rows} total={t} onPick={openSleeve}
               active={Object.keys(bOpen).filter((k) => bOpen[k])[0] || null} />
             <div className="ringlegend">
-              {bucketRows.map((b) => (
-                <button key={b.key} className={"rl-row" + (bOpen[b.key] ? " on" : "")}
-                  onClick={() => openBucket(b.key)}>
-                  <i style={{ background: b.color }} />
-                  <span className="rl-n">{b.label}</span>
-                  <span className="rl-w num">{u.pct(b.wt)}</span>
-                  <span className="rl-t tri num">asked {u.pct(b.target)}</span>
+              {mb.rows.map((r) => (
+                <button key={r.key} className={"rl-row" + (bOpen[r.key] ? " on" : "")}
+                  onClick={() => openSleeve(r.key)}>
+                  <i style={{ background: r.color }} />
+                  <span className="rl-n">{r.label}</span>
+                  <span className="rl-w num">{u.pct(r.wt)}</span>
+                  <span className="rl-t tri num">model {u.pct(r.target)}</span>
                 </button>
               ))}
             </div>
           </div>
 
-        <div className="buckets">
-          {bucketRows.map((b) => {
-            const sp = u.spread(b.items, null);
-            const open = !!bOpen[b.key];
-            const isAnchor = b.key === "engine";
-            return (
-              <div key={b.key} className="bk" id={"bk-" + b.key}>
-                <div className="bk-hd clickable" onClick={() => setBOpen({ ...bOpen, [b.key]: !open })}>
-                  <div className="bk-id">
-                    <i style={{ background: b.color }} />
-                    <div>
-                      <div className="bk-name">{b.label}</div>
-                      <div className="bk-role">
-                        {isAnchor
-                          ? "Asked for " + st.targetYield + "% · earning " + u.pct(lad.blended)
-                          : b.role + " · " + themeRows.filter((x) => x.count > 0).length + " themes held"}
+          <div className="buckets">
+            {mb.rows.map((r) => {
+              const open = !!bOpen[r.key];
+              return (
+                <div key={r.key} className="bk" id={"bk-" + r.key}>
+                  <div className="bk-hd clickable" onClick={() => setBOpen({ ...bOpen, [r.key]: !open })}>
+                    <div className="bk-id">
+                      <i style={{ background: r.color }} />
+                      <div>
+                        <div className="bk-name">{r.label}</div>
+                        <div className="bk-role">{r.role} · {r.band}</div>
                       </div>
                     </div>
+                    <div className="bk-num">
+                      <div className="num bk-wt">{u.pct(r.wt)}</div>
+                      <div className="tri num">{u.usdC(r.value)} · model {u.pct(r.target)}</div>
+                    </div>
                   </div>
-                  <div className="bk-num">
-                    <div className="num bk-wt">{u.pct(b.wt)}</div>
-                    <div className="tri num">{u.usdC(b.value)} · target {u.pct(b.target)}</div>
+                  <div className="bk-bar"><i style={{ width: Math.min(100, r.wt) + "%", background: r.color }} />
+                    <b style={{ left: Math.min(100, r.target) + "%" }} /></div>
+                  <div className="bk-ft">
+                    <span className="tri">{r.count} positions{r.groups.length > 1 ? " · " + r.groups.length + " groups" : ""}</span>
+                    <span className="tri">{u.pp(r.drift)} against the model</span>
+                    <span className="spacer" />
+                    <button className="link g" onClick={(e) => { e.stopPropagation(); setBOpen({ ...bOpen, [r.key]: !open }); }}>
+                      {open ? "Hide" : "What is inside"}
+                    </button>
                   </div>
-                </div>
-                <div className="bk-bar"><i style={{ width: Math.min(100, b.wt) + "%", background: b.color }} />
-                  <b style={{ left: Math.min(100, b.target) + "%" }} /></div>
-                <div className="bk-ft">
-                  <span className="tri">{b.count} positions · {sp.effective.toFixed(1)} effective holdings</span>
-                  <span className="tri">
-                    {sp.topGeo ? sp.topGeo.v + " " + u.pct(sp.topGeo.wt) : "—"}
-                    {sp.topSector ? " · " + sp.topSector.v + " " + u.pct(sp.topSector.wt) : ""}
-                  </span>
-                  <span className="spacer" />
-                  <button className="link g" onClick={(e) => { e.stopPropagation(); setBOpen({ ...bOpen, [b.key]: !open }); }}>
-                    {open ? "Hide" : isAnchor ? "Where it sits on the shelf" : "Which themes"}
-                  </button>
-                </div>
 
-                {/* the Anchor opens onto the shelf */}
-                {open && isAnchor && (
-                  <div className="bk-in">
-                    <table className="t dense">
-                      <thead><tr><th>Fund · named for its target</th><th>What it holds</th><th className="n">Positions</th>
-                        <th className="n">Of anchor</th><th className="n">Value</th></tr></thead>
-                      <tbody>
-                        {lad.rows.filter((f) => f.count > 0).map((f) => (
-                          <tr key={f.band}>
-                            <td>
-                              <span className="rung-n">{f.name}</span>
-                              <div className="tsub">{f.liq} · vol {u.pct(f.vol)}</div>
-                            </td>
-                            <td className="tsub">{f.inside}</td>
-                            <td className="n num tri">{f.count}</td>
-                            <td className="n num">{f.count ? u.pct(f.ofAnchor) : "—"}</td>
-                            <td className="n num">{f.count ? u.usd(f.value) : <span className="tri">nothing here</span>}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-
-                {/* Conviction opens onto the themes */}
-                {open && !isAnchor && (
-                  <div className="bk-in">
-                    <table className="t dense">
-                      <thead><tr><th>Exposure</th><th>Claim / structure</th><th className="n">Positions</th>
-                        <th className="n">Of conviction</th><th className="n">Of book</th><th className="n">Value</th></tr></thead>
-                      <tbody>
-                        {themeRows.filter((th) => th.count > 0 || th.picked).map((th) => (
-                          <tr key={th.key} className={th.count ? "" : "rung-muted"}>
-                            <td>
-                              <span style={{ display: "inline-flex", gap: 7, alignItems: "center" }}>
-                                <i className="sw" style={{ width: 8, height: 8, display: "inline-block", background: th.color }} />
-                                <span className="rung-n">{th.label}</span>
-                                {th.flagged && <span className="bdg plain" style={{ marginLeft: 2 }}>open question</span>}
-                              </span>
-                              <div className="tsub">{th.count ? (th.largest ? "largest · " + th.largest.name : "") : "picked, nothing held yet"}</div>
-                            </td>
-                            <td className="tsub">{th.claim}{th.candidates ? <div>{th.candidates}</div> : null}</td>
-                            <td className="n num tri">{th.count || "—"}</td>
-                            <td className="n num">{th.count ? u.pct(th.ofConviction) : "—"}</td>
-                            <td className="n num">{th.count ? u.pct(th.wt) : "—"}</td>
-                            <td className="n num">{th.count ? u.usd(th.value) : <span className="tri">—</span>}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
+                  {open && (
+                    <div className="bk-in">
+                      {r.groups.map((g) => (
+                        <div key={g.key} className="agroup">
+                          {r.groups.length > 1 && (
+                            <div className="ag-hd">
+                              <i style={{ background: g.color }} />
+                              <span className="ag-n">{g.label}</span>
+                              <span className="spacer" />
+                              <span className="num ag-w">{u.pct(g.wt)}</span>
+                              <span className="tri num">model {u.pct(g.target)}</span>
+                            </div>
+                          )}
+                          <table className="t dense">
+                            <thead><tr>
+                              <th>Line</th><th className="hide-narrow">Access</th>
+                              <th className="hide-narrow">Examples</th><th className="n">Yield / payoff</th>
+                              <th className="n">Held</th><th className="n">Model</th><th className="n">Value</th>
+                            </tr></thead>
+                            <tbody>
+                              {g.lines.map((l) => (
+                                <tr key={l.key} className={l.count ? "" : "rung-muted"}>
+                                  <td>
+                                    <span className="rung-n">{l.label}</span>
+                                    {l.offModel && <span className="bdg plain" style={{ marginLeft: 7 }}>off the model</span>}
+                                    <div className="tsub">{l.count} position{l.count === 1 ? "" : "s"}</div>
+                                  </td>
+                                  <td className="tsub hide-narrow">{l.access}</td>
+                                  <td className="tsub hide-narrow">{l.examples}</td>
+                                  <td className="n num tri">{l.payoff}</td>
+                                  <td className="n num">{u.pct(l.wt)}</td>
+                                  <td className="n num tri">{u.pct(l.target)}</td>
+                                  <td className="n num">{l.count ? u.usd(l.value) : <span className="tri">—</span>}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
 
         <QueryBar positions={positions} />
 
         <ModelPanel positions={positions} />
+
         {/* commitments already made: a calendar, not a liquidity problem —
             a call can be met from the credit facility or from a sale */}
         <div className="panel mt16" id="sec-calls">
@@ -5925,22 +6142,24 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   function ModelPanel({ positions }) {
     const st = S.useStore();
     const t = u.total(positions);
-    const [pctA, setPctA] = useState(st.anchorPct);
+    const [fp, setFp] = useState(st.frontierPct);
+    const pctA = 100 - fp;
     const [yld, setYld] = useState(st.targetYield);
     const floor = st.cashFloor;          /* fixed by the product, not by the family */
-    React.useEffect(() => { setPctA(st.anchorPct); setYld(st.targetYield); },
-      [st.anchorPct, st.targetYield]);
+    React.useEffect(() => { setFp(st.frontierPct); setYld(st.targetYield); },
+      [st.frontierPct, st.targetYield]);
     const [path, setPath] = useState(false);
     const [menu, setMenu] = useState(false);
 
-    const conv = 100 - pctA;
+    const conv = fp;
+    const mp = u.modelBook(positions, fp);
     const anchorValue = (pctA / 100) * t;
     const built = u.buildAnchor(anchorValue, yld, floor);
     const lad = u.anchorLadder(positions, null);
     const themeRows = u.byTheme(positions, st.themes);
     const bk = u.byBucket(positions, conv);
     const anchorRow = bk[0], convRow = bk[1];
-    const whatIf = pctA !== st.anchorPct || yld !== st.targetYield;
+    const whatIf = fp !== st.frontierPct || yld !== st.targetYield;
     const confirmed = st.activity.find((a) => a.kind === "Mandate");
 
     const THUMB = 16;
@@ -5954,44 +6173,49 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
             <div>
               <h3>How this book is built</h3>
               <div className="tri" style={{ fontSize: 11.5, marginTop: 2 }}>
-                Two settings. Conviction is whatever the anchor does not take.
+                Two settings. Core is whatever Frontier Growth does not take.
               </div>
             </div>
             <button className="btn sm" onClick={() => setPath(true)}>What to do about it</button>
           </div>
 
-          {/* 1 — how much of the net worth the anchor carries */}
+          {/* 1 — risk preference, which the model says moves Frontier Growth
+              inside a 10–20% band. Core is the remainder and splits itself. */}
           <div className="splitlever">
             <div className="sl-hd">
-              <div className="lbl">1 · In the anchor</div>
+              <div className="lbl">1 · Frontier Growth</div>
               <div className="sl-read">
-                <span className="sl-a num">{pctA}</span>
+                <span className="sl-a num" style={{ color: "#9A7B2E" }}>{fp}</span>
                 <span className="sl-sep">%</span>
               </div>
               <div className="sl-leg">
-                <span><i style={{ background: "#1B2A4A" }} />Anchor {u.usdC(anchorValue)}</span>
-                <span><i style={{ background: "#9A7B2E" }} />Conviction {u.usdC((conv / 100) * t)} · the rest</span>
+                <span><i style={{ background: "#1B2A4A" }} />Core {u.usdC(((100 - fp) / 100) * t)}</span>
+                <span><i style={{ background: "#9A7B2E" }} />Frontier {u.usdC((fp / 100) * t)}</span>
               </div>
             </div>
             <div className="sl-track">
               <div className="sl-chips">
-                {[50, 70, 80, 90, 100].map((v) => (
-                  <button key={v} onClick={() => setPctA(v)} className={pctA === v ? "on" : ""}
-                    title={v === 100 ? "No conviction sleeve at all" : v + " / " + (100 - v)}
-                    style={{ left: "calc(" + (((v - 40) / 60) * 100) + "% + " + ((0.5 - (v - 40) / 60) * THUMB).toFixed(1) + "px)" }}>
+                {[10, 12, 15, 17, 20].map((v) => (
+                  <button key={v} onClick={() => setFp(v)} className={fp === v ? "on" : ""}
+                    style={{ left: "calc(" + (((v - 10) / 10) * 100) + "% + " + ((0.5 - (v - 10) / 10) * THUMB).toFixed(1) + "px)" }}>
                     {v}%
                   </button>
                 ))}
               </div>
-              <input type="range" min="40" max="100" step="1" value={pctA}
-                onChange={(e) => setPctA(+e.target.value)} />
+              <input type="range" min="10" max="20" step="1" value={fp}
+                onChange={(e) => setFp(+e.target.value)} />
+            </div>
+            <div className="sl-inside tri">
+              Core takes the rest and splits itself by the published model for a book this size —
+              residence {u.pct(mp.groups[0].target)}, yield engines {u.pct(mp.groups[1].target)},
+              traditional {u.pct(mp.groups[2].target)}.
             </div>
           </div>
 
           {/* 2 — what the anchor is asked to earn */}
           <div className="splitlever">
             <div className="sl-hd">
-              <div className="lbl">2 · Target yield</div>
+              <div className="lbl">2 · Yield engines target</div>
               <div className="sl-read">
                 <span className="sl-a num" style={{ color: "#1B2A4A" }}>{yld.toFixed(1)}</span>
                 <span className="sl-sep">%</span>
@@ -6020,7 +6244,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 <span className="lbl">Always in cash</span>
                 <span className="ss-read num">{u.usdC(floor)}</span>
                 <span className="tri" style={{ fontSize: 11 }}>
-                  {u.pct(built.cashPct)} of the anchor at {u.pct(D.cashFund.yield)}
+                  {u.pct(built.cashPct)} of the yield engines at {u.pct(D.cashFund.yield)}
                 </span>
               </div>
               <span className="spacer" />
@@ -6028,19 +6252,19 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
             </div>
             <div className="sl-inside tri">
               Holding {u.usdC(floor)} at {u.pct(D.cashFund.yield)} means the other {u.usdC(built.rest)} has to
-              earn <b>{u.pct(built.needed)}</b> for the anchor to return {yld.toFixed(1)}%.
+              earn <b>{u.pct(built.needed)}</b> for the yield engines to return {yld.toFixed(1)}%.
               {!built.reachable && " That is past the top of the shelf — the basket is as high as it goes."}
             </div>
 
             {whatIf ? (
               <div className="lever-note warn">
                 <span style={{ flex: 1 }}>
-                  A what-if. The family holds <b>{st.anchorPct}%</b> in the anchor at <b>{st.targetYield}%</b>.
+                  A what-if. The family holds <b>{st.frontierPct}%</b> in Frontier Growth, with the yield engines at <b>{st.targetYield}%</b>.
                 </span>
                 <span className="btn-row">
-                  <button className="link g" onClick={() => { setPctA(st.anchorPct); setYld(st.targetYield); }}>Discard</button>
+                  <button className="link g" onClick={() => { setFp(st.frontierPct); setYld(st.targetYield); }}>Discard</button>
                   <button className="btn sm p" onClick={() => {
-                    S.actions.setAnchorPct(pctA); S.actions.setTargetYield(yld);
+                    S.actions.setFrontierPct(fp); S.actions.setTargetYield(yld);
                     S.actions.commitSplit();
                   }}>Adopt this</button>
                 </span>
@@ -6048,7 +6272,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
             ) : (
               <div className="lever-note">
                 <span style={{ flex: 1 }}>
-                  <b>{pctA}%</b> in the anchor at <b>{yld.toFixed(1)}%</b> · <b>{conv}%</b> conviction
+<b>{pctA}%</b> Core · <b>{fp}%</b> Frontier Growth · yield engines at <b>{yld.toFixed(1)}%</b>
                   {confirmed ? " · confirmed " + u.fmtDate(confirmed.ts) : ""}
                 </span>
                 <button className="link g" onClick={() => S.navigate("/onboarding/mandate")}>Refine with 8 questions</button>

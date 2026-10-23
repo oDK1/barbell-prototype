@@ -133,14 +133,12 @@
     const t = u.total(positions);
     const st = S.useStore();
     const [bOpen, setBOpen] = useState({});
-    const lad = u.anchorLadder(positions, null);
-    const themeRows = u.byTheme(positions, st.themes);
-    const bucketRows = u.byBucket(positions, 100 - st.anchorPct);
+    const mb = u.modelBook(positions, st.frontierPct);
     const [calls, setCalls] = useState(false);
-    /* Clicking a segment of the ring opens the bucket it stands for and takes
+    /* Clicking a segment of the ring opens the sleeve it stands for and takes
        you to it — the graphic is the way into the detail, not a decoration
        beside it. */
-    const openBucket = (k) => {
+    const openSleeve = (k) => {
       setBOpen({ ...bOpen, [k]: true });
       setTimeout(() => {
         const el = document.getElementById("bk-" + k);
@@ -150,126 +148,106 @@
 
     return (
       <>
-        {/* Organised by risk and return. Neither bucket opens onto an asset
-            class: the Anchor opens onto the shelf of funds it is spread
-            across, and Conviction opens onto the themes it is pointed at.
-            */}
+        {/* Core and Frontier Growth, with Core opening onto its three groups
+            and every group onto its lines. The model is published at three
+            family sizes; the targets here are interpolated for this one. */}
         <div className="allocsplit mt16">
           <div className="ringwrap">
-            <BookRing rows={bucketRows} total={t} onPick={openBucket}
+            <BookRing rows={mb.rows} total={t} onPick={openSleeve}
               active={Object.keys(bOpen).filter((k) => bOpen[k])[0] || null} />
             <div className="ringlegend">
-              {bucketRows.map((b) => (
-                <button key={b.key} className={"rl-row" + (bOpen[b.key] ? " on" : "")}
-                  onClick={() => openBucket(b.key)}>
-                  <i style={{ background: b.color }} />
-                  <span className="rl-n">{b.label}</span>
-                  <span className="rl-w num">{u.pct(b.wt)}</span>
-                  <span className="rl-t tri num">asked {u.pct(b.target)}</span>
+              {mb.rows.map((r) => (
+                <button key={r.key} className={"rl-row" + (bOpen[r.key] ? " on" : "")}
+                  onClick={() => openSleeve(r.key)}>
+                  <i style={{ background: r.color }} />
+                  <span className="rl-n">{r.label}</span>
+                  <span className="rl-w num">{u.pct(r.wt)}</span>
+                  <span className="rl-t tri num">model {u.pct(r.target)}</span>
                 </button>
               ))}
             </div>
           </div>
 
-        <div className="buckets">
-          {bucketRows.map((b) => {
-            const sp = u.spread(b.items, null);
-            const open = !!bOpen[b.key];
-            const isAnchor = b.key === "engine";
-            return (
-              <div key={b.key} className="bk" id={"bk-" + b.key}>
-                <div className="bk-hd clickable" onClick={() => setBOpen({ ...bOpen, [b.key]: !open })}>
-                  <div className="bk-id">
-                    <i style={{ background: b.color }} />
-                    <div>
-                      <div className="bk-name">{b.label}</div>
-                      <div className="bk-role">
-                        {isAnchor
-                          ? "Asked for " + st.targetYield + "% · earning " + u.pct(lad.blended)
-                          : b.role + " · " + themeRows.filter((x) => x.count > 0).length + " themes held"}
+          <div className="buckets">
+            {mb.rows.map((r) => {
+              const open = !!bOpen[r.key];
+              return (
+                <div key={r.key} className="bk" id={"bk-" + r.key}>
+                  <div className="bk-hd clickable" onClick={() => setBOpen({ ...bOpen, [r.key]: !open })}>
+                    <div className="bk-id">
+                      <i style={{ background: r.color }} />
+                      <div>
+                        <div className="bk-name">{r.label}</div>
+                        <div className="bk-role">{r.role} · {r.band}</div>
                       </div>
                     </div>
+                    <div className="bk-num">
+                      <div className="num bk-wt">{u.pct(r.wt)}</div>
+                      <div className="tri num">{u.usdC(r.value)} · model {u.pct(r.target)}</div>
+                    </div>
                   </div>
-                  <div className="bk-num">
-                    <div className="num bk-wt">{u.pct(b.wt)}</div>
-                    <div className="tri num">{u.usdC(b.value)} · target {u.pct(b.target)}</div>
+                  <div className="bk-bar"><i style={{ width: Math.min(100, r.wt) + "%", background: r.color }} />
+                    <b style={{ left: Math.min(100, r.target) + "%" }} /></div>
+                  <div className="bk-ft">
+                    <span className="tri">{r.count} positions{r.groups.length > 1 ? " · " + r.groups.length + " groups" : ""}</span>
+                    <span className="tri">{u.pp(r.drift)} against the model</span>
+                    <span className="spacer" />
+                    <button className="link g" onClick={(e) => { e.stopPropagation(); setBOpen({ ...bOpen, [r.key]: !open }); }}>
+                      {open ? "Hide" : "What is inside"}
+                    </button>
                   </div>
-                </div>
-                <div className="bk-bar"><i style={{ width: Math.min(100, b.wt) + "%", background: b.color }} />
-                  <b style={{ left: Math.min(100, b.target) + "%" }} /></div>
-                <div className="bk-ft">
-                  <span className="tri">{b.count} positions · {sp.effective.toFixed(1)} effective holdings</span>
-                  <span className="tri">
-                    {sp.topGeo ? sp.topGeo.v + " " + u.pct(sp.topGeo.wt) : "—"}
-                    {sp.topSector ? " · " + sp.topSector.v + " " + u.pct(sp.topSector.wt) : ""}
-                  </span>
-                  <span className="spacer" />
-                  <button className="link g" onClick={(e) => { e.stopPropagation(); setBOpen({ ...bOpen, [b.key]: !open }); }}>
-                    {open ? "Hide" : isAnchor ? "Where it sits on the shelf" : "Which themes"}
-                  </button>
-                </div>
 
-                {/* the Anchor opens onto the shelf */}
-                {open && isAnchor && (
-                  <div className="bk-in">
-                    <table className="t dense">
-                      <thead><tr><th>Fund · named for its target</th><th>What it holds</th><th className="n">Positions</th>
-                        <th className="n">Of anchor</th><th className="n">Value</th></tr></thead>
-                      <tbody>
-                        {lad.rows.filter((f) => f.count > 0).map((f) => (
-                          <tr key={f.band}>
-                            <td>
-                              <span className="rung-n">{f.name}</span>
-                              <div className="tsub">{f.liq} · vol {u.pct(f.vol)}</div>
-                            </td>
-                            <td className="tsub">{f.inside}</td>
-                            <td className="n num tri">{f.count}</td>
-                            <td className="n num">{f.count ? u.pct(f.ofAnchor) : "—"}</td>
-                            <td className="n num">{f.count ? u.usd(f.value) : <span className="tri">nothing here</span>}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-
-                {/* Conviction opens onto the themes */}
-                {open && !isAnchor && (
-                  <div className="bk-in">
-                    <table className="t dense">
-                      <thead><tr><th>Exposure</th><th>Claim / structure</th><th className="n">Positions</th>
-                        <th className="n">Of conviction</th><th className="n">Of book</th><th className="n">Value</th></tr></thead>
-                      <tbody>
-                        {themeRows.filter((th) => th.count > 0 || th.picked).map((th) => (
-                          <tr key={th.key} className={th.count ? "" : "rung-muted"}>
-                            <td>
-                              <span style={{ display: "inline-flex", gap: 7, alignItems: "center" }}>
-                                <i className="sw" style={{ width: 8, height: 8, display: "inline-block", background: th.color }} />
-                                <span className="rung-n">{th.label}</span>
-                                {th.flagged && <span className="bdg plain" style={{ marginLeft: 2 }}>open question</span>}
-                              </span>
-                              <div className="tsub">{th.count ? (th.largest ? "largest · " + th.largest.name : "") : "picked, nothing held yet"}</div>
-                            </td>
-                            <td className="tsub">{th.claim}{th.candidates ? <div>{th.candidates}</div> : null}</td>
-                            <td className="n num tri">{th.count || "—"}</td>
-                            <td className="n num">{th.count ? u.pct(th.ofConviction) : "—"}</td>
-                            <td className="n num">{th.count ? u.pct(th.wt) : "—"}</td>
-                            <td className="n num">{th.count ? u.usd(th.value) : <span className="tri">—</span>}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
+                  {open && (
+                    <div className="bk-in">
+                      {r.groups.map((g) => (
+                        <div key={g.key} className="agroup">
+                          {r.groups.length > 1 && (
+                            <div className="ag-hd">
+                              <i style={{ background: g.color }} />
+                              <span className="ag-n">{g.label}</span>
+                              <span className="spacer" />
+                              <span className="num ag-w">{u.pct(g.wt)}</span>
+                              <span className="tri num">model {u.pct(g.target)}</span>
+                            </div>
+                          )}
+                          <table className="t dense">
+                            <thead><tr>
+                              <th>Line</th><th className="hide-narrow">Access</th>
+                              <th className="hide-narrow">Examples</th><th className="n">Yield / payoff</th>
+                              <th className="n">Held</th><th className="n">Model</th><th className="n">Value</th>
+                            </tr></thead>
+                            <tbody>
+                              {g.lines.map((l) => (
+                                <tr key={l.key} className={l.count ? "" : "rung-muted"}>
+                                  <td>
+                                    <span className="rung-n">{l.label}</span>
+                                    {l.offModel && <span className="bdg plain" style={{ marginLeft: 7 }}>off the model</span>}
+                                    <div className="tsub">{l.count} position{l.count === 1 ? "" : "s"}</div>
+                                  </td>
+                                  <td className="tsub hide-narrow">{l.access}</td>
+                                  <td className="tsub hide-narrow">{l.examples}</td>
+                                  <td className="n num tri">{l.payoff}</td>
+                                  <td className="n num">{u.pct(l.wt)}</td>
+                                  <td className="n num tri">{u.pct(l.target)}</td>
+                                  <td className="n num">{l.count ? u.usd(l.value) : <span className="tri">—</span>}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
 
         <QueryBar positions={positions} />
 
         <ModelPanel positions={positions} />
+
         {/* commitments already made: a calendar, not a liquidity problem —
             a call can be met from the credit facility or from a sale */}
         <div className="panel mt16" id="sec-calls">
@@ -312,22 +290,24 @@
   function ModelPanel({ positions }) {
     const st = S.useStore();
     const t = u.total(positions);
-    const [pctA, setPctA] = useState(st.anchorPct);
+    const [fp, setFp] = useState(st.frontierPct);
+    const pctA = 100 - fp;
     const [yld, setYld] = useState(st.targetYield);
     const floor = st.cashFloor;          /* fixed by the product, not by the family */
-    React.useEffect(() => { setPctA(st.anchorPct); setYld(st.targetYield); },
-      [st.anchorPct, st.targetYield]);
+    React.useEffect(() => { setFp(st.frontierPct); setYld(st.targetYield); },
+      [st.frontierPct, st.targetYield]);
     const [path, setPath] = useState(false);
     const [menu, setMenu] = useState(false);
 
-    const conv = 100 - pctA;
+    const conv = fp;
+    const mp = u.modelBook(positions, fp);
     const anchorValue = (pctA / 100) * t;
     const built = u.buildAnchor(anchorValue, yld, floor);
     const lad = u.anchorLadder(positions, null);
     const themeRows = u.byTheme(positions, st.themes);
     const bk = u.byBucket(positions, conv);
     const anchorRow = bk[0], convRow = bk[1];
-    const whatIf = pctA !== st.anchorPct || yld !== st.targetYield;
+    const whatIf = fp !== st.frontierPct || yld !== st.targetYield;
     const confirmed = st.activity.find((a) => a.kind === "Mandate");
 
     const THUMB = 16;
@@ -341,44 +321,49 @@
             <div>
               <h3>How this book is built</h3>
               <div className="tri" style={{ fontSize: 11.5, marginTop: 2 }}>
-                Two settings. Conviction is whatever the anchor does not take.
+                Two settings. Core is whatever Frontier Growth does not take.
               </div>
             </div>
             <button className="btn sm" onClick={() => setPath(true)}>What to do about it</button>
           </div>
 
-          {/* 1 — how much of the net worth the anchor carries */}
+          {/* 1 — risk preference, which the model says moves Frontier Growth
+              inside a 10–20% band. Core is the remainder and splits itself. */}
           <div className="splitlever">
             <div className="sl-hd">
-              <div className="lbl">1 · In the anchor</div>
+              <div className="lbl">1 · Frontier Growth</div>
               <div className="sl-read">
-                <span className="sl-a num">{pctA}</span>
+                <span className="sl-a num" style={{ color: "#9A7B2E" }}>{fp}</span>
                 <span className="sl-sep">%</span>
               </div>
               <div className="sl-leg">
-                <span><i style={{ background: "#1B2A4A" }} />Anchor {u.usdC(anchorValue)}</span>
-                <span><i style={{ background: "#9A7B2E" }} />Conviction {u.usdC((conv / 100) * t)} · the rest</span>
+                <span><i style={{ background: "#1B2A4A" }} />Core {u.usdC(((100 - fp) / 100) * t)}</span>
+                <span><i style={{ background: "#9A7B2E" }} />Frontier {u.usdC((fp / 100) * t)}</span>
               </div>
             </div>
             <div className="sl-track">
               <div className="sl-chips">
-                {[50, 70, 80, 90, 100].map((v) => (
-                  <button key={v} onClick={() => setPctA(v)} className={pctA === v ? "on" : ""}
-                    title={v === 100 ? "No conviction sleeve at all" : v + " / " + (100 - v)}
-                    style={{ left: "calc(" + (((v - 40) / 60) * 100) + "% + " + ((0.5 - (v - 40) / 60) * THUMB).toFixed(1) + "px)" }}>
+                {[10, 12, 15, 17, 20].map((v) => (
+                  <button key={v} onClick={() => setFp(v)} className={fp === v ? "on" : ""}
+                    style={{ left: "calc(" + (((v - 10) / 10) * 100) + "% + " + ((0.5 - (v - 10) / 10) * THUMB).toFixed(1) + "px)" }}>
                     {v}%
                   </button>
                 ))}
               </div>
-              <input type="range" min="40" max="100" step="1" value={pctA}
-                onChange={(e) => setPctA(+e.target.value)} />
+              <input type="range" min="10" max="20" step="1" value={fp}
+                onChange={(e) => setFp(+e.target.value)} />
+            </div>
+            <div className="sl-inside tri">
+              Core takes the rest and splits itself by the published model for a book this size —
+              residence {u.pct(mp.groups[0].target)}, yield engines {u.pct(mp.groups[1].target)},
+              traditional {u.pct(mp.groups[2].target)}.
             </div>
           </div>
 
           {/* 2 — what the anchor is asked to earn */}
           <div className="splitlever">
             <div className="sl-hd">
-              <div className="lbl">2 · Target yield</div>
+              <div className="lbl">2 · Yield engines target</div>
               <div className="sl-read">
                 <span className="sl-a num" style={{ color: "#1B2A4A" }}>{yld.toFixed(1)}</span>
                 <span className="sl-sep">%</span>
@@ -407,7 +392,7 @@
                 <span className="lbl">Always in cash</span>
                 <span className="ss-read num">{u.usdC(floor)}</span>
                 <span className="tri" style={{ fontSize: 11 }}>
-                  {u.pct(built.cashPct)} of the anchor at {u.pct(D.cashFund.yield)}
+                  {u.pct(built.cashPct)} of the yield engines at {u.pct(D.cashFund.yield)}
                 </span>
               </div>
               <span className="spacer" />
@@ -415,19 +400,19 @@
             </div>
             <div className="sl-inside tri">
               Holding {u.usdC(floor)} at {u.pct(D.cashFund.yield)} means the other {u.usdC(built.rest)} has to
-              earn <b>{u.pct(built.needed)}</b> for the anchor to return {yld.toFixed(1)}%.
+              earn <b>{u.pct(built.needed)}</b> for the yield engines to return {yld.toFixed(1)}%.
               {!built.reachable && " That is past the top of the shelf — the basket is as high as it goes."}
             </div>
 
             {whatIf ? (
               <div className="lever-note warn">
                 <span style={{ flex: 1 }}>
-                  A what-if. The family holds <b>{st.anchorPct}%</b> in the anchor at <b>{st.targetYield}%</b>.
+                  A what-if. The family holds <b>{st.frontierPct}%</b> in Frontier Growth, with the yield engines at <b>{st.targetYield}%</b>.
                 </span>
                 <span className="btn-row">
-                  <button className="link g" onClick={() => { setPctA(st.anchorPct); setYld(st.targetYield); }}>Discard</button>
+                  <button className="link g" onClick={() => { setFp(st.frontierPct); setYld(st.targetYield); }}>Discard</button>
                   <button className="btn sm p" onClick={() => {
-                    S.actions.setAnchorPct(pctA); S.actions.setTargetYield(yld);
+                    S.actions.setFrontierPct(fp); S.actions.setTargetYield(yld);
                     S.actions.commitSplit();
                   }}>Adopt this</button>
                 </span>
@@ -435,7 +420,7 @@
             ) : (
               <div className="lever-note">
                 <span style={{ flex: 1 }}>
-                  <b>{pctA}%</b> in the anchor at <b>{yld.toFixed(1)}%</b> · <b>{conv}%</b> conviction
+<b>{pctA}%</b> Core · <b>{fp}%</b> Frontier Growth · yield engines at <b>{yld.toFixed(1)}%</b>
                   {confirmed ? " · confirmed " + u.fmtDate(confirmed.ts) : ""}
                 </span>
                 <button className="link g" onClick={() => S.navigate("/onboarding/mandate")}>Refine with 8 questions</button>

@@ -573,8 +573,8 @@ table.t td.val .krw{font-weight:400}
 .btn.harvest:hover{background:var(--amber);border-color:var(--amber);color:#fff}
 
 /* ---------- risk / return buckets ---------- */
-.buckets{display:grid;gap:12px}
-.bk{border:1px solid var(--g3);background:var(--paper);border-left:3px solid var(--g3)}
+.buckets{display:grid;gap:12px;min-width:0}
+.bk{border:1px solid var(--g3);background:var(--paper);border-left:3px solid var(--g3);min-width:0}
 .bk:nth-child(1){border-left-color:#1B2A4A}
 .bk:nth-child(2){border-left-color:#9A7B2E}
 .bk-hd{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:13px 15px 9px;cursor:pointer}
@@ -590,7 +590,7 @@ table.t td.val .krw{font-weight:400}
 .bk-bar>b{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink)}
 .bk-ft{display:flex;align-items:center;gap:14px;padding:8px 15px 11px;font-size:11px}
 .bk-ft .spacer{flex:1}
-.bk-in{border-top:1px solid var(--g3)}
+.bk-in{overflow-x:auto;border-top:1px solid var(--g3)}
 .improve{padding:11px 15px;border-top:1px solid var(--g4)}
 .imp-t{font-size:12.5px;font-weight:600;color:var(--ink)}
 .imp-d{font-size:11.5px;color:var(--g1);line-height:1.55;margin-top:3px;max-width:90ch}
@@ -755,7 +755,8 @@ tr.rung-cash td{background:#FCFBF8}
 /* ---- the book as a ring ------------------------------------------------
    The ring sits beside the two bucket cards rather than above them, so the
    same two numbers are drawn once and listed once. */
-.allocsplit{display:grid;grid-template-columns:300px 1fr;gap:16px;align-items:start}
+.allocsplit{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:16px;align-items:start}
+.allocsplit>*{min-width:0}
 .ringwrap{border:1px solid var(--g3);background:var(--paper);padding:14px}
 .bookring{width:100%;max-width:260px;height:auto;display:block;margin:0 auto}
 .ringlegend{margin-top:10px;border-top:1px solid var(--g3);padding-top:10px}
@@ -764,7 +765,7 @@ tr.rung-cash td{background:#FCFBF8}
 .rl-n{font-weight:600;flex:1}
 .rl-w{font-weight:600}
 .rl-t{font-size:11px}
-@media (max-width:960px){ .allocsplit{grid-template-columns:1fr} .bookring{max-width:210px} }
+@media (max-width:960px){ .allocsplit{grid-template-columns:minmax(0,1fr)} .bookring{max-width:210px} }
 
 /* The legend doubles as the ring's controls, so it is made of buttons. */
 .rl-row{width:100%;text-align:left;background:none;border:0;border-left:2px solid transparent;
@@ -777,3 +778,20 @@ tr.rung-cash td{background:#FCFBF8}
 .th-sub{font-size:11px;color:var(--g2);margin-top:-2px}
 .th-claim{font-size:10.5px;color:var(--g1);margin-top:3px;padding-top:5px;border-top:1px solid var(--g3);line-height:1.45}
 .th-claim b{font-weight:600;color:var(--ink-2)}
+
+/* A group inside a sleeve: Core opens onto three of these, Frontier onto one. */
+.agroup{min-width:0}
+.agroup + .agroup{margin-top:14px;padding-top:12px;border-top:1px solid var(--g3)}
+.ag-hd{display:flex;align-items:baseline;gap:8px;padding:0 0 7px;font-size:12px}
+.ag-hd i{width:9px;height:9px;display:inline-block;position:relative;top:1px;flex-shrink:0}
+.ag-hd .spacer{flex:1}
+.ag-n{font-weight:600}
+.ag-w{font-weight:600}
+
+/* A group inside a sleeve: Core opens onto three of these, Frontier onto one. */
+.agroup + .agroup{margin-top:14px;padding-top:12px;border-top:1px solid var(--g3)}
+.ag-hd{display:flex;align-items:baseline;gap:8px;padding:0 0 7px;font-size:12px}
+.ag-hd i{width:9px;height:9px;display:inline-block;position:relative;top:1px;flex-shrink:0}
+.ag-hd .spacer{flex:1}
+.ag-n{font-weight:600}
+.ag-w{font-weight:600}

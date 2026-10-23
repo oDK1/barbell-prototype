@@ -36,6 +36,10 @@
        for it. `cashFloor` is fixed at $1M by the product, not chosen by the family.
        Nothing is locked any more, so it is not about being able to raise
        cash — it is about not having to sell into the bid to meet a call. */
+    /* Risk preference moves Frontier Growth inside its 10–20% band; Core is
+       whatever is left, split across residence, yield engines and traditional
+       by the published model for a family this size. */
+    frontierPct: 15,
     anchorPct: 90,
     targetYield: D.RISK_BASE.band,
     cashFloor: 1000000,
@@ -159,6 +163,14 @@
        the remainder — it is never set directly. */
     setAnchorPct(v) {
       state.anchorPct = Math.max(40, Math.min(100, Math.round(v)));
+      syncPosture();
+      emit();
+    },
+
+    /* The one lever on the shape of the book. */
+    setFrontierPct(v) {
+      state.frontierPct = Math.max(10, Math.min(20, Math.round(v)));
+      state.anchorPct = 100 - state.frontierPct;
       syncPosture();
       emit();
     },

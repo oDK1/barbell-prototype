@@ -108,6 +108,73 @@
   function realizedYTD(ps) { return sum(ps, (p) => p.realizedYTD || 0); }
 
   /* 90-day liquidity: cash equivalents plus anything redeemable inside the window. */
+  /* ------------------------------------------------ the model portfolio ----
+     Targets are published at $10M, $100M and $1B. Anything between is
+     interpolated on log AUM, so a $300M family sits where it should rather
+     than snapping to the nearest published column. */
+  function tierPct(tiers, aum) {
+    const m = Math.max(10, Math.min(1000, aum / 1e6));
+    const x = Math.log10(m);                       /* 1 → $10M, 3 → $1B */
+    const lo = x < 2 ? 10 : 100, hi = x < 2 ? 100 : 1000;
+    const f = x < 2 ? x - 1 : x - 2;
+    return tiers[lo] * (1 - f) + tiers[hi] * f;
+  }
+
+  /* Held and modelled, one row per line, nested into groups and sleeves.
+     `tilt` scales Frontier to whatever the family has chosen inside the
+     10–20% band and takes the difference out of Core proportionally, so the
+     published shape bends without ever ceasing to sum to 100. */
+  function modelBook(ps, frontierPct) {
+    const t = total(ps);
+    const fp = frontierPct === undefined || frontierPct === null ? tierPct({ 10: 10, 100: 15, 1000: 20 }, t) : frontierPct;
+    const base = {};
+    D.allocLines.forEach((l) => { base[l.key] = tierPct(l.tiers, t); });
+    const baseFrontier = D.allocLines.filter((l) => l.group === "frontier")
+      .reduce((a, l) => a + base[l.key], 0);
+    const fScale = baseFrontier ? fp / baseFrontier : 0;
+    const cScale = (100 - baseFrontier) ? (100 - fp) / (100 - baseFrontier) : 0;
+
+    const lines = D.allocLines.map((l) => {
+      const items = ps.filter((p) => p.line === l.key);
+      const v = total(items);
+      const target = base[l.key] * (l.group === "frontier" ? fScale : cScale);
+      const wt = t ? (v / t) * 100 : 0;
+      return { ...l, items, value: v, count: items.length, wt, target, drift: wt - target,
+        unrealized: unrealized(items) };
+    });
+
+    const groups = D.allocGroups.map((g) => {
+      const kids = lines.filter((l) => l.group === g.key);
+      const value = kids.reduce((a, l) => a + l.value, 0);
+      const target = kids.reduce((a, l) => a + l.target, 0);
+      const wt = t ? (value / t) * 100 : 0;
+      return { ...g, lines: kids, value, target, wt, drift: wt - target,
+        count: kids.reduce((a, l) => a + l.count, 0) };
+    });
+
+    const rows = D.sleeves.map((sl) => {
+      const kids = groups.filter((g) => g.sleeve === sl.key);
+      const value = kids.reduce((a, g) => a + g.value, 0);
+      const target = kids.reduce((a, g) => a + g.target, 0);
+      const wt = t ? (value / t) * 100 : 0;
+      return { ...sl, groups: kids, value, target, wt, drift: wt - target,
+        count: kids.reduce((a, g) => a + g.count, 0),
+        items: ps.filter((p) => kids.some((g) => g.lines.some((l) => l.key === p.line))) };
+    });
+
+    return { total: t, frontierPct: fp, lines, groups, rows };
+  }
+
+  function lineOf(p) { return D.allocLines.find((l) => l.key === p.line) || null; }
+  function groupOf(p) {
+    const l = lineOf(p);
+    return l ? D.allocGroups.find((g) => g.key === l.group) || null : null;
+  }
+  function sleeveOf(p) {
+    const g = groupOf(p);
+    return g ? D.sleeves.find((s) => s.key === g.sleeve) || null : null;
+  }
+
   /* ------------------------------------------------------------- the mark ---
      Everything trades, so everything has a price. A position on the platform
      is marked by the market — an exchange if it has a ticker, the board if it
@@ -989,7 +1056,7 @@
   BB.u = {
     usd, usdC, krwC, krwFull, pct, pp, sgn, sgnUsd, num, localPx, days, fmtDate, fmtTs, monthKey, monthLabel,
     staleness, provLabel, sum, total, byClass, bySub, gaps, unrealized, realizedYTD,
-    isListed, markSource, marked, advanceOf, borrowingPower, exitValue, exitToday, raiseCost, liquidityProjection, shortfall, coverage, projectMix,
+    tierPct, modelBook, lineOf, groupOf, sleeveOf, isListed, markSource, marked, advanceOf, borrowingPower, exitValue, exitToday, raiseCost, liquidityProjection, shortfall, coverage, projectMix,
     modelSix, convPct, bySix, sixToFour, sixToSubs, pickForClass, holdingsSix, geoBucket, GEO_BUCKETS, listingDocs, listingView, currentIRR, tradeHistory, impactSix, impactBucket, modelClassOf, modelClassLabel, bucketOf, bucketLabel, byBucket, spread, engineDrag, posReturn, rungOf, bucketKeyOf, inBucket, splitForBand, modelFour, buildAnchor, anchorLadder, offerBucket, offerRung, offerTheme, offerPlace, byTheme, SUB_RETURN, topHoldings, affiliateExposure, taxLots, eligibility,
     fitFor, subLabel, clsLabel, clsOf, impact, modelWeights, marketContext, scoreFor, suggestAmount,
   };

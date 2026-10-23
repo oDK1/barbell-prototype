@@ -838,3 +838,7 @@ tr.rung-cash td{background:#FCFBF8}
   font-size:10.5px;font-weight:500;color:var(--g1);cursor:pointer;border-radius:var(--r)}
 .inp .chip.on{background:var(--ink);border-color:var(--ink);color:#fff;font-weight:600}
 @media (max-width:760px){ .shift{border-right:0;border-bottom:1px solid var(--g3)} }
+/* size, as a variable on the model rather than a fact about the family */
+.aumrail{display:flex;align-items:center;gap:12px;margin-top:14px;padding-top:12px;border-top:1px solid var(--g3)}
+.aumrail .aumval{font-size:15px;font-weight:600;letter-spacing:-.02em;min-width:52px;text-align:right}
+.tier-hd .link{font-size:11px}

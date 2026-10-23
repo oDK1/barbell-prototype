@@ -176,7 +176,7 @@
 
     /* The one lever on the shape of the book. */
     setFrontierPct(v) {
-      state.frontierPct = Math.max(10, Math.min(20, Math.round(v)));
+      state.frontierPct = Math.max(0, Math.min(20, Math.round(v)));
       state.anchorPct = 100 - state.frontierPct;
       syncPosture();
       emit();

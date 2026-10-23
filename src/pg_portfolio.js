@@ -329,11 +329,20 @@
     const t = u.total(positions);
     const [fp, setFp] = useState(st.frontierPct);
     const [yrs, setYrs] = useState(st.cashYears);
+    /* size is a what-if, not a saved setting: the cards above always measure
+       the real book, and this lets the model be read at another scale */
+    const [aumM, setAumM] = useState(u.total(positions) / 1e6);
     React.useEffect(() => { setFp(st.frontierPct); setYrs(st.cashYears); }, [st.frontierPct, st.cashYears]);
     const [path, setPath] = useState(false);
 
     const mb = u.modelBook(positions, fp);
-    const mine = u.tierShape(t / 1e6, fp);
+    const mine = u.tierShape(aumM, fp);
+    const atToday = Math.abs(aumM - t / 1e6) < 0.5;
+    const aumVal = aumM * 1e6;
+    /* log rail: 0 at $10M, 1 at $1B */
+    const aPos = (m) => (Math.log10(Math.max(10, Math.min(1000, m))) - 1) / 2;
+    const aFrom = (v) => Math.pow(10, 1 + v * 2);
+    const shortM = (m) => m >= 1000 ? "$" + (m / 1000).toFixed(m % 1000 ? 1 : 0) + "B" : "$" + Math.round(m) + "M";
     const tiers = [10, 100, 1000].map((m) => ({
       m, label: m === 1000 ? "$1B family" : "$" + m + "M family",
       shape: u.tierShape(m, null), published: D.tierYield[m],
@@ -360,7 +369,7 @@
     /* 02 · cash needs — living cash sized in years of spending */
     const annualSpend = D.liquidityAssumptions.monthlySpend * 12;
     const livingCash = yrs * annualSpend;
-    const treasTarget = (mine.lines.ttreas / 100) * t;
+    const treasTarget = (mine.lines.ttreas / 100) * aumVal;
 
     /* 03 · existing assets — concentration the family already carries */
     const aff = u.affiliateExposure(positions);
@@ -394,12 +403,32 @@
             ))}
             <div className="tier mine">
               <div className="tier-hd">
-                <span className="tier-n">This family · {u.usdC(t)}</span>
+                <span className="tier-n">
+                  {atToday ? "This family · " + u.usdC(t) : "Modelled at " + shortM(aumM)}
+                </span>
+                {!atToday && <button className="link g" onClick={() => setAumM(t / 1e6)}>Back to today</button>}
                 <span className="spacer" />
                 <span className="tri">Portfolio yield {u.pct(mine.yieldPct)} of net worth</span>
               </div>
               <TierBar groups={mine.groups} />
             </div>
+            <div className="aumrail">
+              <span className="lbl">Size</span>
+              <div className="sl-track" style={{ flex: 1, padding: "0 8px" }}>
+                <div className="sl-chips">
+                  {[10, 100, 1000].map((m) => (
+                    <button key={m} onClick={() => setAumM(m)} className={Math.abs(aumM - m) < 0.5 ? "on" : ""}
+                      style={{ left: "calc(" + (aPos(m) * 100) + "% + " + ((0.5 - aPos(m)) * 16).toFixed(1) + "px)" }}>
+                      {shortM(m)}
+                    </button>
+                  ))}
+                </div>
+                <input type="range" min="0" max="1000" step="1" value={Math.round(aPos(aumM) * 1000)}
+                  onChange={(e) => setAumM(aFrom(+e.target.value / 1000))} />
+              </div>
+              <span className="num aumval">{shortM(aumM)}</span>
+            </div>
+
             <div className="tierlegend">
               {D.allocGroups.map((g) => (
                 <span key={g.key}><i style={{ background: g.color }} />{g.label}</span>
@@ -421,13 +450,18 @@
           <div className="inputs">
             <div className="inp">
               <div className="inp-n"><b>01</b> Risk preference</div>
-              <div className="inp-d">Moves Frontier Growth within 10–20% of net worth.</div>
+              <div className="inp-d">Moves Frontier Growth between 0% and 20% of net worth.</div>
               <div className="inp-read">
                 <span className="num" style={{ color: "#9A7B2E" }}>{fp}%</span>
-                <span className="tri">frontier · {u.usdC((fp / 100) * t)}</span>
+                <span className="tri">frontier · {u.usdC((fp / 100) * aumVal)}</span>
               </div>
+              {fp < 10 && (
+                <div className="inp-foot tri">
+                  The model starts at 10%. Below that the barbell stops being one and the book is all core.
+                </div>
+              )}
               <div className="sl-track" style={{ padding: 0 }}>
-                <input type="range" min="10" max="20" step="1" value={fp}
+                <input type="range" min="0" max="20" step="1" value={fp}
                   onChange={(e) => setFp(+e.target.value)} />
               </div>
             </div>
@@ -440,7 +474,7 @@
               </div>
               <div className="inp-read">
                 <span className="num">{yrs} {yrs === 1 ? "year" : "years"}</span>
-                <span className="tri">{u.usdC(livingCash)} · spending {u.pct((annualSpend / t) * 100)} a year</span>
+                <span className="tri">{u.usdC(livingCash)} · spending {u.pct((annualSpend / aumVal) * 100)} a year</span>
               </div>
               <div className="btn-row">
                 {[1, 2, 3, 4].map((v) => (

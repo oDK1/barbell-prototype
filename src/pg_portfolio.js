@@ -98,21 +98,24 @@
       a = a1;
       return { ...r, a0, a1 };
     });
-    /* the asked-for boundary, measured round the same circle */
-    const markAt = (rows[0].target / 100) * Math.PI * 2;
+    /* the Core / Frontier boundary the model asks for, measured round the
+       same circle — drawn only when the book has actually drifted off it */
+    const coreTarget = rows.filter((r) => r.sleeve === "core").reduce((a, r) => a + r.target, 0);
+    const coreHeld = rows.filter((r) => r.sleeve === "core").reduce((a, r) => a + r.wt, 0);
+    const markAt = (coreTarget / 100) * Math.PI * 2;
     const [mx0, my0] = pt(RI - 6, markAt), [mx1, my1] = pt(RO + 6, markAt);
-    const drifted = Math.abs(rows[0].drift) > 0.5;
+    const drifted = Math.abs(coreHeld - coreTarget) > 0.5;
 
     return (
       <svg viewBox="0 0 300 300" className="bookring" role="img"
         aria-label={"Book split: " + rows.map((r) => r.label + " " + u.pct(r.wt)).join(", ")}>
         {segs.map((r) => {
-          const on = active === r.key, dim = active && !on;
+          const on = active === r.sleeve, dim = active && !on;
           return (
             <path key={r.key} d={arc(on ? RI - 5 : RI, on ? RO + 5 : RO, r.a0, r.a1)}
               fill={r.color} stroke="var(--paper)" strokeWidth="2"
               opacity={dim ? .42 : 1} style={{ cursor: "pointer" }}
-              onClick={() => onPick(r.key)}>
+              onClick={() => onPick(r.sleeve)}>
               <title>{r.label + " · " + u.pct(r.wt) + " · " + u.usdC(r.value) + " — click to open"}</title>
             </path>
           );
@@ -155,18 +158,23 @@
             family sizes; the targets here are interpolated for this one. */}
         <div className="allocsplit mt16">
           <div className="ringwrap">
-            <BookRing rows={mb.rows} total={t} onPick={openSleeve}
+            {/* the four segments the model is drawn in: the residence, the
+                two Core groups behind it, and Frontier Growth */}
+            <BookRing rows={mb.groups} total={t} onPick={openSleeve}
               active={Object.keys(bOpen).filter((k) => bOpen[k])[0] || null} />
             <div className="ringlegend">
-              {mb.rows.map((r) => (
-                <button key={r.key} className={"rl-row" + (bOpen[r.key] ? " on" : "")}
-                  onClick={() => openSleeve(r.key)}>
-                  <i style={{ background: r.color }} />
-                  <span className="rl-n">{r.label}</span>
-                  <span className="rl-w num">{u.pct(r.wt)}</span>
-                  <span className="rl-t tri num">model {u.pct(r.target)}</span>
+              {mb.groups.map((g) => (
+                <button key={g.key} className={"rl-row" + (bOpen[g.sleeve] ? " on" : "")}
+                  onClick={() => openSleeve(g.sleeve)}>
+                  <i style={{ background: g.color }} />
+                  <span className="rl-n">{g.label}</span>
+                  <span className="rl-w num">{u.pct(g.wt)}</span>
+                  <span className="rl-t tri num">model {u.pct(g.target)}</span>
                 </button>
               ))}
+              <div className="rl-sum tri">
+                Core {u.pct(mb.rows[0].wt)} · Frontier Growth {u.pct(mb.rows[1].wt)}
+              </div>
             </div>
           </div>
 

@@ -243,8 +243,8 @@
             {/* the buying surface answers to the same two buckets as
                 the portfolio. The six classes stay one level down. */}
             <Panel title="Allocation context">
-              {/* the same sleeves and groups the portfolio is drawn in */}
-              {u.modelBook(st.positions, st.frontierPct).groups.map((b) => (
+              {/* the two sleeves, which is as much as a buying decision needs */}
+              {u.modelBook(st.positions, st.frontierPct).rows.map((b) => (
                 <div key={b.key} className="mkb">
                   <div className="mkb-hd">
                     <i style={{ background: b.color }} />

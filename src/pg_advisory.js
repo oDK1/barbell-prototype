@@ -81,16 +81,32 @@
           <div>
             <div className="eyebrow">Advisory</div>
             <h1 className="mt8">Analysis and advice</h1>
+            <div className="sub mt8" style={{ maxWidth: "78ch" }}>
+              Two layers. The agent reads the whole book and costs nothing. A specialist reads the part you
+              ask about, charges for it, and has done the thing before.
+            </div>
           </div>
         </div>
 
-        {/* ---- AI: risk review and lenses ---- */}
-        <div className="panel mt16">
+        {/* ---- 01 · the agent ---- */}
+        <div className="advsec mt16">
+          <span className="as-n">01</span>
+          <div>
+            <div className="as-t">AI agent analysis</div>
+            <div className="as-d">
+              Reads all {ps.length} positions as they stand, in seconds and at no charge. It surfaces what is
+              there — concentration, exposure, the risk nobody asked about — and never decides anything.
+            </div>
+          </div>
+        </div>
+
+        <div className="panel">
           <div className="panel-hd">
             <div>
               <h3>Read this book another way</h3>
               <div className="tri" style={{ fontSize: 11.5, marginTop: 2 }}>
-                Modelled approaches, not quotations. Nobody named has seen this portfolio.
+                Three lenses over the same positions. Modelled approaches, not quotations — nobody named has
+                seen this portfolio.
               </div>
             </div>
             <BB.ui.Seg options={LENSES.map((x) => ({ v: x.key, label: x.who }))} value={lens} onChange={setLens} />
@@ -106,13 +122,26 @@
           </div>
         </div>
 
-        {/* ---- Paid human consults. A request, not a live booking. ---- */}
-        <div className="panel mt16">
+        {/* ---- 02 · the humans ---- */}
+        <div className="advsec mt16">
+          <span className="as-n">02</span>
+          <div>
+            <div className="as-t">Talk to a specialist</div>
+            <div className="as-d">
+              For the questions analysis cannot close: whether a security package is as good as it reads,
+              whether a round is priced sensibly, what a regime change would actually do. A person, paid by
+              the consult, with no authority over the account.
+            </div>
+          </div>
+        </div>
+
+        {/* a request, not a live booking */}
+        <div className="panel">
           <div className="panel-hd">
             <div>
-              <h3>Talk to a specialist</h3>
+              <h3>Hanwha desks</h3>
               <div className="tri" style={{ fontSize: 11.5, marginTop: 2 }}>
-                Hanwha desks, booked by the hour. Pricing illustrative.
+                Booked by the consult. Pricing illustrative.
               </div>
             </div>
             <span className="tri" style={{ fontSize: 11 }}>$100 per consult · illustrative</span>
@@ -161,7 +190,7 @@
 
         <AgentBar label="Advisory Agent">
           <div className="search" style={{ flex: 1 }}>
-            <input type="text" placeholder="Ask: what is my black-swan exposure? · what am I not seeing?"
+            <input type="text" placeholder="Ask the agent: what is my black-swan exposure? · what am I not seeing?"
               onKeyDown={(e) => e.key === "Enter" && S.toast("The lenses above answer this in the prototype.")} />
           </div>
           <button className="btn sm" onClick={() => S.toast("The lenses above answer this in the prototype.")}>Ask</button>

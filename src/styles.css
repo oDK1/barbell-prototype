@@ -828,3 +828,10 @@ tr.rung-cash td{background:#FCFBF8}
 .lv-ft{font-size:11px;line-height:1.5;margin-top:8px}
 .tier.mine{margin-top:0}
 @media (max-width:760px){ .levers2{grid-template-columns:1fr} }
+
+/* The two advisory layers, each announced before the panel that is it. */
+.advsec{display:flex;gap:12px;align-items:flex-start;padding:0 0 10px;border-bottom:1px solid var(--g3);margin-bottom:12px}
+.as-n{font-size:11px;font-weight:600;letter-spacing:.08em;color:var(--gold);
+  padding-top:2px;flex-shrink:0}
+.as-t{font-size:14px;font-weight:600;letter-spacing:-.01em}
+.as-d{font-size:11.5px;color:var(--g1);line-height:1.6;margin-top:3px;max-width:82ch}

@@ -795,3 +795,8 @@ tr.rung-cash td{background:#FCFBF8}
 .ag-hd .spacer{flex:1}
 .ag-n{font-weight:600}
 .ag-w{font-weight:600}
+
+/* Liquidity depth: how much clears at the mark, not when it clears. */
+.depth{display:inline-flex;align-items:center;gap:6px;font-size:10px;letter-spacing:.06em;
+  text-transform:uppercase;font-weight:600;padding:2px 8px;border:1px solid;border-radius:var(--r);background:var(--paper)}
+.depth i{width:6px;height:6px;border-radius:50%;display:inline-block}

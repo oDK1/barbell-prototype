@@ -510,6 +510,46 @@
   const cashFund = { name: "Cash reserve", yield: 3.8, liq: "Immediate", vol: 0.4,
     inside: "Money market funds, T-bills and bank deposits." };
 
+  /* ================================================== liquidity depth
+     Everything settles the same day, so when a thing can be sold is the same
+     answer everywhere and not worth a column. How much of it can be sold is
+     not. Depth is the size that clears at the mark before the price starts
+     moving, and it is the constraint that actually binds: it is why a
+     market-making vault that works at $6M does not work at $60M, and why a
+     pre-IPO block is a different kind of asset from an index fund even when
+     both settle this afternoon.
+
+     `clears` is the size a seller can move in a day without moving the
+     price. Figures are illustrative. */
+  const depthTiers = [
+    { key: "deep", label: "Deep", rank: 1, color: "#2F5D3A",
+      note: "An exchange book. Size is not the constraint." },
+    { key: "liquid", label: "Liquid", rank: 2, color: "#3F7183",
+      note: "Clears in size, with a spread that widens on a bad day." },
+    { key: "moderate", label: "Moderate", rank: 3, color: "#9A7B2E",
+      note: "A real market, but one a large seller can move on their own." },
+    { key: "thin", label: "Thin", rank: 4, color: "#8C4A3A",
+      note: "A handful of buyers. Size has to be worked, and a forced sale shows." },
+  ];
+
+  const marketDepth = {
+    sov:    { tier: "deep",     clears: 100000000 },
+    tbill:  { tier: "deep",     clears: 100000000 },
+    mmf:    { tier: "deep",     clears:  80000000 },
+    dep:    { tier: "deep",     clears:  60000000 },
+    fx:     { tier: "deep",     clears:  60000000 },
+    pubeq:  { tier: "deep",     clears:  40000000 },
+    ig:     { tier: "liquid",   clears:  18000000 },
+    comm:   { tier: "liquid",   clears:  12000000 },
+    struct: { tier: "liquid",   clears:   6000000 },
+    pcred:  { tier: "moderate", clears:   2500000 },
+    infra:  { tier: "moderate", clears:   1600000 },
+    pe:     { tier: "thin",     clears:    900000 },
+    re:     { tier: "thin",     clears:    800000 },
+    preipo: { tier: "thin",     clears:    600000 },
+    vc:     { tier: "thin",     clears:    400000 },
+  };
+
   /* ============================================== borrowing against the book
      The third thing liquidity changes, after the redemption schedule and the
      mark.
@@ -1597,7 +1637,7 @@
     KRW, TODAY, family, accounts, classes, subs, positions,
     uploadFiles, ingestSteps, exceptions, mandates, survey, modelPortfolios,
     capitalCalls, distributions, benchmark, performance, attribution, modelGoals, ALT_SUBS,
-    sourceTypes, dueDiligence, anchorShelf, cashFund, exitPct, advanceRates, creditTerms, SHELF_FLOOR, SHELF_CEIL, themes, modelClasses, modelExcuses, buckets, bucketPresets, bucketMix, RISK_BASE, sleeves, allocGroups, allocLines, expectedReturn, expectedVol, classCorr, idiosyncraticVol,
+    sourceTypes, dueDiligence, anchorShelf, cashFund, exitPct, depthTiers, marketDepth, advanceRates, creditTerms, SHELF_FLOOR, SHELF_CEIL, themes, modelClasses, modelExcuses, buckets, bucketPresets, bucketMix, RISK_BASE, sleeves, allocGroups, allocLines, expectedReturn, expectedVol, classCorr, idiosyncraticVol,
     market, secondary, secondaryTrades, bidsSeed, approvalsSeed, activitySeed, opsLedger, referrals, liquidityAssumptions,
   };
 })();

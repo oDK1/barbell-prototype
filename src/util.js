@@ -195,6 +195,17 @@
       share: total(ps) ? (total(live) / total(ps)) * 100 : 0 };
   }
 
+  /* ------------------------------------------------------------- depth ----
+     Not when a thing sells — everything sells today — but how much of it
+     does before the price moves. */
+  function depthOf(x) {
+    const k = x && (x.fills || x.sub);
+    const d = D.marketDepth[k];
+    if (!d) return null;
+    const t = D.depthTiers.find((y) => y.key === d.tier);
+    return { ...t, clears: d.clears, sub: k };
+  }
+
   /* ------------------------------------------------------------- credit ----
      What the book will carry as collateral. A lender advances against what it
      can price and sell; everything here is both, so the private half stops
@@ -1056,7 +1067,7 @@
   BB.u = {
     usd, usdC, krwC, krwFull, pct, pp, sgn, sgnUsd, num, localPx, days, fmtDate, fmtTs, monthKey, monthLabel,
     staleness, provLabel, sum, total, byClass, bySub, gaps, unrealized, realizedYTD,
-    tierPct, modelBook, lineOf, groupOf, sleeveOf, isListed, markSource, marked, advanceOf, borrowingPower, exitValue, exitToday, raiseCost, liquidityProjection, shortfall, coverage, projectMix,
+    tierPct, modelBook, lineOf, groupOf, sleeveOf, isListed, markSource, marked, advanceOf, borrowingPower, depthOf, exitValue, exitToday, raiseCost, liquidityProjection, shortfall, coverage, projectMix,
     modelSix, convPct, bySix, sixToFour, sixToSubs, pickForClass, holdingsSix, geoBucket, GEO_BUCKETS, listingDocs, listingView, currentIRR, tradeHistory, impactSix, impactBucket, modelClassOf, modelClassLabel, bucketOf, bucketLabel, byBucket, spread, engineDrag, posReturn, rungOf, bucketKeyOf, inBucket, splitForBand, modelFour, buildAnchor, anchorLadder, offerBucket, offerRung, offerTheme, offerPlace, byTheme, SUB_RETURN, topHoldings, affiliateExposure, taxLots, eligibility,
     fitFor, subLabel, clsLabel, clsOf, impact, modelWeights, marketContext, scoreFor, suggestAmount,
   };

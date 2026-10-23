@@ -59,7 +59,7 @@
 
         <div className="band mt16">
           <div className="cell"><div className="stat-l">{isListed ? "Yield / return" : "Target return"}</div><div className="stat-v sm">{m.ret}</div></div>
-          <div className="cell"><div className="stat-l">Market</div><div className="stat-v sm">{u.pct(D.exitPct[m.fills] === undefined ? 100 : D.exitPct[m.fills], 0)} of mark</div><div className="stat-s">what a seller clears, same day</div></div>
+          <div className="cell"><div className="stat-l">Liquidity depth</div><div className="stat-v sm">{(u.depthOf(m) || {}).label || "—"}</div><div className="stat-s">{u.depthOf(m) ? u.usdC(u.depthOf(m).clears) + " clears at the mark, same day" : "—"}</div></div>
           <div className="cell"><div className="stat-l">Availability</div><div className="stat-v sm" style={{ fontSize: 14 }}>{m.avail}</div></div>
           <div className="cell"><div className="stat-l">Fit</div><div className="stat-v sm"><Fit score={sc.score} /></div>
             <div className="stat-s">{m.why}</div></div>

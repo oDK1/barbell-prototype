@@ -11,6 +11,7 @@
     const st = S.get();
     const isListed = m.kind === "listed";
     const place = u.offerPlace(m);
+    const dep = u.depthOf(m);
     return (
       <tr className="clickable" onClick={() => onOpen(m)}>
         <td style={{ minWidth: 260 }}>
@@ -42,6 +43,15 @@
                 <div className="tsub">thesis, not a target</div></>
             : <span className="num">{m.ret}</span>}
         </td>
+        {/* everything settles same day, so the question is size, not timing */}
+        <td>
+          {dep
+            ? <><span className="depth" style={{ color: dep.color, borderColor: dep.color }}>
+                  <i style={{ background: dep.color }} />{dep.label}
+                </span>
+                <div className="tsub num">{u.usdC(dep.clears)} clears at the mark</div></>
+            : <span className="tri">—</span>}
+        </td>
         <td className="n">
           {sug
             ? <><span className="num" style={{ fontWeight: 600, opacity: sug.unfunded ? .5 : 1 }}>{u.usdC(sug.amount)}</span>
@@ -68,7 +78,7 @@
     return (
       <thead>
         <tr>
-          <th>Opportunity</th><th>Where it lands</th><th className="n">Target yield</th>
+          <th>Opportunity</th><th>Where it lands</th><th className="n">Target yield</th><th>Liquidity depth</th>
           <th className="n">Suggested</th><th className="n">Fit</th>
           <th className="hide-narrow" style={{ minWidth: 170 }}>Why</th><th></th>
         </tr>
@@ -78,7 +88,7 @@
 
   function Marketplace({ route }) {
     const st = S.useStore();
-    const [f, setF] = useState({ bucket: "", rung: "", theme: "", src: "", trust: "", sector: "", geo: "", ret: "" });
+    const [f, setF] = useState({ bucket: "", rung: "", theme: "", src: "", trust: "", depth: "", sector: "", geo: "", ret: "" });
     const [q, setQ] = useState("");
     const [act, setAct] = useState(null);
     const [ask, setAsk] = useState("");
@@ -103,6 +113,7 @@
       if (f.theme && u.offerTheme(m) !== f.theme) return false;
       if (f.src && m.source !== f.src) return false;
       if (f.trust && m.trust !== f.trust) return false;
+      if (f.depth && (u.depthOf(m) || {}).key !== f.depth) return false;
       if (f.sector && m.sector !== f.sector) return false;
       if (f.geo && u.geoBucket(m.geo) !== f.geo) return false;
       if (f.ret && (u.offerBucket(m) === "conviction" || m.retNum < +f.ret)) return false;
@@ -170,6 +181,11 @@
                     <select value={f.src} onChange={(e) => setF({ ...f, src: e.target.value })}>
                       <option value="">Any</option>{D.sourceTypes.map((c) => <option key={c.key} value={c.key}>{c.label}</option>)}
                     </select></label></div>
+                  <div className="f-item"><label className="f"><span>Liquidity depth</span>
+                    <select value={f.depth} onChange={(e) => setF({ ...f, depth: e.target.value })}>
+                      <option value="">Any</option>
+                      {D.depthTiers.map((d) => <option key={d.key} value={d.key}>{d.label}</option>)}
+                    </select></label></div>
                   <div className="f-item"><label className="f"><span>Trust fit</span>
                     <select value={f.trust} onChange={(e) => setF({ ...f, trust: e.target.value })}>
                       <option value="">Any</option>
@@ -227,7 +243,8 @@
             {/* the buying surface answers to the same two buckets as
                 the portfolio. The six classes stay one level down. */}
             <Panel title="Allocation context">
-              {u.byBucket(st.positions, 100 - st.anchorPct).map((b) => (
+              {/* the same sleeves and groups the portfolio is drawn in */}
+              {u.modelBook(st.positions, st.frontierPct).groups.map((b) => (
                 <div key={b.key} className="mkb">
                   <div className="mkb-hd">
                     <i style={{ background: b.color }} />
@@ -238,7 +255,7 @@
                   <div className="bk-bar"><i style={{ width: Math.min(100, b.wt) + "%", background: b.color }} />
                     <b style={{ left: Math.min(100, b.target) + "%" }} /></div>
                   <div className="mkb-ft tri">
-                    target {u.pct(b.target)} · {u.pp(b.drift)}
+                    model {u.pct(b.target)} · {u.pp(b.drift)}
                   </div>
                 </div>
               ))}

@@ -807,6 +807,11 @@ tr.rung-cash td{background:#FCFBF8}
 .ag-n{font-weight:600}
 .ag-w{font-weight:600}
 
+/* Liquidity depth: how much clears at the mark, not when it clears. */
+.depth{display:inline-flex;align-items:center;gap:6px;font-size:10px;letter-spacing:.06em;
+  text-transform:uppercase;font-weight:600;padding:2px 8px;border:1px solid;border-radius:var(--r);background:var(--paper)}
+.depth i{width:6px;height:6px;border-radius:50%;display:inline-block}
+
 </style>
 </head>
 <body>
@@ -1635,6 +1640,46 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
      which the screen shows rather than hides. */
   const cashFund = { name: "Cash reserve", yield: 3.8, liq: "Immediate", vol: 0.4,
     inside: "Money market funds, T-bills and bank deposits." };
+
+  /* ================================================== liquidity depth
+     Everything settles the same day, so when a thing can be sold is the same
+     answer everywhere and not worth a column. How much of it can be sold is
+     not. Depth is the size that clears at the mark before the price starts
+     moving, and it is the constraint that actually binds: it is why a
+     market-making vault that works at $6M does not work at $60M, and why a
+     pre-IPO block is a different kind of asset from an index fund even when
+     both settle this afternoon.
+
+     `clears` is the size a seller can move in a day without moving the
+     price. Figures are illustrative. */
+  const depthTiers = [
+    { key: "deep", label: "Deep", rank: 1, color: "#2F5D3A",
+      note: "An exchange book. Size is not the constraint." },
+    { key: "liquid", label: "Liquid", rank: 2, color: "#3F7183",
+      note: "Clears in size, with a spread that widens on a bad day." },
+    { key: "moderate", label: "Moderate", rank: 3, color: "#9A7B2E",
+      note: "A real market, but one a large seller can move on their own." },
+    { key: "thin", label: "Thin", rank: 4, color: "#8C4A3A",
+      note: "A handful of buyers. Size has to be worked, and a forced sale shows." },
+  ];
+
+  const marketDepth = {
+    sov:    { tier: "deep",     clears: 100000000 },
+    tbill:  { tier: "deep",     clears: 100000000 },
+    mmf:    { tier: "deep",     clears:  80000000 },
+    dep:    { tier: "deep",     clears:  60000000 },
+    fx:     { tier: "deep",     clears:  60000000 },
+    pubeq:  { tier: "deep",     clears:  40000000 },
+    ig:     { tier: "liquid",   clears:  18000000 },
+    comm:   { tier: "liquid",   clears:  12000000 },
+    struct: { tier: "liquid",   clears:   6000000 },
+    pcred:  { tier: "moderate", clears:   2500000 },
+    infra:  { tier: "moderate", clears:   1600000 },
+    pe:     { tier: "thin",     clears:    900000 },
+    re:     { tier: "thin",     clears:    800000 },
+    preipo: { tier: "thin",     clears:    600000 },
+    vc:     { tier: "thin",     clears:    400000 },
+  };
 
   /* ============================================== borrowing against the book
      The third thing liquidity changes, after the redemption schedule and the
@@ -2723,7 +2768,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     KRW, TODAY, family, accounts, classes, subs, positions,
     uploadFiles, ingestSteps, exceptions, mandates, survey, modelPortfolios,
     capitalCalls, distributions, benchmark, performance, attribution, modelGoals, ALT_SUBS,
-    sourceTypes, dueDiligence, anchorShelf, cashFund, exitPct, advanceRates, creditTerms, SHELF_FLOOR, SHELF_CEIL, themes, modelClasses, modelExcuses, buckets, bucketPresets, bucketMix, RISK_BASE, sleeves, allocGroups, allocLines, expectedReturn, expectedVol, classCorr, idiosyncraticVol,
+    sourceTypes, dueDiligence, anchorShelf, cashFund, exitPct, depthTiers, marketDepth, advanceRates, creditTerms, SHELF_FLOOR, SHELF_CEIL, themes, modelClasses, modelExcuses, buckets, bucketPresets, bucketMix, RISK_BASE, sleeves, allocGroups, allocLines, expectedReturn, expectedVol, classCorr, idiosyncraticVol,
     market, secondary, secondaryTrades, bidsSeed, approvalsSeed, activitySeed, opsLedger, referrals, liquidityAssumptions,
   };
 })();
@@ -2925,6 +2970,17 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     const live = ps.filter((p) => markSource(p).live);
     return { live, liveValue: total(live), unmarked: ps.filter((p) => !markSource(p).live),
       share: total(ps) ? (total(live) / total(ps)) * 100 : 0 };
+  }
+
+  /* ------------------------------------------------------------- depth ----
+     Not when a thing sells — everything sells today — but how much of it
+     does before the price moves. */
+  function depthOf(x) {
+    const k = x && (x.fills || x.sub);
+    const d = D.marketDepth[k];
+    if (!d) return null;
+    const t = D.depthTiers.find((y) => y.key === d.tier);
+    return { ...t, clears: d.clears, sub: k };
   }
 
   /* ------------------------------------------------------------- credit ----
@@ -3788,7 +3844,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   BB.u = {
     usd, usdC, krwC, krwFull, pct, pp, sgn, sgnUsd, num, localPx, days, fmtDate, fmtTs, monthKey, monthLabel,
     staleness, provLabel, sum, total, byClass, bySub, gaps, unrealized, realizedYTD,
-    tierPct, modelBook, lineOf, groupOf, sleeveOf, isListed, markSource, marked, advanceOf, borrowingPower, exitValue, exitToday, raiseCost, liquidityProjection, shortfall, coverage, projectMix,
+    tierPct, modelBook, lineOf, groupOf, sleeveOf, isListed, markSource, marked, advanceOf, borrowingPower, depthOf, exitValue, exitToday, raiseCost, liquidityProjection, shortfall, coverage, projectMix,
     modelSix, convPct, bySix, sixToFour, sixToSubs, pickForClass, holdingsSix, geoBucket, GEO_BUCKETS, listingDocs, listingView, currentIRR, tradeHistory, impactSix, impactBucket, modelClassOf, modelClassLabel, bucketOf, bucketLabel, byBucket, spread, engineDrag, posReturn, rungOf, bucketKeyOf, inBucket, splitForBand, modelFour, buildAnchor, anchorLadder, offerBucket, offerRung, offerTheme, offerPlace, byTheme, SUB_RETURN, topHoldings, affiliateExposure, taxLots, eligibility,
     fitFor, subLabel, clsLabel, clsOf, impact, modelWeights, marketContext, scoreFor, suggestAmount,
   };
@@ -7123,6 +7179,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     const st = S.get();
     const isListed = m.kind === "listed";
     const place = u.offerPlace(m);
+    const dep = u.depthOf(m);
     return (
       <tr className="clickable" onClick={() => onOpen(m)}>
         <td style={{ minWidth: 260 }}>
@@ -7154,6 +7211,15 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 <div className="tsub">thesis, not a target</div></>
             : <span className="num">{m.ret}</span>}
         </td>
+        {/* everything settles same day, so the question is size, not timing */}
+        <td>
+          {dep
+            ? <><span className="depth" style={{ color: dep.color, borderColor: dep.color }}>
+                  <i style={{ background: dep.color }} />{dep.label}
+                </span>
+                <div className="tsub num">{u.usdC(dep.clears)} clears at the mark</div></>
+            : <span className="tri">—</span>}
+        </td>
         <td className="n">
           {sug
             ? <><span className="num" style={{ fontWeight: 600, opacity: sug.unfunded ? .5 : 1 }}>{u.usdC(sug.amount)}</span>
@@ -7180,7 +7246,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     return (
       <thead>
         <tr>
-          <th>Opportunity</th><th>Where it lands</th><th className="n">Target yield</th>
+          <th>Opportunity</th><th>Where it lands</th><th className="n">Target yield</th><th>Liquidity depth</th>
           <th className="n">Suggested</th><th className="n">Fit</th>
           <th className="hide-narrow" style={{ minWidth: 170 }}>Why</th><th></th>
         </tr>
@@ -7190,7 +7256,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
   function Marketplace({ route }) {
     const st = S.useStore();
-    const [f, setF] = useState({ bucket: "", rung: "", theme: "", src: "", trust: "", sector: "", geo: "", ret: "" });
+    const [f, setF] = useState({ bucket: "", rung: "", theme: "", src: "", trust: "", depth: "", sector: "", geo: "", ret: "" });
     const [q, setQ] = useState("");
     const [act, setAct] = useState(null);
     const [ask, setAsk] = useState("");
@@ -7215,6 +7281,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       if (f.theme && u.offerTheme(m) !== f.theme) return false;
       if (f.src && m.source !== f.src) return false;
       if (f.trust && m.trust !== f.trust) return false;
+      if (f.depth && (u.depthOf(m) || {}).key !== f.depth) return false;
       if (f.sector && m.sector !== f.sector) return false;
       if (f.geo && u.geoBucket(m.geo) !== f.geo) return false;
       if (f.ret && (u.offerBucket(m) === "conviction" || m.retNum < +f.ret)) return false;
@@ -7282,6 +7349,11 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                     <select value={f.src} onChange={(e) => setF({ ...f, src: e.target.value })}>
                       <option value="">Any</option>{D.sourceTypes.map((c) => <option key={c.key} value={c.key}>{c.label}</option>)}
                     </select></label></div>
+                  <div className="f-item"><label className="f"><span>Liquidity depth</span>
+                    <select value={f.depth} onChange={(e) => setF({ ...f, depth: e.target.value })}>
+                      <option value="">Any</option>
+                      {D.depthTiers.map((d) => <option key={d.key} value={d.key}>{d.label}</option>)}
+                    </select></label></div>
                   <div className="f-item"><label className="f"><span>Trust fit</span>
                     <select value={f.trust} onChange={(e) => setF({ ...f, trust: e.target.value })}>
                       <option value="">Any</option>
@@ -7339,7 +7411,8 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
             {/* the buying surface answers to the same two buckets as
                 the portfolio. The six classes stay one level down. */}
             <Panel title="Allocation context">
-              {u.byBucket(st.positions, 100 - st.anchorPct).map((b) => (
+              {/* the same sleeves and groups the portfolio is drawn in */}
+              {u.modelBook(st.positions, st.frontierPct).groups.map((b) => (
                 <div key={b.key} className="mkb">
                   <div className="mkb-hd">
                     <i style={{ background: b.color }} />
@@ -7350,7 +7423,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                   <div className="bk-bar"><i style={{ width: Math.min(100, b.wt) + "%", background: b.color }} />
                     <b style={{ left: Math.min(100, b.target) + "%" }} /></div>
                   <div className="mkb-ft tri">
-                    target {u.pct(b.target)} · {u.pp(b.drift)}
+                    model {u.pct(b.target)} · {u.pp(b.drift)}
                   </div>
                 </div>
               ))}
@@ -7492,7 +7565,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
         <div className="band mt16">
           <div className="cell"><div className="stat-l">{isListed ? "Yield / return" : "Target return"}</div><div className="stat-v sm">{m.ret}</div></div>
-          <div className="cell"><div className="stat-l">Market</div><div className="stat-v sm">{u.pct(D.exitPct[m.fills] === undefined ? 100 : D.exitPct[m.fills], 0)} of mark</div><div className="stat-s">what a seller clears, same day</div></div>
+          <div className="cell"><div className="stat-l">Liquidity depth</div><div className="stat-v sm">{(u.depthOf(m) || {}).label || "—"}</div><div className="stat-s">{u.depthOf(m) ? u.usdC(u.depthOf(m).clears) + " clears at the mark, same day" : "—"}</div></div>
           <div className="cell"><div className="stat-l">Availability</div><div className="stat-v sm" style={{ fontSize: 14 }}>{m.avail}</div></div>
           <div className="cell"><div className="stat-l">Fit</div><div className="stat-v sm"><Fit score={sc.score} /></div>
             <div className="stat-s">{m.why}</div></div>

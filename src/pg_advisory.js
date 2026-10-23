@@ -12,7 +12,7 @@
 (function () {
   const { useState } = React;
   const D = BB.data, u = BB.u, S = BB.store;
-  const { Panel, Crumb, Fit, AgentBar } = BB.ui;
+  const { Panel, Crumb, Fit } = BB.ui;
 
   /* Lenses are a way of reading the same book, not a claim about what anyone
      would actually say. Labelled as modelled approaches throughout. */
@@ -73,10 +73,35 @@
     const ps = st.positions;
     const [lens, setLens] = useState("macro");
     const [book, setBook] = useState(null);
+    const [q, setQ] = useState("");
+    const [answer, setAnswer] = useState(null);
     const L = LENSES.find((x) => x.key === lens);
 
+    /* The prototype answers through the lenses it already has: the question
+       picks one rather than generating a new reading. */
+    const route = (text) => {
+      const t2 = (text || "").toLowerCase();
+      if (/tail|black[- ]?swan|crash|worst|shock|blow/.test(t2)) return "tail";
+      if (/rate|macro|regime|currency|fx|inflation|dollar|won/.test(t2)) return "macro";
+      if (/risk|balanc|diversif|concentrat|spread|correlat/.test(t2)) return "parity";
+      return null;
+    };
+    const ask = (text) => {
+      const asked = typeof text === "string" ? text : q;
+      if (!asked.trim()) return;
+      const k = route(asked);
+      if (k) {
+        setLens(k);
+        setAnswer("Answered through the " + LENSES.find((x) => x.key === k).who
+          + " lens — the three readings below are what the agent has on this book.");
+      } else {
+        setAnswer("The prototype answers through the three lenses below. Try a question about tail risk, "
+          + "concentration, or what a change in rates would do.");
+      }
+    };
+
     return (
-      <div className="wrap page hasagent">
+      <div className="wrap page">
         <div className="between">
           <div>
             <div className="eyebrow">Advisory</div>
@@ -116,8 +141,26 @@
             {L.read(ps).map((line, i) => (
               <div key={i} className="lens-l"><span className="lens-n">{i + 1}</span><span>{line}</span></div>
             ))}
-            <div className="note mt12" style={{ fontSize: 11.5 }}>
-              Observations on the reconciled book. Barbell does not manage a mandate and does not decide anything here.
+          </div>
+
+          {/* ask the agent where the agent is, rather than from a bar that
+              floats over the whole page */}
+          <div className="agentbox">
+            <div className="ab-hd lbl">Ask the agent</div>
+            {answer && <div className="ab-a">{answer}</div>}
+            <div className="ab-row">
+              <div className="search" style={{ flex: 1 }}>
+                <input type="text" value={q} placeholder="What is my black-swan exposure? · What am I not seeing?"
+                  onChange={(e) => setQ(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && ask()} />
+              </div>
+              <button className="btn p" onClick={ask}>Ask</button>
+            </div>
+            <div className="ab-ex tri">
+              {["What is my black-swan exposure?", "Where am I concentrated?", "What happens if rates move?"]
+                .map((x) => (
+                  <button key={x} className="link g" onClick={() => { setQ(x); ask(x); }}>{x}</button>
+                ))}
             </div>
           </div>
         </div>
@@ -188,13 +231,6 @@
           </BB.ui.Modal>
         )}
 
-        <AgentBar label="Advisory Agent">
-          <div className="search" style={{ flex: 1 }}>
-            <input type="text" placeholder="Ask the agent: what is my black-swan exposure? · what am I not seeing?"
-              onKeyDown={(e) => e.key === "Enter" && S.toast("The lenses above answer this in the prototype.")} />
-          </div>
-          <button className="btn sm" onClick={() => S.toast("The lenses above answer this in the prototype.")}>Ask</button>
-        </AgentBar>
       </div>
     );
   }
